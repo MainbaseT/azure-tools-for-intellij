@@ -38,6 +38,7 @@ lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" 
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 plexusArchiver = { group = "org.codehaus.plexus", name = "plexus-archiver", version.ref = "plexusArchiver" }
 jedis = { group = "redis.clients", name = "jedis", version.ref = "jedis" }
+
 azureToolkitLibs = { group = "com.microsoft.azure", name = "azure-toolkit-libs", version.ref = "azureToolkitLibs" }
 azureToolkitIdeLibs = { group = "com.microsoft.azure", name = "azure-toolkit-ide-libs", version.ref = "azureToolkitLibs" }
 azureToolkitHdinsightLibs = { group = "com.microsoft.hdinsight", name = "azure-toolkit-ide-hdinsight-libs", version.ref = "azureToolkitHdinsightLibs" }
