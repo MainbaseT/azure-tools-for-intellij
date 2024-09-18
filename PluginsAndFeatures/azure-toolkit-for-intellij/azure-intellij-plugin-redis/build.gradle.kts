@@ -32,7 +32,7 @@ dependencies {
     implementation(libs.azureToolkitRedisLib)
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdeRedisLib)
-    implementation("redis.clients:jedis:3.6.3")
+    implementation(libs.jedis)
 
     compileOnly(libs.lombok)
     compileOnly("org.jetbrains:annotations:24.0.0")
