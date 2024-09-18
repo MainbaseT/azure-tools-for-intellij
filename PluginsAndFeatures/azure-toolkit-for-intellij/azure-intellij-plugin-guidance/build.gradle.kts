@@ -30,11 +30,11 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))
     implementation(libs.azureToolkitIdeCommonLib)
-    implementation("org.yaml:snakeyaml:2.2")
+    implementation(libs.snakeyaml)
 
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    compileOnly(libs.lombok)
     compileOnly("org.jetbrains:annotations:24.0.0")
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor(libs.lombok)
     implementation(libs.azureToolkitCommonLib)
     aspect(libs.azureToolkitCommonLib)
 }

@@ -31,9 +31,9 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(libs.azureToolkitIdeCommonLib)
 
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    compileOnly(libs.lombok)
     compileOnly("org.jetbrains:annotations:24.0.0")
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor(libs.lombok)
     implementation(libs.azureToolkitCommonLib)
     aspect(libs.azureToolkitCommonLib)
 }
