@@ -17,7 +17,6 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import com.microsoft.azure.toolkit.intellij.storage.azurite.services.AzuriteService
 import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings
 import javax.swing.Icon
-import kotlin.io.path.exists
 
 class AzuriteBeforeRunTask : BeforeRunTask<AzuriteBeforeRunTask>(AzuriteBeforeRunTaskProvider.ID)
 
@@ -36,20 +35,6 @@ class AzuriteBeforeRunTaskProvider : BeforeRunTaskProvider<AzuriteBeforeRunTask>
 
     override fun createTask(runConfiguration: RunConfiguration): AzuriteBeforeRunTask {
         val task = AzuriteBeforeRunTask()
-
-        val project = runConfiguration.project
-        val settings = AzuriteSettings.getInstance(project)
-        val azuritePath = settings.getAzuriteExecutablePath()
-        if (azuritePath == null || !azuritePath.exists()) {
-            task.isEnabled = false
-            return task
-        }
-        val workspacePath = settings.getAzuriteWorkspacePath()
-        if (!workspacePath.exists()) {
-            task.isEnabled = false
-            return task
-        }
-
         task.isEnabled = runConfiguration.type.id == "AzureFunctionAppRun"
         return task
     }
@@ -61,9 +46,10 @@ class AzuriteBeforeRunTaskProvider : BeforeRunTaskProvider<AzuriteBeforeRunTask>
         task: AzuriteBeforeRunTask
     ): Boolean {
         val project = configuration.project
+        val checkAzuriteExecutable = AzuriteSettings.getInstance(project).checkAzuriteExecutable
         val service = AzuriteService.getInstance()
         if (!service.isRunning) {
-            service.start(project)
+            service.start(project, !checkAzuriteExecutable)
         }
 
         return true

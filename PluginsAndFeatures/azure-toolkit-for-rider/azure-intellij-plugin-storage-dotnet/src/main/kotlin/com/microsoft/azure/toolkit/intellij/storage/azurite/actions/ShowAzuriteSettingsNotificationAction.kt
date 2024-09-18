@@ -10,7 +10,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteConfigurable
 
-class ShowAzuriteSettingsNotificationAction: NotificationAction("Show settings") {
+class ShowAzuriteSettingsNotificationAction : NotificationAction("Show settings") {
     override fun actionPerformed(e: AnActionEvent, n: Notification) {
         val project = e.project ?: return
         ShowSettingsUtil.getInstance().showSettingsDialog(project, AzuriteConfigurable::class.java)

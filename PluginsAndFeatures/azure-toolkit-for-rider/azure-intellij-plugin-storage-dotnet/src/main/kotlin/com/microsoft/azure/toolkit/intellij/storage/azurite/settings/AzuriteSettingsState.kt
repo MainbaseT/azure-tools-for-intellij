@@ -12,6 +12,7 @@ class AzuriteSettingsState : BaseState() {
     var workspacePath by string("")
     var looseMode by property(false)
     var showAzuriteService by property(true)
+    var checkAzuriteExecutable by property(true)
     var blobHost by string("127.0.0.1")
     var blobPort by property(10000)
     var queueHost by string("127.0.0.1")

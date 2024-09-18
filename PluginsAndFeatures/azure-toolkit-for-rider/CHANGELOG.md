@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Improve error notification if unable to get Azure Function worker PID ([RIDER-116398](https://youtrack.jetbrains.com/issue/RIDER-116398))
+
+### Added
+
+- Setting to disable Azurite executable check before running a configuration ([RIDER-106668](https://youtrack.jetbrains.com/issue/RIDER-106668))
+
 ## [4.1.3] - 2024-09-06
 
 ### Fixed
