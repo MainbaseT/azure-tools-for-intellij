@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Improve error notification if unable to get Azure Function worker PID ([RIDER-116398](https://youtrack.jetbrains.com/issue/RIDER-116398))
+
 ## [4.1.3] - 2024-09-06
 
 ### Fixed

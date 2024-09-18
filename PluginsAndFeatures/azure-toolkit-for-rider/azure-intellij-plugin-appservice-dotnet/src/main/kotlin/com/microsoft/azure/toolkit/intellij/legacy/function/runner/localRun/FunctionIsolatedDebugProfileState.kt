@@ -118,7 +118,7 @@ class FunctionIsolatedDebugProfileState(
             throw CantRunException("Azure Functions host process terminated before the debugger could attach")
         }
 
-        if (pid == 0) {
+        if (pid == null || pid == 0) {
             LOG.warn("Azure Functions host did not return isolated worker process id")
 
             Notification(
@@ -132,7 +132,7 @@ class FunctionIsolatedDebugProfileState(
             throw CantRunException("Azure Functions host did not return isolated worker process id")
         }
 
-        return executionResult to requireNotNull(pid)
+        return executionResult to pid
     }
 
     override suspend fun createWorkerRunInfo(lifetime: Lifetime, helper: DebuggerHelperHost, port: Int) =
