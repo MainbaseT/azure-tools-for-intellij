@@ -57,6 +57,12 @@ class AzuriteSettings(private val project: Project) : SimplePersistentStateCompo
             state.showAzuriteService = value
         }
 
+    var checkAzuriteExecutable
+        get() = state.checkAzuriteExecutable
+        set(value) {
+            state.checkAzuriteExecutable = value
+        }
+
     var blobHost
         get() = state.blobHost ?: ""
         set(value) {

@@ -88,6 +88,10 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
                             )
                     }
             }
+            row {
+                checkBox("Check the Azurite executable before running a configuration")
+                    .bindSelected(settings::checkAzuriteExecutable)
+            }
         }
         group("Host/Port Settings") {
             row {

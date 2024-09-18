@@ -25,6 +25,7 @@ import com.intellij.util.application
 import com.intellij.util.io.BaseOutputReader
 import com.jetbrains.rd.platform.util.idea.LifetimedService
 import com.jetbrains.rd.util.lifetime.SequentialLifetimes
+import com.microsoft.azure.toolkit.intellij.storage.azurite.actions.DisableAzuriteCheckNotificationAction
 import com.microsoft.azure.toolkit.intellij.storage.azurite.actions.ShowAzuriteSettingsNotificationAction
 import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount
@@ -64,7 +65,7 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
             return sessionStarted.get() && !sessionLifetimes.isTerminated
         }
 
-    fun start(project: Project) {
+    fun start(project: Project, silent: Boolean = false) {
         if (isRunning) {
             LOG.warn("The caller should verify if an existing session is running, before calling start()")
             return
@@ -75,39 +76,24 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
         val settings = AzuriteSettings.getInstance(project)
         val azuritePath = settings.getAzuriteExecutablePath()
         if (azuritePath == null || !azuritePath.exists()) {
-            Notification(
-                "Azure AppServices",
-                "Unable to find Azurite executable location",
-                azuritePath?.let { "${it.absolutePathString()} isn't exists" } ?: "",
-                NotificationType.WARNING
-            )
-                .addAction(ShowAzuriteSettingsNotificationAction())
-                .notify(project)
+            if (!silent) {
+                showUnableToFindAzuriteExecutableNotification(azuritePath, project)
+            }
             return
         }
 
         val workspacePath = settings.getAzuriteWorkspacePath()
         if (!workspacePath.exists()) {
-            Notification(
-                "Azure AppServices",
-                "Unable to find Azurite workspace location",
-                "${workspacePath.absolutePathString()} isn't exists",
-                NotificationType.WARNING
-            )
-                .addAction(ShowAzuriteSettingsNotificationAction())
-                .notify(project)
+            if (!silent) {
+                showUnableToFindAzuriteWorkspaceNotification(workspacePath, project)
+            }
             return
         }
 
         if (settings.basicOAuth && settings.certificatePath.isEmpty()) {
-            Notification(
-                "Azure AppServices",
-                "The certificate path cannot be empty if OAuth is enabled",
-                "",
-                NotificationType.WARNING
-            )
-                .addAction(ShowAzuriteSettingsNotificationAction())
-                .notify(project)
+            if (!silent) {
+                showEmptyCertificatePathNotification(project)
+            }
             return
         }
 
@@ -322,4 +308,40 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
         application.messageBus
             .syncPublisher(AzuriteSessionListener.TOPIC)
             .sessionStopped()
+
+    private fun showUnableToFindAzuriteExecutableNotification(azuritePath: Path?, project: Project) {
+        Notification(
+            "Azure AppServices",
+            "Unable to find Azurite executable location",
+            azuritePath?.let { "${it.absolutePathString()} isn't exists" } ?: "",
+            NotificationType.WARNING
+        )
+            .addAction(ShowAzuriteSettingsNotificationAction())
+            .addAction(DisableAzuriteCheckNotificationAction())
+            .notify(project)
+    }
+
+    private fun showUnableToFindAzuriteWorkspaceNotification(workspacePath: Path, project: Project) {
+        Notification(
+            "Azure AppServices",
+            "Unable to find Azurite workspace location",
+            "${workspacePath.absolutePathString()} isn't exists",
+            NotificationType.WARNING
+        )
+            .addAction(ShowAzuriteSettingsNotificationAction())
+            .addAction(DisableAzuriteCheckNotificationAction())
+            .notify(project)
+    }
+
+    private fun showEmptyCertificatePathNotification(project: Project) {
+        Notification(
+            "Azure AppServices",
+            "The certificate path cannot be empty if OAuth is enabled",
+            "",
+            NotificationType.WARNING
+        )
+            .addAction(ShowAzuriteSettingsNotificationAction())
+            .addAction(DisableAzuriteCheckNotificationAction())
+            .notify(project)
+    }
 }
