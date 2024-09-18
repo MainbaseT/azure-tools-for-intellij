@@ -7,8 +7,6 @@ package com.microsoft.azure.toolkit.intellij.appservice
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor
 import com.microsoft.azure.toolkit.ide.appservice.file.AppServiceFileActionsContributor
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor
-import com.microsoft.azure.toolkit.ide.appservice.webapp.WebAppActionsContributor
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor
@@ -106,18 +104,6 @@ class AppServiceRiderActionsContributor : IActionsContributor {
             { r, _ -> r is FunctionAppDeploymentSlot },
             { c, e: AnActionEvent ->
                 e.project?.let { OpenAppServicePropertyViewAction.openFunctionAppDeploymentSlotPropertyView(c as FunctionAppDeploymentSlot, it) }
-            })
-        am.registerHandler(
-            WebAppActionsContributor.SWAP_DEPLOYMENT_SLOT,
-            { r, _ -> r is WebAppDeploymentSlot },
-            { c, e: AnActionEvent ->
-                c.remote?.swap("production")
-            })
-        am.registerHandler(
-            FunctionAppActionsContributor.SWAP_DEPLOYMENT_SLOT,
-            { r, _ -> r is FunctionAppDeploymentSlot },
-            { c, e: AnActionEvent ->
-                c.remote?.swap("production")
             })
     }
 }

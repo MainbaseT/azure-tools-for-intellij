@@ -28,7 +28,7 @@ concurrency:
 
 env:
   # Branches from the https://github.com/microsoft/azure-maven-plugins and https://github.com/microsoft/azure-tools-for-java repositories
-  ENDGAME_VERSION: endgame-202407
+  ENDGAME_VERSION: endgame-202408
 
 jobs:
 
