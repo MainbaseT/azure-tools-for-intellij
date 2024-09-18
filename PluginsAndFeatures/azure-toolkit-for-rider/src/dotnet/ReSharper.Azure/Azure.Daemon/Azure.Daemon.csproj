@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <RootNamespace>JetBrains.ReSharper.Azure.Daemon</RootNamespace>
+        <AssemblyName>JetBrains.ReSharper.Azure.Daemon</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Rider.SDK" Version="$(RiderSDKVersion)" />
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="CronExpressionDescriptor" Version="2.36.0" />
+        <PackageReference Include="NCrontab.Signed" Version="3.3.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Azure.Project\Azure.Project.csproj" />
+        <ProjectReference Include="..\Azure.Psi\Azure.Psi.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Label="C#">
+        <ErrorsGen Include="Errors\FunctionAppErrors.xml">
+            <Namespace>JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors</Namespace>
+            <OutputFile>Errors\FunctionAppErrors.Generated.cs</OutputFile>
+            <Mode>ERRORS</Mode>
+        </ErrorsGen>
+    </ItemGroup>
+    
+</Project>

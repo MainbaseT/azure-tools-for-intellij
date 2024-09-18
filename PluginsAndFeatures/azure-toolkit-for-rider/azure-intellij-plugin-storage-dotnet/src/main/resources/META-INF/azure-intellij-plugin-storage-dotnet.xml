@@ -1,0 +1,45 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <projectConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
+                                 displayName="Azurite"
+                                 id="com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteConfigurable"
+                                 instance="com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteConfigurable"/>
+
+        <serviceViewContributor
+                implementation="com.microsoft.azure.toolkit.intellij.storage.azurite.services.AzuriteServiceViewContributor"/>
+
+        <stepsBeforeRunProvider
+                implementation="com.microsoft.azure.toolkit.intellij.storage.azurite.AzuriteBeforeRunTaskProvider"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.storage.IntellijDotnetStorageActionsContributor"/>
+    </extensions>
+
+    <actions>
+        <action id="AzureToolkit.Azurite.Start"
+                class="com.microsoft.azure.toolkit.intellij.storage.azurite.actions.StartAzuriteAction"
+                text="Start Azurite"
+                description="Start Azurite emulator"
+                icon="AllIcons.Actions.Execute">
+        </action>
+        <action id="AzureToolkit.Azurite.Stop"
+                class="com.microsoft.azure.toolkit.intellij.storage.azurite.actions.StopAzuriteAction"
+                text="Stop Azurite"
+                description="Stop Azurite emulator"
+                icon="AllIcons.Actions.Suspend">
+        </action>
+        <action id="AzureToolkit.Azurite.Clean"
+                class="com.microsoft.azure.toolkit.intellij.storage.azurite.actions.CleanAzuriteAction"
+                text="Clean Azurite"
+                description="Clean data in Azurite emulator"
+                icon="AllIcons.Actions.GC">
+        </action>
+        <action id="AzureToolkit.Azurite.ShowSettings"
+                class="com.microsoft.azure.toolkit.intellij.storage.azurite.actions.ShowAzuriteSettingsAction"
+                text="Azurite Settings"
+                description="Show Azurite settings"
+                icon="AllIcons.General.Settings">
+        </action>
+    </actions>
+</idea-plugin>

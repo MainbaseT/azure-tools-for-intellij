@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Intellisense", "src\dotnet\ReSharper.Azure\Azure.Intellisense\Azure.Intellisense.csproj", "{951BC6EE-D558-4B65-83EE-710EC52A068C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Project", "src\dotnet\ReSharper.Azure\Azure.Project\Azure.Project.csproj", "{89B4800D-245A-49F5-94C6-E45D239EFA84}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D7AED5E7-CF45-4740-A0D8-DA638A964069}"
+	ProjectSection(SolutionItems) = preProject
+		src\dotnet\Directory.Build.props = src\dotnet\Directory.Build.props
+		CHANGELOG.md = CHANGELOG.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Psi", "src\dotnet\ReSharper.Azure\Azure.Psi\Azure.Psi.csproj", "{90893DE8-F9A4-4970-BE08-0A5E3EB97E1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Daemon", "src\dotnet\ReSharper.Azure\Azure.Daemon\Azure.Daemon.csproj", "{1E66ACB9-DE07-4961-AAD6-B87DB5B419E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{951BC6EE-D558-4B65-83EE-710EC52A068C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{951BC6EE-D558-4B65-83EE-710EC52A068C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{951BC6EE-D558-4B65-83EE-710EC52A068C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{951BC6EE-D558-4B65-83EE-710EC52A068C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89B4800D-245A-49F5-94C6-E45D239EFA84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89B4800D-245A-49F5-94C6-E45D239EFA84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89B4800D-245A-49F5-94C6-E45D239EFA84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89B4800D-245A-49F5-94C6-E45D239EFA84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90893DE8-F9A4-4970-BE08-0A5E3EB97E1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90893DE8-F9A4-4970-BE08-0A5E3EB97E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90893DE8-F9A4-4970-BE08-0A5E3EB97E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90893DE8-F9A4-4970-BE08-0A5E3EB97E1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E66ACB9-DE07-4961-AAD6-B87DB5B419E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E66ACB9-DE07-4961-AAD6-B87DB5B419E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E66ACB9-DE07-4961-AAD6-B87DB5B419E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E66ACB9-DE07-4961-AAD6-B87DB5B419E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

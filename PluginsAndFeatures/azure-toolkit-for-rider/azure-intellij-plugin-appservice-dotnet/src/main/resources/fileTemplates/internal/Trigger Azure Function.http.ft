@@ -1,0 +1,15 @@
+#set($comment = '#')
+${comment} Trigger Azure Function - ${functionName}
+${comment}
+${comment} More information can be found in the Azure Functions documentation,
+${comment} as well as examples on how to pass test data to a function:
+${comment} https://learn.microsoft.com/en-us/azure/azure-functions/functions-manually-run-non-http
+${comment}
+${comment} Make sure to update the below calls to suit your function host and port.
+${comment}
+${comment} Call the following administrative endpoint to trigger non-HTTP functions:
+
+${requestMethod.toUpperCase()} http://localhost:7071/admin/functions/${functionName}
+Content-Type: application/json
+
+{}

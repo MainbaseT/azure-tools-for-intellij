@@ -1,6 +1,6 @@
 <idea-plugin>
     <depends optional="true" config-file="azure-intellij-plugin-vm-ssh.xml">com.intellij.modules.ssh</depends>
-    <depends optional="true" config-file="azure-intellij-plugin-vm-remote-run.xml">org.jetbrains.plugins.remote-run</depends>
+    <!-- remote-run dependencies are removed on purpose - there is no "Run Target" notion in Rider -->
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.vm.VirtualMachineNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.vm.VirtualMachineActionsContributor"/>

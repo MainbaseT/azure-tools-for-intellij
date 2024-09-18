@@ -200,22 +200,22 @@ public class AzureExplorer extends Tree {
                     return ActionUpdateThread.BGT;
                 }
             };
-            final AnAction feedbackAction = ActionManager.getInstance().getAction("Actions.ProvideFeedback");
-            final AnAction getStartAction = ActionManager.getInstance().getAction("Actions.GettingStart");
+//            final AnAction feedbackAction = ActionManager.getInstance().getAction("Actions.ProvideFeedback");
+//            final AnAction getStartAction = ActionManager.getInstance().getAction("Actions.GettingStart");
             final AnAction signInAction = ActionManager.getInstance().getAction("AzureToolkit.AzureSignIn");
             final AnAction selectSubscriptionsAction = ActionManager.getInstance().getAction("AzureToolkit.SelectSubscriptions");
-            toolWindow.setTitleActions(Arrays.asList(getStartAction, refreshAction, selectSubscriptionsAction, signInAction, Separator.create(), feedbackAction));
+            toolWindow.setTitleActions(Arrays.asList(/*getStartAction, */refreshAction, selectSubscriptionsAction, signInAction, Separator.create()/*, feedbackAction*/));
             if (toolWindow instanceof ToolWindowEx) {
-                final AnAction devBlogsAction = ActionManager.getInstance().getAction("AzureToolkit.ViewDevBlogs");
-                final AnAction documentAction = ActionManager.getInstance().getAction("AzureToolkit.ViewToolingDocument");
-                final AnAction whatsNewAction = ActionManager.getInstance().getAction("Actions.WhatsNew");
-                final AnAction reportIssueAction = ActionManager.getInstance().getAction("AzureToolkit.GithubIssue");
-                final AnAction featureRequestAction = ActionManager.getInstance().getAction("AzureToolkit.FeatureRequest");
-                final AnAction openSdkReferenceBookAction = ActionManager.getInstance().getAction("user/sdk.OpenSdkReferenceBook");
-                final AnAction openResourceConnectionExplorerAction = ActionManager.getInstance().getAction("AzureToolkit.OpenResourceConnectionExplorerAction");
-                final AnAction openAzureSettingsAction = ActionManager.getInstance().getAction(OPEN_AZURE_SETTINGS.getId());
-                (toolWindow).setAdditionalGearActions(new DefaultActionGroup(openSdkReferenceBookAction, openAzureSettingsAction, openResourceConnectionExplorerAction,
-                    Separator.create(), reportIssueAction, featureRequestAction, feedbackAction, Separator.create(), devBlogsAction, documentAction));
+//                final AnAction devBlogsAction = ActionManager.getInstance().getAction("AzureToolkit.ViewDevBlogs");
+//                final AnAction documentAction = ActionManager.getInstance().getAction("AzureToolkit.ViewToolingDocument");
+//                final AnAction whatsNewAction = ActionManager.getInstance().getAction("Actions.WhatsNew");
+//                final AnAction reportIssueAction = ActionManager.getInstance().getAction("AzureToolkit.GithubIssue");
+//                final AnAction featureRequestAction = ActionManager.getInstance().getAction("AzureToolkit.FeatureRequest");
+//                final AnAction openSdkReferenceBookAction = ActionManager.getInstance().getAction("user/sdk.OpenSdkReferenceBook");
+//                final AnAction openResourceConnectionExplorerAction = ActionManager.getInstance().getAction("AzureToolkit.OpenResourceConnectionExplorerAction");
+//                final AnAction openAzureSettingsAction = ActionManager.getInstance().getAction(OPEN_AZURE_SETTINGS.getId());
+//                (toolWindow).setAdditionalGearActions(new DefaultActionGroup(openSdkReferenceBookAction, openAzureSettingsAction, openResourceConnectionExplorerAction,
+//                    Separator.create(), reportIssueAction, featureRequestAction, /*feedbackAction,*/ Separator.create(), devBlogsAction, documentAction));
             }
         }
     }
