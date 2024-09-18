@@ -34,9 +34,9 @@ dependencies {
     implementation("com.azure:azure-monitor-query:1.0.10")
     implementation("org.apache.commons:commons-csv:1.9.0")
 
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    compileOnly(libs.lombok)
     compileOnly("org.jetbrains:annotations:24.0.0")
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor(libs.lombok)
     implementation(libs.azureToolkitCommonLib)
     aspect(libs.azureToolkitCommonLib)
 }

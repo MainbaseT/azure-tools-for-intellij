@@ -32,9 +32,9 @@ dependencies {
     implementation(libs.azureToolkitIdeCommonLib)
     implementation("org.yaml:snakeyaml:2.2")
 
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    compileOnly(libs.lombok)
     compileOnly("org.jetbrains:annotations:24.0.0")
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor(libs.lombok)
     implementation(libs.azureToolkitCommonLib)
     aspect(libs.azureToolkitCommonLib)
 }
