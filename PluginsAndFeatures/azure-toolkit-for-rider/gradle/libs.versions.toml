@@ -9,6 +9,7 @@ javaWebSocket = "1.5.1"
 coroutines = "1.8.1"
 ktor = "2.3.12"
 lombok = "1.18.24"
+snakeyaml = "2.2"
 
 # plugins
 kotlin = "2.0.20"
@@ -32,6 +33,7 @@ ktorSerializationJson = { group = "io.ktor", name = "ktor-serialization-kotlinx-
 ktorClientAuth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
 ktorClientWebsockets = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 azureToolkitLibs = { group = "com.microsoft.azure", name = "azure-toolkit-libs", version.ref = "azureToolkitLibs" }
 azureToolkitIdeLibs = { group = "com.microsoft.azure", name = "azure-toolkit-ide-libs", version.ref = "azureToolkitLibs" }
 azureToolkitHdinsightLibs = { group = "com.microsoft.hdinsight", name = "azure-toolkit-ide-hdinsight-libs", version.ref = "azureToolkitHdinsightLibs" }
