@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.2.0] - 2024-09-19
+
 ### Fixed
 
 - Improve error notification if unable to get Azure Function worker PID ([RIDER-116398](https://youtrack.jetbrains.com/issue/RIDER-116398))
@@ -150,7 +152,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.3...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.0...HEAD
+[4.2.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.3...v4.2.0
 [4.1.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.2...v4.1.3
 [4.1.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.1...v4.1.2
 [4.1.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.0...v4.1.1
