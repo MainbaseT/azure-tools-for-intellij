@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Error: unable to find valid certification path to requested target ([#788](https://github.com/JetBrains/azure-tools-for-intellij/issues/788))
+
 ## [4.2.0] - 2024-09-19
 
 ### Fixed
