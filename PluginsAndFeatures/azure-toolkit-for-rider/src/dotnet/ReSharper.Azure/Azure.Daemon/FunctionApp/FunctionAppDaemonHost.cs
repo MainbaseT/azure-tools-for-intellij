@@ -1,6 +1,7 @@
 ﻿// Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using System;
+using JetBrains.Application.Parts;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.MSBuild;
@@ -14,7 +15,7 @@ using JetBrains.Util;
 
 namespace JetBrains.ReSharper.Azure.Daemon.FunctionApp;
 
-[SolutionComponent]
+[SolutionComponent(InstantiationEx.LegacyDefault)]
 public class FunctionAppDaemonHost
 {
     private readonly ISolution _solution;

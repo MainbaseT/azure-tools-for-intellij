@@ -19,9 +19,11 @@ using JetBrains.Lifetimes;
 using JetBrains.ReSharper.Daemon;
 using JetBrains.ReSharper.Feature.Services.Daemon.Attributes;
 using JetBrains.ReSharper.Feature.Services.Daemon;
+using JetBrains.ReSharper.Psi.ContentModel;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi;
+using JetBrains.UI.RichText;
 using JetBrains.Util;
 using JetBrains.ReSharper.Azure.Daemon.Errors;
 using JetBrains.ReSharper.Azure.Daemon.FunctionApp.Stages.Analysis;
@@ -37,14 +39,14 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
   [ConfigurableSeverityHighlighting(HIGHLIGHTING_ID, "CSHARP", Languages = "CSHARP", OverlapResolve = OverlapResolveKind.NONE, ToolTipFormatString = MESSAGE)]
   public sealed partial class TimerTriggerCronExpressionError : IHighlighting
   {
-    protected const string MESSAGE = "{0}";
+    private const string MESSAGE = "{0}";
     public const string HIGHLIGHTING_ID = "Azure.FunctionApp.TimerTriggerCronExpression";
 
     public TimerTriggerCronExpressionError(ICSharpExpression expression, string cronErrorMessage)
     {
       Expression = expression;
       CronErrorMessage = cronErrorMessage;
-      ToolTip = string.Format(MESSAGE, cronErrorMessage).NON_LOCALIZABLE();
+      ToolTip = string.Format(MESSAGE, cronErrorMessage);
     }
 
     public ICSharpExpression Expression { get; }
@@ -60,7 +62,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
 
     public bool IsValid()
     {
-      return (Expression == null || Expression.IsValid());
+      return (Expression is null || Expression.IsValid());
     }
   }
 
@@ -68,7 +70,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
 
 #region Configurable Severity Registrar
   [RegisterConfigurableSeverity(TimerTriggerCronExpressionError.HIGHLIGHTING_ID, null, null, null, AzureHighlightingGroupIds.FunctionApp, "Invalid Function App Timer Trigger Cron expression", null, null, "Function App Timer Trigger Cron expression is not valid and can not be used.", null, null, Severity.ERROR)]
-  public class RegisterSeverityComponentF2D89CEB237C9F45229FA58A4F70E92782B3BB5A3AB13BBCC1616EB04ACB104F
+  public class RegisterSeverityComponentCAC4631F674C122DAC43AAECF236F252D2734D93052808AE491FDDD72FB80E4C
   {
   }
 #endregion

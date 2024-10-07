@@ -40,9 +40,7 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
         group("Azurite Executable") {
             row("Azurite executable path:") {
                 textFieldWithBrowseButton(
-                    "Browse For Azurite Executable",
-                    null,
-                    FileChooserDescriptorFactory.createSingleFileOrExecutableAppDescriptor()
+                    FileChooserDescriptorFactory.createSingleFileOrExecutableAppDescriptor().withTitle("Browse For Azurite Executable")
                 )
                     .align(Align.FILL)
                     .bindText(settings::executablePath)
@@ -57,10 +55,7 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
             }
             row("Path:") {
                 textFieldWithBrowseButton(
-                    "Browse For Workspace Location",
-                    null,
-                    FileChooserDescriptorFactory.createSingleFolderDescriptor()
-                )
+                    FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle("Browse For Workspace Location"))
                     .align(Align.FILL)
                     .bindText(settings::workspacePath)
                     .validationOnInput { validationForPath(it) }
@@ -125,10 +120,7 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
         group("Certificate Settings") {
             row("Certificate path:") {
                 textFieldWithBrowseButton(
-                    "Select *.pem",
-                    null,
-                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-                )
+                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Select *.pem"))
                     .align(Align.FILL)
                     .comment("Path to a locally-trusted pem or pfx certificate file path to enable HTTPS mode.")
                     .bindText(settings::certificatePath)
@@ -137,9 +129,7 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
             }
             row("Certificate key path:") {
                 textFieldWithBrowseButton(
-                    "Select *.key",
-                    null,
-                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Select *.key")
                 )
                     .align(Align.FILL)
                     .comment("Path to a locally-trusted pem key file, required when cert points to a pem file.")

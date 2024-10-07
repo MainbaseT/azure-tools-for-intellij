@@ -20,7 +20,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
-        bundledPlugins(listOf("com.intellij.properties"))
+        bundledPlugins(listOf("com.intellij.properties", "com.intellij.modules.json"))
         instrumentationTools()
     }
 
