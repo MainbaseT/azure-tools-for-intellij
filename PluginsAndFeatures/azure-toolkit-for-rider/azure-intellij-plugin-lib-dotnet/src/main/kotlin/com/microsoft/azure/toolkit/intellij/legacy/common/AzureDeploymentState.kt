@@ -39,8 +39,7 @@ abstract class AzureDeploymentState<T>(
         processHandler.startNotify()
         consoleView.attachToProcess(processHandler)
 
-        val processScope = scope.childScope("Azure Deployment scope")
-        processScope.launch(Dispatchers.Default) {
+        val job = scope.launch(Dispatchers.Default) {
             try {
                 val result = executeSteps(processHandler)
                 processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, true)
@@ -49,18 +48,16 @@ abstract class AzureDeploymentState<T>(
             catch (ce: CancellationException) {
                 processHandlerMessenger?.info("Process was cancelled")
                 onFail(ce, processHandler)
-                throw ce
             }
             catch (t: Throwable) {
                 processHandlerMessenger?.error(t)
                 onFail(t, processHandler)
-                throw t
             }
         }
 
         processHandler.addProcessListener(object : ProcessAdapter() {
             override fun processTerminated(event: ProcessEvent) {
-                processScope.cancel()
+                job.cancel()
             }
         })
 

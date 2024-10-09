@@ -2,9 +2,16 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("DuplicatedCode")
+
 package com.microsoft.azure.toolkit.intellij.appservice
 
+import com.azure.core.exception.HttpResponseException
 import com.intellij.execution.ExecutionException
+import com.intellij.ide.BrowserUtil
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -37,6 +44,8 @@ class DotNetAppServiceDeployer(private val project: Project) {
         updateStatusText: (String) -> Unit
     ): Result<Unit> {
         target.status = AzResource.Status.DEPLOYING
+
+        checkIfTargetIsValid(target)
 
         val publishProjectResult = ArtifactService
             .getInstance(project)
@@ -72,6 +81,8 @@ class DotNetAppServiceDeployer(private val project: Project) {
     ): Result<Unit> {
         target.status = AzResource.Status.DEPLOYING
 
+        checkIfTargetIsValid(target)
+
         val publishProjectResult = ArtifactService
             .getInstance(project)
             .publishProjectToFolder(
@@ -95,6 +106,24 @@ class DotNetAppServiceDeployer(private val project: Project) {
             zipFile,
             updateStatusText
         )
+    }
+
+    private fun checkIfTargetIsValid(target: AppServiceAppBase<*, *, *>) {
+        val appSettings = target.appSettings
+
+        val websiteRunFromPackage = appSettings?.get("WEBSITE_RUN_FROM_PACKAGE")
+        if (websiteRunFromPackage != null && websiteRunFromPackage.startsWith("http")) {
+            Notification(
+                "Azure AppServices",
+                "Invalid application settings",
+                "The WEBSITE_RUN_FROM_PACKAGE environment variable is set to an URL in the application settings. This can prevent successful deployment.",
+                NotificationType.WARNING
+            )
+                .addAction(NotificationAction.createSimple("Open application on the Portal") {
+                    BrowserUtil.open(target.portalUrl)
+                })
+                .notify(project)
+        }
     }
 
     private fun packageWebAppArtifactDirectory(artifactFolder: File): File? {
@@ -134,7 +163,15 @@ class DotNetAppServiceDeployer(private val project: Project) {
         updateStatusText("Starting deployment...")
         updateStatusText("Trying to deploy artifact to ${webAppBase.name()}...")
 
-        webAppBase.zipDeployAsync(zipFile)?.awaitSingleOrNull()
+        try {
+            webAppBase.zipDeployAsync(zipFile)?.awaitSingleOrNull()
+        } catch (e: HttpResponseException) {
+            LOG.warn("Unable to deploy artifact to Azure resource due to the unsuccessful status code", e)
+            return Result.failure(ExecutionException(e.message))
+        } catch (e: Exception) {
+            LOG.warn("Unable to deploy artifact to Azure resource", e)
+            return Result.failure(ExecutionException(e.message))
+        }
 
         updateStatusText("Successfully deployed the artifact to ${webAppBase.defaultHostname()}")
 

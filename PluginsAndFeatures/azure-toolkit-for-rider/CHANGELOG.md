@@ -7,6 +7,7 @@
 ### Fixed
 
 - Allow comments in the local.settings.json file ([#900](https://github.com/JetBrains/azure-tools-for-intellij/issues/900))
+- Show a more accurate description of errors if the deployment fails ([RIDER-113475](https://youtrack.jetbrains.com/issue/RIDER-113475))
 
 ## [4.2.1] - 2024-10-04
 
