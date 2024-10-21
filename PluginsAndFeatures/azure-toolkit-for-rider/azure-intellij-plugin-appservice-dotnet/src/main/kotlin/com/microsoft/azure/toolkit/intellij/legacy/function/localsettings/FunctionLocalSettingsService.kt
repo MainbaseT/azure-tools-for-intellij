@@ -4,6 +4,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.localsettings
 
+import com.google.gson.Gson
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -40,10 +41,12 @@ class FunctionLocalSettingsService {
         runnableProjects.forEach {
             val localSettingsFile = getLocalSettingFilePathInternal(Path(it.projectFilePath).parent)
             if (!localSettingsFile.exists()) return@forEach
+            val pathString = localSettingsFile.absolutePathString()
+            if (cache.containsKey(pathString)) return@forEach
             val virtualFile = VfsUtil.findFile(localSettingsFile, true) ?: return@forEach
             val localSettingsFileStamp = localSettingsFile.toFile().lastModified()
             val localSettings = getFunctionLocalSettings(virtualFile)
-            cache[localSettingsFile.absolutePathString()] = Pair(localSettingsFileStamp, localSettings)
+            cache[pathString] = Pair(localSettingsFileStamp, localSettings)
         }
     }
 
@@ -61,11 +64,12 @@ class FunctionLocalSettingsService {
         if (!localSettingsFile.exists()) return null
 
         val localSettingsFileStamp = localSettingsFile.toFile().lastModified()
-        val existingLocalSettings = cache[localSettingsFile.absolutePathString()]
+        val pathString = localSettingsFile.absolutePathString()
+        val existingLocalSettings = cache[pathString]
         if (existingLocalSettings == null || localSettingsFileStamp != existingLocalSettings.first) {
             val virtualFile = VfsUtil.findFile(localSettingsFile, true) ?: return null
             val localSettings = getFunctionLocalSettings(virtualFile)
-            cache[localSettingsFile.absolutePathString()] = Pair(localSettingsFileStamp, localSettings)
+            cache[pathString] = Pair(localSettingsFileStamp, localSettings)
             return localSettings
         }
 
@@ -79,6 +83,8 @@ class FunctionLocalSettingsService {
 
     private fun getFunctionLocalSettings(localSettingsFile: VirtualFile): FunctionLocalSettings {
         val content = localSettingsFile.readText()
-        return json.decodeFromString<FunctionLocalSettings>(content)
+        //Return back when `allowComments` is available.
+        //return json.decodeFromString<FunctionLocalSettings>(content)
+        return Gson().fromJson(content, FunctionLocalSettings::class.java)
     }
 }

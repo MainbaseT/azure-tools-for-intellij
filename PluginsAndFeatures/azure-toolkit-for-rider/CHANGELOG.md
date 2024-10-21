@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+## [4.2.2] - 2024-10-09
+
+### Fixed
+
+- Allow comments in the local.settings.json file ([#900](https://github.com/JetBrains/azure-tools-for-intellij/issues/900))
+- Show a more accurate description of errors if the deployment fails ([RIDER-113475](https://youtrack.jetbrains.com/issue/RIDER-113475))
+
 ## [4.2.1] - 2024-10-04
 
 ### Fixed
@@ -158,7 +165,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.2...HEAD
+[4.2.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.1...v4.2.2
 [4.2.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.3...v4.2.0
 [4.1.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.2...v4.1.3
