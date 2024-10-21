@@ -20,6 +20,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
+        bundledModule("intellij.rider")
         bundledPlugins(listOf("com.jetbrains.restClient"))
         instrumentationTools()
     }
@@ -36,4 +37,13 @@ dependencies {
     implementation(libs.azureToolkitIdeAppserviceLib)
     implementation(libs.azureToolkitIdeContainerregistryLib)
     implementation(libs.serializationJson)
+    implementation(libs.ktorClientContentNegotiation) {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-jdk8")
+    }
+    implementation(libs.ktorSerializationJson) {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-jdk8")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json")
+    }
 }

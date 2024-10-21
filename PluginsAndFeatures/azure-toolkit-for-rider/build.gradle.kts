@@ -4,7 +4,6 @@
 
 import com.jetbrains.plugin.structure.base.utils.isFile
 import org.jetbrains.changelog.Changelog
-import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.Constants
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
@@ -76,6 +75,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
+        bundledModule("intellij.rider")
         bundledPlugins(listOf("com.jetbrains.restClient"))
         instrumentationTools()
         pluginVerifier()
