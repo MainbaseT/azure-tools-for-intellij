@@ -7,11 +7,12 @@ using JetBrains.Application.Parts;
 using JetBrains.Application.Settings;
 using JetBrains.Diagnostics;
 using JetBrains.Lifetimes;
+using JetBrains.ReSharper.Feature.Services.LiveTemplates.Settings;
 
 namespace JetBrains.ReSharper.Azure.Intellisense.FunctionApp.LiveTemplates.Settings;
 
 [ShellComponent(Instantiation.DemandAnyThreadSafe)]
-public class AzureTemplatesDefaultSettings : IHaveDefaultSettingsStream
+public class AzureTemplatesDefaultSettings : IHaveDefaultSettingsStream, IDefaultSettingsRootKey<LiveTemplatesSettings>
 {
     public Stream GetDefaultSettingsStream(Lifetime lifetime)
     {
@@ -23,5 +24,5 @@ public class AzureTemplatesDefaultSettings : IHaveDefaultSettingsStream
         return stream;
     }
 
-    public string Name => "Azure default templates";
+    public string Name => "Azure default LiveTemplates";
 }
