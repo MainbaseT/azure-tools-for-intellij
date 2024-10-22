@@ -15,6 +15,7 @@ import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.ui.EditorNotifications
 import com.jetbrains.rd.platform.util.idea.LifetimedService
 import com.jetbrains.rd.util.firstOrNull
+import com.jetbrains.rider.model.RdNuGetProject
 import com.jetbrains.rider.nuget.RiderNuGetFacade
 import com.jetbrains.rider.projectView.workspace.*
 import kotlinx.coroutines.*
@@ -58,34 +59,99 @@ class FunctionMissingNugetPackageService(
             // Default worker
             "Microsoft.Azure.WebJobs" to mapOf(
                 "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.3.0")),
-                "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.3.0")),
+                "QueueTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.WebJobs.Extensions.Storage.Queues",
+                        "5.3.0"
+                    )
+                ),
                 "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.CosmosDB", "4.6.1")),
-                "OrchestrationTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.DurableTask", "2.13.3")),
-                "EventGridTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventGrid", "3.4.1")),
+                "OrchestrationTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.WebJobs.Extensions.DurableTask",
+                        "2.13.3"
+                    )
+                ),
+                "EventGridTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.WebJobs.Extensions.EventGrid",
+                        "3.4.1"
+                    )
+                ),
                 "EventHubTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.2")),
                 "IoTHubTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.2")),
-                "ServiceBusTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.15.1")),
+                "ServiceBusTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.WebJobs.Extensions.ServiceBus",
+                        "5.15.1"
+                    )
+                ),
                 "SqlTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Sql", "3.0.534")),
                 "DaprPublish" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
                 "DaprInvoke" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
                 "DaprState" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
-                "DaprServiceInvocationTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
+                "DaprServiceInvocationTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.WebJobs.Extensions.Dapr",
+                        "1.0.0"
+                    )
+                ),
                 "DaprTopicTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
             ),
 
             // Isolated worker
             "Microsoft.Azure.Functions.Worker" to mapOf(
                 //In Program.cs see: https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide?tabs=windows#aspnet-core-integration
-                "ConfigureFunctionsWebApplication" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.2.0")),
+                "ConfigureFunctionsWebApplication" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore",
+                        "1.2.0"
+                    )
+                ),
                 //In triggers
-                "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.4.0")),
-                "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues", "5.4.0")),
-                "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB", "4.8.1")),
-                "EventGridTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.EventGrid", "3.4.1")),
-                "EventHubTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.EventHubs", "6.3.1")),
+                "BlobTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs",
+                        "6.4.0"
+                    )
+                ),
+                "QueueTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues",
+                        "5.4.0"
+                    )
+                ),
+                "CosmosDBTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.CosmosDB",
+                        "4.8.1"
+                    )
+                ),
+                "EventGridTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.EventGrid",
+                        "3.4.1"
+                    )
+                ),
+                "EventHubTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.EventHubs",
+                        "6.3.1"
+                    )
+                ),
                 "HttpTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.2.0")),
-                "ServiceBusTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.18.0")),
-                "TimerTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Timer", "4.3.0")),
+                "ServiceBusTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus",
+                        "5.18.0"
+                    )
+                ),
+                "TimerTrigger" to listOf(
+                    PackageDependency(
+                        "Microsoft.Azure.Functions.Worker.Extensions.Timer",
+                        "4.3.0"
+                    )
+                ),
                 "SqlTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Sql", "3.0.534")),
                 "DaprPublish" to listOf(
                     PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "1.0.0"),
@@ -203,10 +269,12 @@ class FunctionMissingNugetPackageService(
         val installableDependencies = mutableListOf<InstallableDependency>()
         for (installableProject in installableProjects) {
             val path = installableProject.getFile()?.toPath() ?: continue
+            val installableProjectId = installableProject.getId(project) ?: continue
+            val nugetProject = riderNuGetFacade.host.nuGetProjectModel.projects[installableProjectId] ?: continue
             for ((triggerName, dependencies) in knownMarker.value) {
                 if (fileContent.contains(triggerName, true)) {
                     for (dependency in dependencies) {
-                        if (!riderNuGetFacade.isInstalled(installableProject, dependency.id)) {
+                        if (!nugetProject.hasPackage(dependency.id)) {
                             installableDependencies.add(InstallableDependency(dependency, path))
                         }
                     }
@@ -223,10 +291,12 @@ class FunctionMissingNugetPackageService(
             val installableProject = WorkspaceModel.getInstance(project)
                 .getProjectModelEntities(dependency.installableProjectPath, project)
                 .firstOrNull()
+            val installableProjectId = installableProject?.getId(project)
+            val riderNuGetFacade = RiderNuGetFacade.getInstance(project)
+            val nugetProject = riderNuGetFacade.host.nuGetProjectModel.projects[installableProjectId]
 
-            if (installableProject != null) {
+            if (installableProject != null && nugetProject != null) {
                 LOG.trace("Installing dependency $dependency in project ${installableProject.name}")
-                val riderNuGetFacade = RiderNuGetFacade.getInstance(project)
                 withContext(Dispatchers.EDT) {
                     riderNuGetFacade.installForProject(
                         installableProject.name,
@@ -236,7 +306,7 @@ class FunctionMissingNugetPackageService(
                 }
 
                 for (i in 0..<30) {
-                    if (riderNuGetFacade.isInstalled(installableProject, dependency.dependency.id)) break
+                    if (nugetProject.hasPackage(dependency.dependency.id)) break
                     delay(1000)
                 }
             }
@@ -261,9 +331,9 @@ class FunctionMissingNugetPackageService(
         return false
     }
 
-    private fun RiderNuGetFacade.isInstalled(installableProject: ProjectModelEntity, dependencyId: String) =
-        host.nuGetProjectModel
-            .projects[installableProject.getId(project)]
-            ?.explicitPackages?.any { it.id.equals(dependencyId, ignoreCase = true) }
-            ?: false
+    private fun RdNuGetProject.hasPackage(dependencyId: String): Boolean {
+        if (explicitPackages.any { it.id.equals(dependencyId, ignoreCase = true) }) return true
+        if (integratedPackages.any { it.identity.id.equals(dependencyId, ignoreCase = true) }) return true
+        return false
+    }
 }
