@@ -36,7 +36,7 @@ module $CLASS$ =
             context: FunctionContext
         ) =
         let logger
-            = context.GetLogger "BlobTriggerFSharp"
+            = context.GetLogger "$CLASS$"
 
         use blobStreamReader
             = new StreamReader(myBlob)
