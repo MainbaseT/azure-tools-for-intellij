@@ -44,13 +44,13 @@ namespace $NAMESPACE$
             [HttpTrigger(AuthorizationLevel.$AUTHLEVELVALUE$, "post", Route = null)] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger with MySql Output Binding function processed a request.");
-
             ToDoItem todoitem = await req.ReadFromJsonAsync<ToDoItem>() ?? new ToDoItem
                 {
                     Id = "1",
                     Priority = 1,
                     Description = "Hello World"
                 };
+
             return todoitem;$END$
         }
     }

@@ -45,6 +45,7 @@ namespace $NAMESPACE$
             "$CONNECTIONVALUE$")] IEnumerable<Object> result)
         {
             _logger.LogInformation("C# HTTP trigger with MySQL Input Binding function processed a request.");
+
             return result;$END$
         }
     }

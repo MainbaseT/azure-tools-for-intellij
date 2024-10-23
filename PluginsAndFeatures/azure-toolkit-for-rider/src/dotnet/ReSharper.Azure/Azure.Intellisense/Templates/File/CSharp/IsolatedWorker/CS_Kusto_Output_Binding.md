@@ -57,6 +57,7 @@ namespace $NAMESPACE$
                     Priority = 1,
                     Description = "Hello World"
                 };
+
             return todoitem;$END$
         }
     }

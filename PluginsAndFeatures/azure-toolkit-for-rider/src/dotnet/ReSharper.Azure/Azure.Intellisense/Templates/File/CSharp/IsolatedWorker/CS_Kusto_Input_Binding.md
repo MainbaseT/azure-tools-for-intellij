@@ -53,6 +53,7 @@ namespace $NAMESPACE$
               Connection = "$CONNECTIONVALUE$")] IEnumerable<Object> result)
         {
             _logger.LogInformation("C# HTTP trigger with Kusto Input Binding function processed a request.");
+
             return result;$END$
         }
     }

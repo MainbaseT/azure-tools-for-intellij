@@ -59,18 +59,18 @@ namespace $NAMESPACE$
         }
     }
 
-    public static class $CLASS$InvokeOutputBinding
+    public static class InvokeOutputBinding
     {
         /// <summary>
         /// Sample to use a Dapr Invoke Output Binding to perform a Dapr Server Invocation operation hosted in another Darp'd app.
         /// Here this function acts like a proxy
         /// </summary>
-        [Function("$CLASS$InvokeOutputBinding")]
+        [Function("InvokeOutputBinding")]
         [DaprInvokeOutput(AppId = "{appId}", MethodName = "{methodName}", HttpVerb = "post")]
         public static async Task<InvokeMethodParameters> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "invoke/{appId}/{methodName}")] HttpRequestData req, FunctionContext functionContext)
         {
-            var log = functionContext.GetLogger("$CLASS$InvokeOutputBinding");
+            var log = functionContext.GetLogger("InvokeOutputBinding");
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();

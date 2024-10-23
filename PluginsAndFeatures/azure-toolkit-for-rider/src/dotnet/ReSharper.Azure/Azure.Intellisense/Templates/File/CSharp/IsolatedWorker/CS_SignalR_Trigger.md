@@ -16,7 +16,7 @@ AUTHLEVELVALUE-expression: list("Function,Anonymous,User,System,Admin")
 HUBNAMEVALUE-expression: constant("HubValue")
 ---
 
-# RabbitMQ Trigger
+# SignalR Trigger
 
 ```
 $HEADER$using System.Collections.Generic;
