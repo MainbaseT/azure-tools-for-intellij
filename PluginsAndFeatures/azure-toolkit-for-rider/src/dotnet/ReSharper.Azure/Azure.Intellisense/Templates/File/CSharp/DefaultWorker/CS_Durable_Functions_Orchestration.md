@@ -34,7 +34,7 @@ namespace $NAMESPACE$
     {
         [FunctionName("$CLASS$")]
         public static async Task<List<string>> RunOrchestrator(
-            [OrchestrationTrigger]IDurableOrchestrationContext context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             var outputs = new List<string>();
 
