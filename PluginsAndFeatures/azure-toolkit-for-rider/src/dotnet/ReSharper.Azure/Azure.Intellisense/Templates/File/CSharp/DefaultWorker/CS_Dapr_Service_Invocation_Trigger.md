@@ -51,7 +51,7 @@ namespace $NAMESPACE$
         /// <param name="log">Function logger.</param>
         /// </summary>
         [FunctionName("$CLASS$")]
-        public static async Task RunAsync(
+        public static void Run(
             [DaprServiceInvocationTrigger] string payload,
             ILogger log)
         {
@@ -60,13 +60,13 @@ namespace $NAMESPACE$
         }
     }
 
-    public static class $CLASS$InvokeOutputBinding
+    public static class InvokeOutputBinding
     {
         /// <summary>
         /// Sample to use a Dapr Invoke Output Binding to perform a Dapr Server Invocation operation hosted in another Darp'd app.
         /// Here this function acts like a proxy
         /// </summary>
-        [FunctionName("$CLASS$InvokeOutputBinding")]
+        [FunctionName("InvokeOutputBinding")]
         public static async Task<IActionResult> RunAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "invoke/{appId}/{methodName}")] HttpRequest req,
             [DaprInvoke(AppId = "{appId}", MethodName = "{methodName}", HttpVerb = "post")] IAsyncCollector<InvokeMethodParameters> output,
