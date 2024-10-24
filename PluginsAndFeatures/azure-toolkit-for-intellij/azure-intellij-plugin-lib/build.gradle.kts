@@ -20,6 +20,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
+        bundledModule("intellij.platform.collaborationTools")
         bundledPlugins(listOf("org.jetbrains.plugins.terminal"))
         instrumentationTools()
     }

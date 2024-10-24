@@ -22,7 +22,7 @@ public class AzureQuickListDefaultSettings(
     ILogger logger,
     AzureCSharpProjectScopeCategoryUIProvider csharpScopeProvider,
     AzureFSharpProjectScopeCategoryUIProvider fsharpScopeProvider)
-    : HaveDefaultSettings(settingsSchema, logger)
+    : HaveDefaultSettings<QuickListSettings>(settingsSchema, logger)
 {
     private readonly IMainScopePoint? _myCSharpMainPoint = csharpScopeProvider.MainPoint;
     private readonly IMainScopePoint? _myFSharpMainPoint = fsharpScopeProvider.MainPoint;

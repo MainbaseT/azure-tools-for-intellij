@@ -1,4 +1,6 @@
 <idea-plugin>
+    <depends>com.intellij.modules.json</depends>
+
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow anchor="bottom"
                     icon="/icons/Common/log_analytics_workspace.svg"

@@ -15,6 +15,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+
 include(":protocol")
 include(":azure-intellij-plugin-resharper-host")
 include(":azure-intellij-plugin-lib")

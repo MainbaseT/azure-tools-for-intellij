@@ -168,9 +168,7 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
         }
         row("Tool download path:") {
             textFieldWithBrowseButton(
-                "Azure Functions Core Tools Download Path",
-                null,
-                FileChooserDescriptorFactory.createSingleFolderDescriptor()
+                FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle("Azure Functions Core Tools Download Path")
             )
                 .align(AlignX.FILL)
                 .validationOnInput {

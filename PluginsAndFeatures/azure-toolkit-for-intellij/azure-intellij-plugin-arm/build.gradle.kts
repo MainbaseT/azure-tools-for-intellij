@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.intellij.platform.module")
+
     alias(libs.plugins.aspectj)
 }
 
@@ -20,6 +21,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
+        bundledPlugins("com.intellij.modules.json")
         instrumentationTools()
     }
 

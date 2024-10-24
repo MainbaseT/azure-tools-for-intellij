@@ -62,9 +62,7 @@ class AzureConfigurable : BoundConfigurable("Azure") {
             }
             row("Azure CLI path:") {
                 textFieldWithBrowseButton(
-                    "Browse For Azure CLI",
-                    null,
-                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withTitle("Browse For Azure CLI")
                 )
                     .align(Align.FILL)
                     .validationOnInput { validateAzureCliPath(it) }

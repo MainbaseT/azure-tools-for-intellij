@@ -20,7 +20,8 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
-        bundledPlugins(listOf("com.intellij.properties"))
+        bundledModule("intellij.libraries.microba")
+        bundledPlugins(listOf("com.intellij.properties", "com.intellij.modules.json"))
         instrumentationTools()
     }
 

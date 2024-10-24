@@ -19,9 +19,11 @@ using JetBrains.Lifetimes;
 using JetBrains.ReSharper.Daemon;
 using JetBrains.ReSharper.Feature.Services.Daemon.Attributes;
 using JetBrains.ReSharper.Feature.Services.Daemon;
+using JetBrains.ReSharper.Psi.ContentModel;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.ReSharper.Psi;
+using JetBrains.UI.RichText;
 using JetBrains.Util;
 using JetBrains.ReSharper.Azure.Daemon.Errors;
 using JetBrains.ReSharper.Azure.Daemon.FunctionApp.Stages.Analysis;
@@ -37,14 +39,14 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
   [ConfigurableSeverityHighlighting(HIGHLIGHTING_ID, "CSHARP", Languages = "CSHARP", OverlapResolve = OverlapResolveKind.NONE, ToolTipFormatString = MESSAGE)]
   public sealed partial class TimerTriggerCronExpressionError : IHighlighting
   {
-    protected const string MESSAGE = "{0}";
+    private const string MESSAGE = "{0}";
     public const string HIGHLIGHTING_ID = "Azure.FunctionApp.TimerTriggerCronExpression";
 
     public TimerTriggerCronExpressionError(ICSharpExpression expression, string cronErrorMessage)
     {
       Expression = expression;
       CronErrorMessage = cronErrorMessage;
-      ToolTip = string.Format(MESSAGE, cronErrorMessage).NON_LOCALIZABLE();
+      ToolTip = string.Format(MESSAGE, cronErrorMessage);
     }
 
     public ICSharpExpression Expression { get; }
@@ -60,7 +62,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
 
     public bool IsValid()
     {
-      return (Expression == null || Expression.IsValid());
+      return (Expression is null || Expression.IsValid());
     }
   }
 

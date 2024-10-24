@@ -1,6 +1,7 @@
 ﻿// Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using System.Collections.Generic;
+using JetBrains.Application.Parts;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Azure.Project.FunctionApp;
 using JetBrains.ReSharper.Features.Running;
@@ -9,7 +10,7 @@ using JetBrains.Util;
 
 namespace JetBrains.ReSharper.Azure.Project.RunnableProjectsHost.RunnableProjectProviders;
 
-[SolutionComponent]
+[SolutionComponent(Instantiation.DemandAnyThreadSafe)]
 public class AzureFunctionsRunnableProjectProvider(ILogger logger) : IRunnableProjectProvider
 {
     public RunnableProject? CreateRunnableProject(IProject project, string name, string fullName, IconModel? icon)
