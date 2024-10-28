@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.3.2] - 2024-10-28
+
 ### Fixed
 
 - Fix the 4.99.0 release of the core tools ([#944](https://github.com/JetBrains/azure-tools-for-intellij/issues/944), [RIDER-119093](https://youtrack.jetbrains.com/issue/RIDER-119093))
@@ -181,7 +183,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.2...HEAD
+[4.3.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.1...v4.3.2
 [4.3.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.2...v4.3.0
 [4.2.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.1...v4.2.2
