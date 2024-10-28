@@ -198,7 +198,7 @@ class FunctionCoreToolsManager {
         )
     }
 
-    private suspend fun ensureReleaseDownloaded(downloadInfo: FunctionCoreToolsDownloadInfo): File? {
+    private fun ensureReleaseDownloaded(downloadInfo: FunctionCoreToolsDownloadInfo): File? {
         if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
             return downloadInfo.downloadFolderForTagAndRelease
         }
@@ -211,7 +211,7 @@ class FunctionCoreToolsManager {
         return null
     }
 
-    private suspend fun downloadRelease(downloadInfo: FunctionCoreToolsDownloadInfo) {
+    private fun downloadRelease(downloadInfo: FunctionCoreToolsDownloadInfo) {
         val tempFile = FileUtil.createTempFile(
             File(FileUtil.getTempDirectory()),
             "AzureFunctions-${downloadInfo.release.functionsVersion}-${downloadInfo.release.coreToolsVersion}",
