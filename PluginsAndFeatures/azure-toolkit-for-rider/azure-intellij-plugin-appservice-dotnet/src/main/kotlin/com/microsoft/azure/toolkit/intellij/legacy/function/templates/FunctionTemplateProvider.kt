@@ -30,7 +30,7 @@ class FunctionTemplateProvider : ProjectTemplateProvider {
                 templateManager.tryReload(false)
 
                 if (!templateManager.areRegistered()) {
-                    result.set(setOf(InstallFunctionProjectTemplate()))
+                    result.set(setOf(InstallFunctionProjectTemplateType()))
                 }
             }
         }

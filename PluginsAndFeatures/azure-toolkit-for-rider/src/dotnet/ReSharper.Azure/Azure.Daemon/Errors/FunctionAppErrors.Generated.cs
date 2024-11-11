@@ -37,7 +37,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
   #region TimerTriggerCronExpressionError
 
   [ConfigurableSeverityHighlighting(HIGHLIGHTING_ID, "CSHARP", Languages = "CSHARP", OverlapResolve = OverlapResolveKind.NONE, ToolTipFormatString = MESSAGE)]
-  public sealed partial class TimerTriggerCronExpressionError : IHighlighting
+  public sealed partial class TimerTriggerCronExpressionError : IHighlighting, IHighlightingWithFormatArguments
   {
     private const string MESSAGE = "{0}";
     public const string HIGHLIGHTING_ID = "Azure.FunctionApp.TimerTriggerCronExpression";
@@ -46,7 +46,9 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
     {
       Expression = expression;
       CronErrorMessage = cronErrorMessage;
-      ToolTip = string.Format(MESSAGE, cronErrorMessage);
+      var __formatArgument = cronErrorMessage;
+      ToolTip = string.Format(MESSAGE, __formatArgument);
+      FormatArguments = JetBrains.ReSharper.Feature.Services.Daemon.HighlightingToolTipHelper.TrivializeFormatArgument(__formatArgument);
     }
 
     public ICSharpExpression Expression { get; }
@@ -54,6 +56,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
 
     public /*Localized*/ string ToolTip { get; }
     public /*Localized*/ string ErrorStripeToolTip => ToolTip;
+    public object FormatArguments { get; }
 
     public DocumentRange CalculateRange()
     {
@@ -70,7 +73,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
 
 #region Configurable Severity Registrar
   [RegisterConfigurableSeverity(TimerTriggerCronExpressionError.HIGHLIGHTING_ID, null, null, null, AzureHighlightingGroupIds.FunctionApp, "Invalid Function App Timer Trigger Cron expression", null, null, "Function App Timer Trigger Cron expression is not valid and can not be used.", null, null, Severity.ERROR)]
-  public class RegisterSeverityComponentF2D89CEB237C9F45229FA58A4F70E92782B3BB5A3AB13BBCC1616EB04ACB104F
+  public class RegisterSeverityComponentCAC4631F674C122DAC43AAECF236F252D2734D93052808AE491FDDD72FB80E4C
   {
   }
 #endregion

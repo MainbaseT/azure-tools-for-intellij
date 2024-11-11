@@ -13,15 +13,17 @@ import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.reactive.fire
 import com.jetbrains.rider.projectView.projectTemplates.NewProjectDialogContext
 import com.jetbrains.rider.projectView.projectTemplates.ProjectTemplatesSharedModel
+import com.jetbrains.rider.projectView.projectTemplates.SharedData
 import com.jetbrains.rider.projectView.projectTemplates.generators.ProjectTemplateGenerator
 import com.jetbrains.rider.projectView.projectTemplates.templateTypes.ProjectTemplateType
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.JComponent
 
-class InstallFunctionProjectTemplate : ProjectTemplateType {
+class InstallFunctionProjectTemplateType : ProjectTemplateType {
+    override val uniqueId = "function.templates.install"
     override val group = "Other"
-    override val icon = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
     override val name = "Azure Functions"
+    override val icon = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
     override val order = 90
 
     override fun getKeywords() = setOf(name)
@@ -33,9 +35,17 @@ class InstallFunctionProjectTemplate : ProjectTemplateType {
     ): ProjectTemplateGenerator = object : ProjectTemplateGenerator {
         override val canExpand = AtomicBooleanProperty(false)
 
-        override suspend fun expandTemplate(): suspend () -> Unit { throw Error("Expand template should not be called") }
+        override suspend fun expandTemplate(): suspend () -> Unit {
+            throw Error("Expand template should not be called")
+        }
+
         override fun getFocusComponentId(): String? = null
-        override fun requestFocusComponent(focusComponentId: String?) { }
+
+        override fun requestFocusComponent(focusComponentId: String?) {}
+
+        override fun getSharedData() = null
+
+        override fun setSharedData(sharedData: SharedData) {}
 
         override fun getComponent(): JComponent {
             return InstallFunctionToolComponent {
