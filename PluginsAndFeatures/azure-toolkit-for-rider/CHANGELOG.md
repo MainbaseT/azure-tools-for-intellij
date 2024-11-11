@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix DEXP-832012: Error while extracting a file
+
 ## [4.3.2] - 2024-10-28
 
 ### Fixed
