@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.3.3] - 2024-11-12
+
 ### Fixed
 
 - Fix DEXP-832012: Error while extracting a file
@@ -187,7 +189,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.2...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.3...HEAD
+[4.3.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.2...v4.3.3
 [4.3.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.1...v4.3.2
 [4.3.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.2...v4.3.0
