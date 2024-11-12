@@ -57,6 +57,7 @@ class FunctionHostDebugLauncher(private val project: Project) {
     private val json = Json {
         explicitNulls = false
         ignoreUnknownKeys = true
+        allowTrailingComma = true
     }
 
     /**
