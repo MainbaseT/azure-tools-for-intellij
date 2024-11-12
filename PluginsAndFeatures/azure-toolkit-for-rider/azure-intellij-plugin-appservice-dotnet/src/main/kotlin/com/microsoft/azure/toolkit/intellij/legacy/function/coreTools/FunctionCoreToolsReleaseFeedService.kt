@@ -37,6 +37,7 @@ class FunctionCoreToolsReleaseFeedService : Disposable {
             json(Json {
                 explicitNulls = false
                 ignoreUnknownKeys = true
+                allowTrailingComma = true
             })
         }
     }
