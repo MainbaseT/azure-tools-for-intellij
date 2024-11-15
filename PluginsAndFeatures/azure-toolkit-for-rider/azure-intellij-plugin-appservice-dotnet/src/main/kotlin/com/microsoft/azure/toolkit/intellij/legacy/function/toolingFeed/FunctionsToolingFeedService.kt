@@ -11,6 +11,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.util.io.ZipUtil
@@ -89,18 +90,6 @@ class FunctionsToolingFeedService : Disposable {
     }
 
     /**
-     * Retrieves the file system path for the latest available Azure Functions tooling release based on the provided Azure Functions runtime version.
-     *
-     * @param azureFunctionsVersion The version of Azure Functions runtime for which to get the latest tooling release path.
-     * @return The path to the latest Azure Functions tooling release, or null if the release could not be determined.
-     */
-    fun getPathForLatestFunctionsToolingRelease(azureFunctionsVersion: String): Path? {
-        val toolingRelease = getLatestFunctionsToolingRelease(azureFunctionsVersion) ?: return null
-        val downloadRoot = getReleaseDownloadRoot()
-        return downloadRoot.resolve(toolingRelease.functionsVersion).resolve(toolingRelease.coreToolsVersion)
-    }
-
-    /**
      * Downloads the latest Azure Functions tooling release for the specified Azure Functions runtime version.
      *
      * This method fetches the release information, determines if the release has already been downloaded,
@@ -114,9 +103,10 @@ class FunctionsToolingFeedService : Disposable {
 
         val toolingRelease = getLatestFunctionsToolingRelease(azureFunctionsVersion)
             ?: error("Unable to obtain latest tooling release")
-        val toolingReleasePath = getPathForLatestFunctionsToolingRelease(azureFunctionsVersion)
-            ?: error(IllegalStateException("Unable to obtain a path of the latest tooling release"))
-        val funcExecutablePath = toolingReleasePath.resolve("func.exe") //todo: for mac and linux
+        val toolingReleasePath = getPathForLatestFunctionsToolingRelease(toolingRelease)
+        val funcExecutablePath =
+            if (SystemInfo.isWindows) toolingReleasePath.resolve("func.exe")
+            else toolingReleasePath.resolve("func")
         if (funcExecutablePath.exists()) {
             LOG.trace { "The release $toolingRelease is already downloaded" }
             return@runCatching toolingReleasePath
@@ -124,14 +114,14 @@ class FunctionsToolingFeedService : Disposable {
 
         val tempFile = FileUtil.createTempFile(
             File(FileUtil.getTempDirectory()),
-            "AzureFunctions-${toolingRelease.functionsVersion}-${toolingRelease.coreToolsVersion}",
+            "AzureFunctions-${toolingRelease.functionsVersion}-${toolingRelease.releaseTag}",
             ".zip",
             true,
             true
         )
 
         withContext(Dispatchers.IO) {
-            client.prepareGet(toolingRelease.coreToolsArtifactUrl).execute { httpResponse ->
+            client.prepareGet(toolingRelease.artifactUrl).execute { httpResponse ->
                 val channel: ByteReadChannel = httpResponse.body()
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
@@ -164,7 +154,6 @@ class FunctionsToolingFeedService : Disposable {
 
     private fun getReleaseFeedUrl() = Registry.get("azure.function_app.core_tools.feed.url").asString()
 
-
     private fun getLatestFunctionsToolingRelease(azureFunctionsVersion: String): FunctionsToolingRelease? {
         val toolingRelease = releaseCache[azureFunctionsVersion.lowercase()]
         if (toolingRelease == null) {
@@ -178,6 +167,11 @@ class FunctionsToolingFeedService : Disposable {
     private fun getReleaseDownloadRoot(): Path {
         val settings = AzureFunctionSettings.getInstance()
         return Path(settings.functionDownloadPath)
+    }
+
+    private fun getPathForLatestFunctionsToolingRelease(toolingRelease: FunctionsToolingRelease): Path {
+        val downloadRoot = getReleaseDownloadRoot()
+        return downloadRoot.resolve(toolingRelease.functionsVersion).resolve(toolingRelease.releaseTag)
     }
 
     private fun Release.findCoreToolsRelease(releaseFilter: FunctionToolingFeedFilter) =

@@ -12,6 +12,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.text.VersionComparatorUtil
 import com.microsoft.azure.toolkit.intellij.legacy.function.isFunctionCoreToolsExecutable
 import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
+import com.microsoft.azure.toolkit.intellij.legacy.function.toolingFeed.FunctionsToolingFeedService
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -52,6 +53,29 @@ class FunctionCoreToolsManager2 {
 
         LOG.trace { "Get Azure Function core tools path from the download folder: $coreToolsPathForVersion" }
         return findCoreToolsPathWithLatestTag(coreToolsPathForVersion)
+    }
+
+    /**
+     * Downloads the latest Azure Function core tools release for the specified Azure Functions runtime version.
+     *
+     * @param azureFunctionsVersion The version of Azure Functions runtime for which to download the latest core tools release.
+     * @return The path to the downloaded Azure Function core tools, or null if the download was unsuccessful.
+     */
+    suspend fun downloadLatestFunctionCoreToolsForVersion(azureFunctionsVersion: String): Path? {
+        val downloadLatestReleaseResult = FunctionsToolingFeedService
+            .getInstance()
+            .downloadLatestFunctionsToolingRelease(azureFunctionsVersion)
+
+        val latestReleasePath = downloadLatestReleaseResult.getOrNull()
+        if (latestReleasePath == null) {
+            LOG.warn(
+                "Unable to download the latest Azure Function core tooling release for version $azureFunctionsVersion",
+                downloadLatestReleaseResult.exceptionOrNull()
+            )
+            return null
+        }
+
+        return latestReleasePath
     }
 
     private fun resolveCoreToolsPathFromSettings(coreToolsPathValue: String): Path? {

@@ -6,6 +6,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.toolingFeed
 
 data class FunctionsToolingRelease(
     val functionsVersion: String,
-    val coreToolsVersion: String, //todo: is it a tag?
-    val coreToolsArtifactUrl: String
+    val releaseTag: String,
+    val artifactUrl: String
 )
