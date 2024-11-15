@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 class ReloadFunctionTemplateActivity: ProjectActivity {
     override suspend fun execute(project: Project) {
         withContext(Dispatchers.Default) {
-            FunctionTemplateManager.getInstance().tryReload(true)
+//            FunctionTemplateManager.getInstance().tryReload()
         }
     }
 }

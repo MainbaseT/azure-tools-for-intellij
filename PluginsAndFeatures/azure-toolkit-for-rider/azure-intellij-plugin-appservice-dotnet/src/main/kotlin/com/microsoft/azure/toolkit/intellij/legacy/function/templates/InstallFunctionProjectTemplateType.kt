@@ -50,7 +50,7 @@ class InstallFunctionProjectTemplateType : ProjectTemplateType {
         override fun getComponent(): JComponent {
             return InstallFunctionToolComponent {
                 runWithModalProgressBlocking(DummyProject.getInstance(), "Reloading Azure templates...") {
-                    FunctionTemplateManager.getInstance().tryReload(false)
+                    FunctionTemplateManager.getInstance().reloadAzureFunctionTemplates()
                 }
                 context.reloadTemplates.fire()
             }.getView()

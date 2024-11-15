@@ -25,11 +25,10 @@ class FunctionTemplateProvider : ProjectTemplateProvider {
 
         val templateManager = FunctionTemplateManager.getInstance()
 
-        if (!templateManager.areRegistered()) {
+        if (!templateManager.areAzureFunctionTemplatesInstalled()) {
             runWithModalProgressBlocking(DummyProject.getInstance(), "Reloading Azure templates...") {
-                templateManager.tryReload(false)
-
-                if (!templateManager.areRegistered()) {
+                templateManager.reloadAzureFunctionTemplates()
+                if (!templateManager.areAzureFunctionTemplatesInstalled()) {
                     result.set(setOf(InstallFunctionProjectTemplateType()))
                 }
             }

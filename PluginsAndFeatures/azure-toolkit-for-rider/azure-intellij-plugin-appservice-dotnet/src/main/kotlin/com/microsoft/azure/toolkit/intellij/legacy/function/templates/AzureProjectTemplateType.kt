@@ -20,7 +20,7 @@ class AzureProjectTemplateType : PredefinedProjectTemplateType() {
     override val icon = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
     override val order = 90
     override val shouldHide: Boolean
-        get() = !FunctionTemplateManager.getInstance().areRegistered()
+        get() = !FunctionTemplateManager.getInstance().areAzureFunctionTemplatesInstalled()
 
     override fun acceptableForTemplate(projectTemplate: RdProjectTemplate): Boolean {
         return projectTemplate.hasClassification("Azure Functions")
