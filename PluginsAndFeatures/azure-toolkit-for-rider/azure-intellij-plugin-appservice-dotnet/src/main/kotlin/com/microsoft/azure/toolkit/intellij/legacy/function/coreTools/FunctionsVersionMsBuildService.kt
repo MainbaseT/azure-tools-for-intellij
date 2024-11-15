@@ -11,14 +11,21 @@ import com.jetbrains.rider.azure.model.AzureFunctionsVersionRequest
 import com.jetbrains.rider.azure.model.functionAppDaemonModel
 import com.jetbrains.rider.projectView.solution
 
-@Service
-class FunctionCoreToolsMsBuildService {
+@Service(Service.Level.PROJECT)
+class FunctionsVersionMsBuildService(private val project: Project) {
     companion object {
-        fun getInstance() = service<FunctionCoreToolsMsBuildService>()
+        fun getInstance(project: Project) = project.service<FunctionsVersionMsBuildService>()
         const val PROPERTY_AZURE_FUNCTIONS_VERSION = "AzureFunctionsVersion"
     }
 
-    suspend fun requestAzureFunctionsVersion(project: Project, projectFilePath: String) =
+    /**
+     * Requests the version of Azure Functions runtime for a given project.
+     *
+     * @param projectFilePath The file path of the project for which the Azure Functions version is requested.
+     *
+     * @return The value of `AzureFunctionsVersion` MSBuild property.
+     */
+    suspend fun requestAzureFunctionsVersion(projectFilePath: String) =
         project.solution
             .functionAppDaemonModel
             .getAzureFunctionsVersion

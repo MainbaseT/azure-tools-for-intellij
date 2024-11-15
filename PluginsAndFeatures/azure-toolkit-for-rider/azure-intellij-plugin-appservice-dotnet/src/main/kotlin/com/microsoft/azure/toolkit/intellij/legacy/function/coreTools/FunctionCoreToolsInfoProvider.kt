@@ -12,7 +12,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.util.concurrency.ThreadingAssertions
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.isFunctionCoreToolsExecutable
 import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
@@ -33,9 +33,9 @@ class FunctionCoreToolsInfoProvider {
         projectFilePath: String,
         allowDownload: Boolean
     ): Pair<String, FunctionCoreToolsInfo>? {
-        val azureFunctionsVersion = FunctionCoreToolsMsBuildService
-            .getInstance()
-            .requestAzureFunctionsVersion(project, projectFilePath)
+        val azureFunctionsVersion = FunctionsVersionMsBuildService
+            .getInstance(project)
+            .requestAzureFunctionsVersion(projectFilePath)
 
         if (azureFunctionsVersion == null) {
             LOG.warn("Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'")
