@@ -38,7 +38,7 @@ import com.jetbrains.rider.run.environment.ExecutableRunParameters
 import com.jetbrains.rider.run.environment.ProjectProcessOptions
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.msNet.MsNetRuntime
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager2
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
@@ -75,7 +75,7 @@ class FunctionRunExecutorFactory(
         }
 
         val functionCoreToolsPath =  withContext(Dispatchers.Default) {
-            FunctionCoreToolsManager2
+            FunctionCoreToolsManager
                 .getInstance()
                 .getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsRuntimeVersion)
         }

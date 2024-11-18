@@ -10,7 +10,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.jetbrains.rider.projectView.projectTemplates.providers.RiderProjectTemplateProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager2
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -25,7 +25,7 @@ class FunctionTemplateManager {
     private val netIsolatedPath = Path("net-isolated")
 
     fun areAzureFunctionTemplatesInstalled(): Boolean {
-        val functionCoreToolsFolder = FunctionCoreToolsManager2
+        val functionCoreToolsFolder = FunctionCoreToolsManager
             .getInstance()
             .getFunctionCoreToolsPathForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION)
             ?: return false
@@ -38,7 +38,7 @@ class FunctionTemplateManager {
     fun reloadAzureFunctionTemplates() {
         ThreadingAssertions.assertBackgroundThread()
 
-        val functionCoreToolsFolder = FunctionCoreToolsManager2
+        val functionCoreToolsFolder = FunctionCoreToolsManager
             .getInstance()
             .getFunctionCoreToolsPathForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION)
             ?: return

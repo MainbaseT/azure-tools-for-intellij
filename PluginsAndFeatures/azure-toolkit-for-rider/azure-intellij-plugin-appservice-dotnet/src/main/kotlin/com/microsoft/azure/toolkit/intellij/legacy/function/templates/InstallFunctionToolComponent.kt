@@ -15,7 +15,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBInsets
 import com.jetbrains.rider.ui.components.base.Viewable
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager2
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.swing.JComponent
@@ -39,7 +39,7 @@ class InstallFunctionToolComponent(reloadTemplates: Runnable) : Viewable<JCompon
                     val project = ProjectManager.getInstance().defaultProject
                     runWithModalProgressBlocking(project, "Downloading Azure Functions Core Tools...") {
                         withContext(Dispatchers.Default) {
-                            FunctionCoreToolsManager2
+                            FunctionCoreToolsManager
                                 .getInstance()
                                 .downloadLatestFunctionCoreToolsForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION)
                         }
