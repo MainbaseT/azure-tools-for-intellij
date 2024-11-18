@@ -24,7 +24,6 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.azure.model.AzureFunctionWorkerModel
 import com.jetbrains.rider.azure.model.AzureFunctionWorkerModelRequest
@@ -41,6 +40,7 @@ import com.jetbrains.rider.runtime.msNet.MsNetRuntime
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.resolveFunctionCoreToolsExecutable
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
@@ -84,9 +84,7 @@ class FunctionRunExecutorFactory(
             throw CantRunException("Can't run Azure Functions host. Unable to find locally or download Function core tools")
         }
 
-        val functionCoreToolsExecutablePath =
-            if (SystemInfo.isWindows) functionCoreToolsPath.resolve("func.exe")
-            else functionCoreToolsPath.resolve("func")
+        val functionCoreToolsExecutablePath = functionCoreToolsPath.resolveFunctionCoreToolsExecutable()
         LOG.trace { "Function core tools executable path: $functionCoreToolsExecutablePath" }
 
         val projectFilePath = Path(parameters.projectFilePath)

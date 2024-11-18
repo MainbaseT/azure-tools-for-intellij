@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.toolingFeed.Function
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
 import java.nio.file.Path
 import kotlin.io.path.*
-import kotlin.sequences.lastOrNull
 import kotlin.sequences.sortedWith
 
 @Service(Service.Level.APP)
@@ -146,9 +145,7 @@ class FunctionCoreToolsManager {
             .filter { it.isDirectory() && it.exists() }
             .sortedWith { first, second -> -1 * VersionComparatorUtil.compare(first.name, second.name) }
             .firstOrNull {
-                val coreToolExecutablePath =
-                    if (SystemInfo.isWindows) it.resolve("func.exe")
-                    else it.resolve("func")
+                val coreToolExecutablePath = it.resolveFunctionCoreToolsExecutable()
                 coreToolExecutablePath.exists()
             }
 

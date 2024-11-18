@@ -4,7 +4,11 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 
+import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Path
 import kotlin.io.path.nameWithoutExtension
 
 fun Path.isFunctionCoreTools() = nameWithoutExtension.equals("func", ignoreCase = true)
+fun Path.resolveFunctionCoreToolsExecutable(): Path =
+    if (SystemInfo.isWindows) resolve("func.exe")
+    else resolve("func")
