@@ -22,7 +22,9 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.azure.model.AzureFunctionWorkerModel
 import com.jetbrains.rider.azure.model.AzureFunctionWorkerModelRequest
@@ -36,8 +38,9 @@ import com.jetbrains.rider.run.environment.ExecutableRunParameters
 import com.jetbrains.rider.run.environment.ProjectProcessOptions
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.msNet.MsNetRuntime
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfo
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager2
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
@@ -63,11 +66,28 @@ class FunctionRunExecutorFactory(
         environment: ExecutionEnvironment,
         lifetime: Lifetime
     ): RunProfileState {
-        val coreToolsInfoResult = FunctionCoreToolsInfoProvider
-            .getInstance()
-            .retrieveForProject(project, parameters.projectFilePath, true)
-            ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined")
-        val (azureFunctionsVersion, coreToolsInfo) = coreToolsInfoResult
+        val azureFunctionsRuntimeVersion = FunctionsVersionMsBuildService
+            .getInstance(project)
+            .requestAzureFunctionsVersion(parameters.projectFilePath)
+        if (azureFunctionsRuntimeVersion == null) {
+            LOG.warn("Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'")
+            throw CantRunException("Can't run Azure Functions host. Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'")
+        }
+
+        val functionCoreToolsPath =  withContext(Dispatchers.Default) {
+            FunctionCoreToolsManager2
+                .getInstance()
+                .getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsRuntimeVersion)
+        }
+        if (functionCoreToolsPath == null) {
+            LOG.warn("Unable to find or download Function core tools for the project '${parameters.projectFilePath}'")
+            throw CantRunException("Can't run Azure Functions host. Unable to find locally or download Function core tools")
+        }
+
+        val functionCoreToolsExecutablePath =
+            if (SystemInfo.isWindows) functionCoreToolsPath.resolve("func.exe")
+            else functionCoreToolsPath.resolve("func")
+        LOG.trace { "Function core tools executable path: $functionCoreToolsExecutablePath" }
 
         val projectFilePath = Path(parameters.projectFilePath)
         val functionLocalSettings = withContext(Dispatchers.Default) {
@@ -76,7 +96,7 @@ class FunctionRunExecutorFactory(
                 .getFunctionLocalSettings(projectFilePath)
         }
 
-        val dotNetExecutable = getDotNetExecutable(coreToolsInfo, functionLocalSettings)
+        val dotNetExecutable = getDotNetExecutable(functionCoreToolsExecutablePath, functionLocalSettings)
             ?: throw CantRunException("Can't run Azure Functions host. Unable to create .NET executable")
 
         LOG.debug("Patching host.json file to reflect run configuration parameters")
@@ -91,10 +111,10 @@ class FunctionRunExecutorFactory(
         }
         LOG.debug { "Worker runtime: $workerRuntime" }
 
-        val runtimeToExecute = if (azureFunctionsVersion.equals("v1", ignoreCase = true)) {
+        val runtimeToExecute = if (azureFunctionsRuntimeVersion.equals("v1", ignoreCase = true)) {
             MsNetRuntime()
         } else {
-            FunctionNetCoreRuntime(coreToolsInfo, workerRuntime, lifetime)
+            FunctionNetCoreRuntime(functionCoreToolsExecutablePath, workerRuntime, lifetime)
         }
 
         LOG.debug { "Configuration will be executed on ${runtimeToExecute.javaClass.name}" }
@@ -106,7 +126,7 @@ class FunctionRunExecutorFactory(
     }
 
     private suspend fun getDotNetExecutable(
-        coreToolsInfo: FunctionCoreToolsInfo,
+        functionCoreToolsExecutablePath: Path,
         functionLocalSettings: FunctionLocalSettings?
     ): DotNetExecutable? {
         val runnableProjects = project.solution.runnableProjectsModel.projects.valueOrNull
@@ -120,7 +140,7 @@ class FunctionRunExecutorFactory(
             return null
         }
 
-        val coreToolsExecutablePath = coreToolsInfo.coreToolsExecutable.absolutePathString()
+        val coreToolsExecutablePath = functionCoreToolsExecutablePath.absolutePathString()
 
         val projectOutput = runnableProject
             .projectOutputs
@@ -163,6 +183,8 @@ class FunctionRunExecutorFactory(
         val executableParameters = ExecutableParameterProcessor
             .getInstance(project)
             .processEnvironment(runParameters, projectProcessOptions)
+
+        LOG.trace { "Function executable: $executableParameters" }
 
         return DotNetExecutable(
             executableParameters.executablePath ?: coreToolsExecutablePath,

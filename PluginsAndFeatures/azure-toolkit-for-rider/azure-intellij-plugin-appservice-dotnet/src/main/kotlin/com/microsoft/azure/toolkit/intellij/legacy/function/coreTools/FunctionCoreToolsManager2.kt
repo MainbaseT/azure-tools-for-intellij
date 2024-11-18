@@ -27,6 +27,25 @@ class FunctionCoreToolsManager2 {
     }
 
     /**
+     * Retrieves the path to the Azure Function core tools for a specified Azure Function runtime version
+     * or downloads the latest core tools if not available.
+     *
+     * @param azureFunctionsVersion The version of Azure Functions runtime for which to get or download the core tools.
+     * @return The path to the Azure Function core tools for the specified Azure Function runtime version,
+     * or null if the path cannot be determined or the download fails.
+     */
+    suspend fun getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsVersion: String): Path? {
+        val existingCoreToolsPath = getFunctionCoreToolsPathForVersion(azureFunctionsVersion)
+        if (existingCoreToolsPath != null) {
+            LOG.trace { "Found existing core tools path: $existingCoreToolsPath" }
+            return existingCoreToolsPath
+        }
+
+        LOG.trace { "Existing core tools aren't found, downloading the latest one" }
+        return downloadLatestFunctionCoreToolsForVersion(azureFunctionsVersion)
+    }
+
+    /**
      * Retrieves the path to the Azure Function core tools folder for a specified Azure Function runtime version.
      *
      * @param azureFunctionsVersion The version of Azure Functions runtime for which to get the folder.
