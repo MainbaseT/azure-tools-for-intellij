@@ -16,6 +16,8 @@ import com.jetbrains.rider.runtime.DotNetRuntime
 import com.jetbrains.rider.runtime.RiderDotNetActiveRuntimeHost
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntimeType
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.profileStates.FunctionIsolatedDebugProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.profileStates.FunctionRunProfileState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString

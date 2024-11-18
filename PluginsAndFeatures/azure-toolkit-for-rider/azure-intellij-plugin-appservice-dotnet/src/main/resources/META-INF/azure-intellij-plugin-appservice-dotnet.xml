@@ -27,9 +27,9 @@
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfigurationType"/>
 
         <programRunner
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionProgramRunner"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.runners.FunctionProgramRunner"/>
         <programRunner
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionDebugRunner"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.runners.FunctionDebugRunner"/>
 
         <stepsBeforeRunProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.buildTasks.BuildFunctionsProjectBeforeRunTaskProvider"/>
