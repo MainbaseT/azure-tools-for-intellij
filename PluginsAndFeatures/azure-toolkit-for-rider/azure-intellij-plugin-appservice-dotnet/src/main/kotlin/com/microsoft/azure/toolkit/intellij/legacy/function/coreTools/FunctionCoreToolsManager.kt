@@ -143,9 +143,14 @@ class FunctionCoreToolsManager {
         val latestTagFolderForVersion = coreToolsPathForVersion
             .listDirectoryEntries()
             .asSequence()
-            .filter { it.isDirectory() }
-            .sortedWith { first, second -> VersionComparatorUtil.compare(first.name, second.name) }
-            .lastOrNull { it.exists() }
+            .filter { it.isDirectory() && it.exists() }
+            .sortedWith { first, second -> -1 * VersionComparatorUtil.compare(first.name, second.name) }
+            .firstOrNull {
+                val coreToolExecutablePath =
+                    if (SystemInfo.isWindows) it.resolve("func.exe")
+                    else it.resolve("func")
+                coreToolExecutablePath.exists()
+            }
 
         LOG.trace { "The latest tag folder from $coreToolsPathForVersion is $latestTagFolderForVersion" }
 
