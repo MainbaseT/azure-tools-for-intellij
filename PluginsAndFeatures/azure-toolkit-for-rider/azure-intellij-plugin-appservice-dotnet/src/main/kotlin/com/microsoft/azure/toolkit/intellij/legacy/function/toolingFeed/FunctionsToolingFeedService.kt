@@ -11,6 +11,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.util.io.ZipUtil
@@ -32,12 +33,16 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
+import kotlin.io.path.isExecutable
+import kotlin.io.path.setPosixFilePermissions
 
 @Service(Service.Level.APP)
 class FunctionsToolingFeedService : Disposable {
@@ -148,13 +153,16 @@ class FunctionsToolingFeedService : Disposable {
 
             LOG.trace { "Downloaded core tooling archive to the ${tempFile.absolutePath}" }
 
-            if (!toolingReleasePath.exists()) {
+            if (!toolingReleasePath.exists())
                 toolingReleasePath.createDirectories()
-            }
 
             ZipUtil.extract(tempFile.toPath(), toolingReleasePath, null, true)
 
-            if (tempFile.exists()) tempFile.delete()
+            if (tempFile.exists())
+                tempFile.delete()
+
+            if (!coreToolsExecutablePath.isExecutable() && !SystemInfo.isWindows)
+                setExecutablePermissionsForCoreTools(coreToolsExecutablePath)
 
             return Result.success(toolingReleasePath)
         } catch (e: Exception) {
@@ -222,6 +230,16 @@ class FunctionsToolingFeedService : Disposable {
                     }.let { rank -> if (rank >= 0) rank else 9999 }
                 })
             .firstOrNull()
+
+    private fun setExecutablePermissionsForCoreTools(coreToolsExecutable: Path) {
+        coreToolsExecutable.setPosixFilePermissions(
+            setOf(
+                PosixFilePermission.OWNER_EXECUTE,
+                PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_WRITE
+            )
+        )
+    }
 
     override fun dispose() = client.close()
 }
