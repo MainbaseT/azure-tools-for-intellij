@@ -1,295 +1,260 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("UnstableApiUsage")
+@file:OptIn(ExperimentalPathApi::class)
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.registry.Registry
-import com.intellij.util.io.HttpRequests
-import com.intellij.util.io.ZipUtil
-import com.intellij.util.system.CpuArch
 import com.intellij.util.text.VersionComparatorUtil
-import com.jetbrains.rd.util.concurrentMapOf
+import com.microsoft.azure.toolkit.intellij.legacy.function.isFunctionCoreToolsExecutable
 import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
-import java.io.File
-import java.io.IOException
-import java.net.UnknownHostException
+import com.microsoft.azure.toolkit.intellij.legacy.function.toolingFeed.FunctionsToolingFeedService
+import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
+import java.nio.file.Path
+import kotlin.io.path.*
+import kotlin.sequences.sortedWith
 
-@Service
+@Service(Service.Level.APP)
 class FunctionCoreToolsManager {
     companion object {
         fun getInstance(): FunctionCoreToolsManager = service()
-
         private val LOG = logger<FunctionCoreToolsManager>()
+
+        private const val CORE_TOOLING_FOLDERS_COUNT = 5
     }
 
-    private val fixedReleases = mapOf<String, String>(
-    )
-
-    private val releaseCache = concurrentMapOf<String, FunctionCoreToolsRelease>()
-
-    suspend fun demandCoreToolsPathForVersion(
-        azureFunctionsVersion: String,
-        releaseFeedUrl: String,
-        allowDownload: Boolean
-    ): File? {
-        val downloadRoot = resolveDownloadRoot()
-
-        if (allowDownload && Registry.`is`("azure.function_app.core_tools.feed.enabled")) {
-            ensureReleaseCacheFromFeed(releaseFeedUrl)
-
-            val coreToolsPath = resolveDownloadInfoForRelease(azureFunctionsVersion, downloadRoot)
-                ?.let { ensureReleaseDownloaded(it) }
-
-            if (coreToolsPath != null) return coreToolsPath
+    /**
+     * Retrieves the path to the Azure Function core tools for a specified Azure Function runtime version
+     * or downloads the latest core tools if not available.
+     *
+     * @param azureFunctionsVersion The version of Azure Functions runtime for which to get or download the core tools.
+     * @return The path to the Azure Function core tools for the specified Azure Function runtime version,
+     * or null if the path cannot be determined or the download fails.
+     */
+    suspend fun getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsVersion: String): Path? {
+        val existingCoreToolsPath = getFunctionCoreToolsPathForVersion(azureFunctionsVersion)
+        if (existingCoreToolsPath != null) {
+            LOG.trace { "Found existing core tools path: $existingCoreToolsPath" }
+            return existingCoreToolsPath
         }
 
-        val coreToolsPath = tryResolveExistingCoreToolsPath(azureFunctionsVersion, downloadRoot)
-        if (coreToolsPath != null) return coreToolsPath
-
-        return null
+        LOG.trace { "Existing core tools aren't found, downloading the latest one" }
+        return downloadLatestFunctionCoreToolsForVersion(azureFunctionsVersion)
     }
 
-    private fun resolveDownloadRoot(): File {
+    /**
+     * Retrieves the path to the Azure Function core tools folder for a specified Azure Function runtime version.
+     *
+     * @param azureFunctionsVersion The version of Azure Functions runtime for which to get the folder.
+     * @return The path to the Azure Function core tools folder for the specified Azure Function runtime version, or null if not found.
+     */
+    fun getFunctionCoreToolsPathForVersion(azureFunctionsVersion: String): Path? {
         val settings = AzureFunctionSettings.getInstance()
-        val downloadRoot = File(settings.functionDownloadPath)
-
-        if (!downloadRoot.exists()) {
-            try {
-                downloadRoot.mkdir()
-            } catch (e: Exception) {
-                LOG.error("Error while creating download root: ${downloadRoot.path}", e)
-            }
+        val coreToolsPathEntries = settings.azureCoreToolsPathEntries
+        val coreToolsPathFromSettings = coreToolsPathEntries
+            .firstOrNull { it.functionsVersion.equals(azureFunctionsVersion, ignoreCase = true) }
+            ?.coreToolsPath
+            ?.let(::resolveCoreToolsPathFromSettings)
+        if (coreToolsPathFromSettings?.exists() == true) {
+            LOG.trace { "Get Azure Function core tools path from the settings: $coreToolsPathFromSettings" }
+            return coreToolsPathFromSettings
         }
 
-        return downloadRoot
-    }
-
-    private suspend fun ensureReleaseCacheFromFeed(releaseFeedUrl: String) {
-        if (releaseCache.isNotEmpty()) return
-
-        val releaseFilter = getReleaseFilter()
-
-        LOG.debug("Azure Core Tools release filter: $releaseFilter")
-
-        try {
-            val feed = FunctionCoreToolsReleaseFeedService.getInstance().getReleaseFeed(releaseFeedUrl)
-
-            val releaseTags = feed.tags
-                .toSortedMap()
-                .filterValues { !it.releaseQuality.isNullOrEmpty() && !it.release.isNullOrEmpty() }
-
-            for ((releaseTagName, releaseTag) in releaseTags) {
-                val releaseFromTag = fixedReleases[releaseTagName] ?: releaseTag.release ?: continue
-                val release = feed.releases[releaseFromTag] ?: continue
-
-                val releaseCoreTools = getReleaseCoreTool(release, releaseFilter) ?: continue
-
-                LOG.debug("Release for Azure Core Tools version ${releaseTagName.lowercase()}: ${releaseTag.release}; ${releaseCoreTools.downloadLink}")
-
-                val releaseKey = releaseTagName.lowercase()
-                releaseCache.putIfAbsent(
-                    releaseKey,
-                    FunctionCoreToolsRelease(releaseKey, releaseFromTag, releaseCoreTools.downloadLink ?: "")
-                )
-            }
-        } catch (e: UnknownHostException) {
-            LOG.warn("Could not download from Azure Functions Core Tools release feed URL at $releaseFeedUrl: $e")
-        } catch (e: IOException) {
-            LOG.warn("Could not download from Azure Functions Core Tools release feed URL at $releaseFeedUrl: $e")
+        val coreToolsDownloadFolder = settings.functionDownloadPath
+        if (coreToolsDownloadFolder.isEmpty()) {
+            LOG.info("Unable to find any downloaded core tools because tool download path is not set up")
+            return null
         }
-    }
-
-    private fun getReleaseFilter() = when {
-        SystemInfo.isWindows && CpuArch.isIntel64() -> AzureCoreToolsFeedReleaseFilter(
-            "Windows",
-            listOf("x64"),
-            listOf("minified", "full")
-        )
-
-        SystemInfo.isWindows && CpuArch.isArm64() -> AzureCoreToolsFeedReleaseFilter(
-            "Windows",
-            listOf("arm64", "x64"),
-            listOf("minified", "full")
-        )
-
-        SystemInfo.isWindows -> AzureCoreToolsFeedReleaseFilter(
-            "Windows",
-            listOf("x86"),
-            listOf("minified", "full")
-        )
-
-        SystemInfo.isMac && CpuArch.isArm64() -> AzureCoreToolsFeedReleaseFilter(
-            "MacOS",
-            listOf("arm64", "x64"),
-            listOf("full")
-        )
-
-        SystemInfo.isMac -> AzureCoreToolsFeedReleaseFilter(
-            "MacOS",
-            listOf("x64"),
-            listOf("full")
-        )
-
-        SystemInfo.isLinux -> AzureCoreToolsFeedReleaseFilter(
-            "Linux",
-            listOf("x64"),
-            listOf("full")
-        )
-
-        else -> AzureCoreToolsFeedReleaseFilter(
-            "Unknown",
-            listOf("x64"),
-            listOf("full")
-        )
-    }
-
-    private fun getReleaseCoreTool(release: Release, releaseFilter: AzureCoreToolsFeedReleaseFilter) =
-        release.coreTools
-            .asSequence()
-            .filter {
-                it.os.equals(releaseFilter.os, ignoreCase = true) &&
-                        !it.downloadLink.isNullOrEmpty()
-            }
-            .sortedWith(
-                compareBy<ReleaseCoreTool> {
-                    releaseFilter.architectures.indexOfFirst { architecture ->
-                        it.architecture.equals(architecture, ignoreCase = true)
-                    }.let { rank -> if (rank >= 0) rank else 9999 }
-                }.thenBy {
-                    releaseFilter.sizes.indexOfFirst { size ->
-                        it.size.equals(size, ignoreCase = true)
-                    }.let { rank -> if (rank >= 0) rank else 9999 }
-                })
-            .firstOrNull()
-
-    private fun resolveDownloadInfoForRelease(
-        azureFunctionsVersion: String,
-        downloadRoot: File
-    ): FunctionCoreToolsDownloadInfo? {
-        val releaseInfo = releaseCache[azureFunctionsVersion.lowercase()]
-        if (releaseInfo == null) {
-            LOG.warn("Could not determine Azure Functions Core Tools release. Azure Functions version: '$azureFunctionsVersion'")
+        val coreToolsPathForVersion = Path(coreToolsDownloadFolder).resolve(azureFunctionsVersion)
+        if (coreToolsPathForVersion.notExists()) {
+            LOG.info("Unable to find any downloaded core tools in the folder $coreToolsDownloadFolder for version $azureFunctionsVersion")
             return null
         }
 
-        val downloadFolderForTag = downloadRoot.resolve(releaseInfo.functionsVersion)
-        val downloadFolderForTagRelease = downloadFolderForTag.resolve(releaseInfo.coreToolsVersion)
-
-        LOG.debug(
-            "Found Azure Functions Core Tools release from feed. " +
-                    "Azure Functions version: '${releaseInfo.functionsVersion}'; " +
-                    "Core Tools Version: ${releaseInfo.coreToolsVersion}; " +
-                    "Expected download path: ${downloadFolderForTagRelease.path}"
-        )
-
-        return FunctionCoreToolsDownloadInfo(
-            downloadFolderForTag,
-            downloadFolderForTagRelease,
-            releaseInfo
-        )
+        LOG.trace { "Get Azure Function core tools path from the download folder: $coreToolsPathForVersion" }
+        return findCoreToolsPathWithLatestTag(coreToolsPathForVersion)
     }
 
-    private fun ensureReleaseDownloaded(downloadInfo: FunctionCoreToolsDownloadInfo): File? {
-        if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
-            return downloadInfo.downloadFolderForTagAndRelease
-        }
-        downloadRelease(downloadInfo)
+    /**
+     * Downloads the latest Azure Function core tools release for the specified Azure Functions runtime version.
+     *
+     * @param azureFunctionsVersion The version of Azure Functions runtime for which to download the latest core tools release.
+     * @return The path to the downloaded Azure Function core tools, or null if the download was unsuccessful.
+     */
+    suspend fun downloadLatestFunctionCoreToolsForVersion(azureFunctionsVersion: String): Path? {
+        val downloadLatestReleaseResult = FunctionsToolingFeedService
+            .getInstance()
+            .downloadLatestFunctionsToolingRelease(azureFunctionsVersion)
 
-        if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
-            return downloadInfo.downloadFolderForTagAndRelease
+        val latestReleasePath = downloadLatestReleaseResult.getOrNull()
+        if (latestReleasePath == null) {
+            LOG.warn(
+                "Unable to download the latest Azure Function core tooling release for version $azureFunctionsVersion",
+                downloadLatestReleaseResult.exceptionOrNull()
+            )
+            return null
         }
 
-        return null
+        return latestReleasePath
     }
 
-    private fun downloadRelease(downloadInfo: FunctionCoreToolsDownloadInfo) {
-        val tempFile = FileUtil.createTempFile(
-            File(FileUtil.getTempDirectory()),
-            "AzureFunctions-${downloadInfo.release.functionsVersion}-${downloadInfo.release.coreToolsVersion}",
-            ".zip",
-            true,
-            true
-        )
+    /**
+     * Updates the Azure Function core tools to the latest versions managed by Rider.
+     *
+     * This method retrieves the current core tools path settings and determines the versions
+     * managed by Rider. It then checks if these versions already exist in the specified
+     * core tools download directory. If they do, it retrieves the tooling releases
+     * for these versions and updates the core tools accordingly. After updating,
+     * it cleans up any unnecessary core tools for the specified versions.
+     */
+    suspend fun updateFunctionCoreTools() {
+        val settings = AzureFunctionSettings.getInstance()
+        val coreToolsPathEntries = settings.azureCoreToolsPathEntries
+        val versionsManagedByRider = coreToolsPathEntries
+            .filter { it.coreToolsPath.isEmpty() }
+            .map { it.functionsVersion }
+            .toMutableList()
+        versionsManagedByRider.add("v0")
 
-        HttpRequests
-            .request(downloadInfo.release.coreToolsArtifactUrl)
-            .saveToFile(tempFile, null)
+        val coreToolsDownloadFolder = settings.functionDownloadPath
+        if (coreToolsDownloadFolder.isEmpty()) {
+            LOG.trace { "Unable to update core tools because tool download path is not set up" }
+        }
+        val coreToolsDownloadFolderPath = Path(coreToolsDownloadFolder)
+        val versionsToUpdate = versionsManagedByRider.filter {
+            coreToolsDownloadFolderPath.resolve(it).exists()
+        }
+        if (versionsToUpdate.isEmpty()) return
 
-        try {
-            if (downloadInfo.downloadFolderForTag.exists()) {
-                downloadInfo.downloadFolderForTag.deleteRecursively()
+        val toolingReleases = FunctionsToolingFeedService
+            .getInstance()
+            .getFunctionsToolingReleaseForVersions(versionsToUpdate)
+        if (toolingReleases == null) {
+            LOG.trace { "Unable to get tooling releases for versions: ${versionsToUpdate.joinToString()}" }
+            return
+        }
+
+        for (toolingRelease in toolingReleases) {
+            updateFunctionCoreToolsForVersion(
+                toolingRelease.functionsVersion,
+                toolingRelease.releaseTag,
+                coreToolsDownloadFolderPath
+            )
+            cleanUpCoreToolsForVersion(toolingRelease.functionsVersion, coreToolsDownloadFolderPath)
+        }
+    }
+
+    private suspend fun updateFunctionCoreToolsForVersion(
+        functionsVersion: String,
+        releaseTag: String,
+        coreToolsDownloadFolder: Path
+    ) {
+        val coreToolsPath = coreToolsDownloadFolder.resolve(functionsVersion).resolve(releaseTag)
+        if (coreToolsPath.exists() && coreToolsPath.resolveFunctionCoreToolsExecutable().exists()) {
+            LOG.trace { "Core tools with tag $releaseTag already exists" }
+            return
+        }
+
+        FunctionsToolingFeedService
+            .getInstance()
+            .downloadLatestFunctionsToolingRelease(functionsVersion)
+            .onFailure {
+                LOG.warn("Unable to update core tools for version $functionsVersion", it)
             }
-            downloadInfo.downloadFolderForTagAndRelease.mkdir()
-        } catch (e: Exception) {
-            LOG.error("Error while removing directory ${downloadInfo.downloadFolderForTag.path}", e)
+    }
+
+    private fun cleanUpCoreToolsForVersion(functionsVersion: String, coreToolsDownloadFolder: Path) {
+        val coreToolsPathForVersion = coreToolsDownloadFolder.resolve(functionsVersion)
+        val tagFolders = coreToolsPathForVersion.listAllTagFolders()
+
+        for (tagFolder in tagFolders) {
+            runCatching {
+                if (!tagFolder.resolveFunctionCoreToolsExecutable().exists()) {
+                    LOG.trace { "Core tools folder $tagFolder is probably empty, removing it" }
+                    tagFolder.deleteRecursively()
+                }
+            }.onFailure {
+                LOG.trace(it)
+            }
         }
 
-        try {
-            ZipUtil.extract(tempFile.toPath(), downloadInfo.downloadFolderForTagAndRelease.toPath(), null, true)
-        } catch (e: Exception) {
-            LOG.error(
-                "Error while extracting ${tempFile.path} to ${downloadInfo.downloadFolderForTagAndRelease.path}",
-                e
-            )
-        }
+        val tagFoldersWithoutEmpty = coreToolsPathForVersion.listAllTagFolders().toList()
+        if (tagFoldersWithoutEmpty.size <= CORE_TOOLING_FOLDERS_COUNT) return
 
-        try {
-            if (tempFile.exists()) tempFile.delete()
-        } catch (e: Exception) {
-            LOG.error("Error while removing temporary file ${tempFile.path}", e)
+        val folderCountToDelete = tagFoldersWithoutEmpty.size - CORE_TOOLING_FOLDERS_COUNT
+        for (tagFolderToDelete in tagFoldersWithoutEmpty.takeLast(folderCountToDelete)) {
+            runCatching {
+                LOG.trace("Removing core tools folder $tagFolderToDelete")
+                tagFolderToDelete.deleteRecursively()
+            }.onFailure {
+                LOG.trace(it)
+            }
         }
     }
 
-    private fun tryResolveExistingCoreToolsPath(azureFunctionsVersion: String, downloadRoot: File): File? {
-        val downloadFolderForTag = downloadRoot.resolve(azureFunctionsVersion.lowercase())
-        if (!downloadFolderForTag.exists()) return null
+    private fun resolveCoreToolsPathFromSettings(coreToolsPathValue: String): Path? {
+        if (coreToolsPathValue.isEmpty()) return null
 
-        val downloadFolderForTagRelease = downloadFolderForTag.listFiles(File::isDirectory)
-            ?.asSequence()
-            ?.sortedWith { first, second -> VersionComparatorUtil.compare(first?.name, second?.name) }
-            ?.lastOrNull { it.exists() && it.listFiles { file -> file.isFunctionCoreTools() }?.any() == true }
-
-        if (downloadFolderForTagRelease != null) {
-            LOG.debug(
-                "Found existing Azure Functions Core Tools path. " +
-                        "Azure Functions version: '${azureFunctionsVersion.lowercase()}'; " +
-                        "Download path: ${downloadFolderForTagRelease.path}"
-            )
-
-            return downloadFolderForTagRelease
+        if (isFunctionCoreToolsExecutable(coreToolsPathValue)) {
+            val coreToolsPathFromEnvironment = FunctionCliResolver.resolveFunc()?.let(::Path) ?: return null
+            LOG.trace { "Resolved core tools path from environment: $coreToolsPathFromEnvironment" }
+            return patchCoreToolsPath(coreToolsPathFromEnvironment)
+        } else {
+            val coreToolsPathFromSettings = Path(coreToolsPathValue)
+            LOG.trace { "Resolved core tools path from settings: $coreToolsPathFromSettings" }
+            return patchCoreToolsPath(coreToolsPathFromSettings)
         }
-
-        LOG.warn(
-            "Could not determine existing Azure Functions Core Tools path. " +
-                    "Azure Functions version: '${azureFunctionsVersion.lowercase()}'"
-        )
-
-        return null
     }
 
-    private data class AzureCoreToolsFeedReleaseFilter(
-        val os: String,
-        val architectures: List<String>,
-        val sizes: List<String>
-    )
+    private fun patchCoreToolsPath(funcCoreToolsPath: Path): Path {
+        val normalizedPath = if (funcCoreToolsPath.isRegularFile() && funcCoreToolsPath.isFunctionCoreTools()) {
+            funcCoreToolsPath.parent
+        } else {
+            funcCoreToolsPath
+        }
+        if (!SystemInfo.isWindows) return normalizedPath
 
-    private data class FunctionCoreToolsRelease(
-        val functionsVersion: String,
-        val coreToolsVersion: String,
-        val coreToolsArtifactUrl: String
-    )
+        // Chocolatey and NPM have shim executables that are not .NET (and not debuggable).
+        // If it's a Chocolatey install or NPM install, rewrite the path to the tools path
+        // where the func executable is located.
+        //
+        // Logic is similar to com.microsoft.azure.toolkit.intellij.function.runner.core.FunctionCliResolver.resolveFunc()
+        val chocolateyPath = normalizedPath.resolve("../lib/azure-functions-core-tools/tools").normalize()
+        if (chocolateyPath.exists()) {
+            LOG.info("Functions core tools path $normalizedPath is Chocolatey-installed. Rewriting path to $chocolateyPath")
+            return chocolateyPath
+        }
 
-    private data class FunctionCoreToolsDownloadInfo(
-        val downloadFolderForTag: File,
-        val downloadFolderForTagAndRelease: File,
-        val release: FunctionCoreToolsRelease
-    )
+        val npmPath = normalizedPath.resolve("../node_modules/azure-functions-core-tools/bin").normalize()
+        if (npmPath.exists()) {
+            LOG.info("Functions core tools path $normalizedPath is NPM-installed. Rewriting path to $npmPath")
+            return npmPath
+        }
+
+        return normalizedPath
+    }
+
+    private fun findCoreToolsPathWithLatestTag(coreToolsPathForVersion: Path): Path? {
+        val latestTagFolderForVersion = coreToolsPathForVersion
+            .listAllTagFolders()
+            .firstOrNull {
+                val coreToolExecutablePath = it.resolveFunctionCoreToolsExecutable()
+                coreToolExecutablePath.exists()
+            }
+
+        LOG.trace { "The latest tag folder from $coreToolsPathForVersion is $latestTagFolderForVersion" }
+
+        return latestTagFolderForVersion
+    }
+
+    private fun Path.listAllTagFolders() = listDirectoryEntries()
+        .asSequence()
+        .filter { it.isDirectory() && it.exists() }
+        .sortedWith { first, second -> -1 * VersionComparatorUtil.compare(first.name, second.name) }
 }

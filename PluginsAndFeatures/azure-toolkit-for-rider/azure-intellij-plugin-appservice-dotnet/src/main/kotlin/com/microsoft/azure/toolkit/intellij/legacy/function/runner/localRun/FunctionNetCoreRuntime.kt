@@ -15,13 +15,15 @@ import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
 import com.jetbrains.rider.runtime.RiderDotNetActiveRuntimeHost
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntimeType
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfo
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.profileStates.FunctionIsolatedDebugProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.profileStates.FunctionRunProfileState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 class FunctionNetCoreRuntime(
-    private val coreToolsInfo: FunctionCoreToolsInfo,
+    private val functionCoreToolsExecutablePath: Path,
     private val workerRuntime: FunctionWorkerRuntime,
     private val lifetime: Lifetime
 ) : DotNetRuntime(DotNetCoreRuntimeType) {
@@ -32,7 +34,7 @@ class FunctionNetCoreRuntime(
             if (commandLine.parametersList.parametersCount > 0 && commandLine.parametersList[0] != exePath) {
                 commandLine.parametersList.prepend(exePath)
             }
-            commandLine.exePath = coreToolsInfo.coreToolsExecutable.absolutePathString()
+            commandLine.exePath = functionCoreToolsExecutablePath.absolutePathString()
         }
     }
 
@@ -69,7 +71,7 @@ class FunctionNetCoreRuntime(
             activeDotnetRuntime,
             dotNetExecutable,
             executionEnvironment,
-            coreToolsInfo.coreToolsExecutable.absolutePathString()
+            activeDotnetRuntime.cliExePath
         )
     }
 

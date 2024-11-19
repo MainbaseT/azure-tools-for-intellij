@@ -14,7 +14,7 @@ import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.xml.util.XmlUtil
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_KNOWN_SUPPORTED_VERSIONS
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
 
 class AzureFunctionsVersionInspection : XmlSuppressableInspectionTool() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) = object : XmlElementVisitor() {

@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Reimplement Function core tools management
+
 ## [4.3.4] - 2024-11-13
 
 ### Fixed

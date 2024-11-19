@@ -10,8 +10,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.jetbrains.rider.projectView.projectTemplates.providers.RiderProjectTemplateProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
-import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsManager
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -25,37 +24,38 @@ class FunctionTemplateManager {
 
     private val netIsolatedPath = Path("net-isolated")
 
-    fun areRegistered(): Boolean {
-        val coreToolFolder = getCoreToolFolder() ?: return false
+    fun areAzureFunctionTemplatesInstalled(): Boolean {
+        val functionCoreToolsFolder = FunctionCoreToolsManager
+            .getInstance()
+            .getFunctionCoreToolsPathForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION)
+            ?: return false
 
         return RiderProjectTemplateProvider
             .getUserTemplateSources()
-            .any { (isFunctionProjectTemplate(it.toPath(), coreToolFolder)) && it.exists() }
+            .any { (isFunctionProjectTemplate(it.toPath(), functionCoreToolsFolder)) && it.exists() }
     }
 
-    suspend fun tryReload(allowDownload: Boolean) {
+    fun reloadAzureFunctionTemplates() {
         ThreadingAssertions.assertBackgroundThread()
 
-        // Determine core tools info for the latest supported Azure Functions version
-        val toolsInfoProvider = FunctionCoreToolsInfoProvider.getInstance()
-        val coreToolsInfo = toolsInfoProvider
-            .retrieveForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION, allowDownload)
+        val functionCoreToolsFolder = FunctionCoreToolsManager
+            .getInstance()
+            .getFunctionCoreToolsPathForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION)
             ?: return
 
-        removePreviousTemplates(coreToolsInfo.coreToolsPath)
+        removePreviousTemplates(functionCoreToolsFolder.parent)
 
-        // Add available templates
         val templateFolders = listOf(
-            coreToolsInfo.coreToolsPath.resolve("templates"),
-            coreToolsInfo.coreToolsPath.resolve("templates/net6-isolated"),
-            coreToolsInfo.coreToolsPath.resolve("templates/net-isolated")
+            functionCoreToolsFolder.resolve("templates"),
+            functionCoreToolsFolder.resolve("templates/net6-isolated"),
+            functionCoreToolsFolder.resolve("templates/net-isolated")
         ).filter { it.exists() }
 
         for (templateFolder in templateFolders) {
             try {
                 val templateFiles = templateFolder
                     .listDirectoryEntries()
-                    .filter { isFunctionProjectTemplate(it, coreToolsInfo.coreToolsPath) }
+                    .filter { isFunctionProjectTemplate(it, functionCoreToolsFolder) }
 
                 LOG.debug("Found ${templateFiles.size} function template(s) in $templateFolder")
 
@@ -68,20 +68,6 @@ class FunctionTemplateManager {
         }
     }
 
-    private fun getCoreToolFolder(): Path? {
-        val settings = AzureFunctionSettings.getInstance()
-        val toolPathEntries = settings.azureCoreToolsPathEntries
-        val toolPathFromConfiguration = toolPathEntries
-            .firstOrNull {
-                it.functionsVersion.equals(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION, ignoreCase = true)
-            }
-            ?.coreToolsPath
-            ?: return null
-
-        return if (toolPathFromConfiguration.isNotEmpty()) Path(toolPathFromConfiguration).parent
-        else Path(settings.functionDownloadPath)
-    }
-
     private fun isFunctionProjectTemplate(path: Path?, coreToolPath: Path): Boolean {
         if (path == null) return false
         if (
@@ -92,12 +78,13 @@ class FunctionTemplateManager {
         return path.startsWith(coreToolPath)
     }
 
-    private fun removePreviousTemplates(coreToolsPath: Path) {
+    private fun removePreviousTemplates(functionCoreToolsFolder: Path) {
         val templateSources = RiderProjectTemplateProvider
             .getUserTemplateSources()
             .map { it.toPath() }
+
         templateSources.forEach {
-            if (it.startsWith(coreToolsPath)) {
+            if (it.startsWith(functionCoreToolsFolder)) {
                 RiderProjectTemplateProvider.removeUserTemplateSource(it.toFile())
             } else if (it.contains(netIsolatedPath)) {
                 val index = it.lastIndexOf(netIsolatedPath)

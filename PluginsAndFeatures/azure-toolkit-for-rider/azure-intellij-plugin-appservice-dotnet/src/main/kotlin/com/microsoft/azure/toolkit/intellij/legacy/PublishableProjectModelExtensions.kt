@@ -12,7 +12,7 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.projectModelTasks
 import com.jetbrains.rider.projectView.solution
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
@@ -69,9 +69,9 @@ suspend fun PublishableProjectModel.getFunctionStack(
         .getFunctionLocalSettings(this)
     val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
     val azureFunctionVersion = withContext(Dispatchers.EDT) {
-        FunctionCoreToolsMsBuildService
-            .getInstance()
-            .requestAzureFunctionsVersion(project, this@getFunctionStack.projectFilePath)
+        FunctionsVersionMsBuildService
+            .getInstance(project)
+            .requestAzureFunctionsVersion(this@getFunctionStack.projectFilePath)
             ?.trimStart('v', 'V')
             ?: "4"
     }

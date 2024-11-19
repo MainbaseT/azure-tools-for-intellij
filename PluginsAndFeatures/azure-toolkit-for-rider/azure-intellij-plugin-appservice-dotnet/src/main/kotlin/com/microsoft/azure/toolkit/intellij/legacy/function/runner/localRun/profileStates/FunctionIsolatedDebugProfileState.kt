@@ -1,10 +1,8 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("UnstableApiUsage")
-
-package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.profileStates
 
 import com.intellij.execution.CantRunException
 import com.intellij.execution.ExecutionResult
@@ -34,6 +32,7 @@ import com.jetbrains.rider.run.dotNetCore.toCPUKind
 import com.jetbrains.rider.run.msNet.MsNetAttachProfileState
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionHostDebugLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -70,7 +69,7 @@ class FunctionIsolatedDebugProfileState(
         val processExecutablePath = ParametersListUtil.parse(targetProcess.commandLine).firstOrNull()
         val processArchitecture = getPlatformArchitecture(lifetime, pid, environment.project)
         val processTargetFramework = processExecutablePath?.let {
-            DebuggerHelperHost
+            DebuggerHelperHost.Companion
                 .getInstance(environment.project)
                 .getAssemblyTargetFramework(it, lifetime)
         }
@@ -96,7 +95,7 @@ class FunctionIsolatedDebugProfileState(
     }
 
     private suspend fun launchFunctionHostWaitingForDebugger(environment: ExecutionEnvironment): Pair<ExecutionResult, Int> {
-        val launcher = FunctionHostDebugLauncher.getInstance(environment.project)
+        val launcher = FunctionHostDebugLauncher.Companion.getInstance(environment.project)
         val (executionResult, pid) =
             withBackgroundProgress(environment.project, "Waiting for Azure Functions host to start...") {
                 withContext(Dispatchers.Default) {
@@ -162,7 +161,7 @@ class FunctionIsolatedDebugProfileState(
 
     private suspend fun getPlatformArchitecture(lifetime: Lifetime, pid: Int, project: Project): PlatformArchitecture {
         if (SystemInfo.isWindows) {
-            return DebuggerHelperHost
+            return DebuggerHelperHost.Companion
                 .getInstance(project)
                 .getProcessArchitecture(lifetime, pid)
         }
