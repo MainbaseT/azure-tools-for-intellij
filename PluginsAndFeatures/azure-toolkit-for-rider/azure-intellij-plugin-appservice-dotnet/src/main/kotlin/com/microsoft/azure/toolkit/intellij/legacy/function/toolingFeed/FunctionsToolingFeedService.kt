@@ -78,6 +78,8 @@ class FunctionsToolingFeedService : Disposable {
     suspend fun downloadAndSaveReleaseFeed() = kotlin.runCatching {
         if (releaseCache.isNotEmpty()) return@runCatching
 
+        LOG.trace("Downloading Functions tooling release feed")
+
         val feed = getReleaseFeed()
         val releaseTags = feed.tags
             .toSortedMap()
@@ -88,9 +90,10 @@ class FunctionsToolingFeedService : Disposable {
             val releaseFromTag = fixedReleases[releaseTagName] ?: releaseTag.release ?: continue
             val release = feed.releases[releaseFromTag] ?: continue
             val coreToolsRelease = release.findCoreToolsRelease(releaseFilter) ?: continue
-            LOG.debug("Release for Azure core tools version ${releaseTagName.lowercase()}: ${releaseTag.release}; ${coreToolsRelease.downloadLink}")
 
             val releaseKey = releaseTagName.lowercase()
+            LOG.debug("Release for Azure core tools version ${releaseKey}: ${releaseFromTag}; ${coreToolsRelease.downloadLink}")
+
             releaseCache.putIfAbsent(
                 releaseKey,
                 FunctionsToolingRelease(releaseKey, releaseFromTag, coreToolsRelease.downloadLink ?: "")
@@ -156,6 +159,7 @@ class FunctionsToolingFeedService : Disposable {
             if (!toolingReleasePath.exists())
                 toolingReleasePath.createDirectories()
 
+            LOG.trace { "Extracting from ${tempFile.absolutePath} to $toolingReleasePath" }
             ZipUtil.extract(tempFile.toPath(), toolingReleasePath, null, true)
 
             if (tempFile.exists())
@@ -166,8 +170,8 @@ class FunctionsToolingFeedService : Disposable {
 
             return Result.success(toolingReleasePath)
         } catch (e: Exception) {
-            toolingReleasePath.deleteRecursively()
             LOG.warn("Unable to download Function core tools for the runtime version $azureFunctionsVersion")
+            toolingReleasePath.deleteRecursively()
             return Result.failure(e)
         }
     }
@@ -182,35 +186,40 @@ class FunctionsToolingFeedService : Disposable {
     }
 
     private suspend fun getReleaseFeed(): ReleaseFeed {
-        val feedUrl = getReleaseFeedUrl()
+        val feedUrl = Registry.get("azure.function_app.core_tools.feed.url").asString()
+        LOG.trace { "Functions tooling release feed: $feedUrl" }
+
         val response = withContext(Dispatchers.IO) {
             client.get(feedUrl)
         }
+
         return response.body<ReleaseFeed>()
     }
-
-    private fun getReleaseFeedUrl() = Registry.get("azure.function_app.core_tools.feed.url").asString()
 
     private fun getLatestFunctionsToolingRelease(azureFunctionsVersion: String): FunctionsToolingRelease? {
         val toolingRelease = releaseCache[azureFunctionsVersion.lowercase()]
         if (toolingRelease == null) {
-            LOG.warn("Could not determine Azure Functions core tools release for version: '$azureFunctionsVersion'")
+            LOG.warn("Could not determine Functions tooling release for version: '$azureFunctionsVersion'")
             return null
         }
+
+        LOG.trace { "Latest Functions tooling release for version '$azureFunctionsVersion' is '$toolingRelease'" }
 
         return toolingRelease
     }
 
-    private fun getReleaseDownloadRoot(): Path? {
+    private fun getPathForLatestFunctionsToolingRelease(toolingRelease: FunctionsToolingRelease): Path? {
         val settings = AzureFunctionSettings.getInstance()
         val coreToolsDownloadFolder = settings.functionDownloadPath
-        return if (coreToolsDownloadFolder.isNotEmpty()) Path(coreToolsDownloadFolder)
-        else null
-    }
+        val downloadRoot =
+            if (coreToolsDownloadFolder.isNotEmpty()) Path(coreToolsDownloadFolder)
+            else null
 
-    private fun getPathForLatestFunctionsToolingRelease(toolingRelease: FunctionsToolingRelease): Path? {
-        val downloadRoot = getReleaseDownloadRoot()
-        return downloadRoot?.resolve(toolingRelease.functionsVersion)?.resolve(toolingRelease.releaseTag)
+        val path = downloadRoot?.resolve(toolingRelease.functionsVersion)?.resolve(toolingRelease.releaseTag)
+
+        LOG.trace { "Path for the Latest Functions tooling release is $path" }
+
+        return path
     }
 
     private fun Release.findCoreToolsRelease(releaseFilter: FunctionToolingFeedFilter) =
@@ -232,6 +241,7 @@ class FunctionsToolingFeedService : Disposable {
             .firstOrNull()
 
     private fun setExecutablePermissionsForCoreTools(coreToolsExecutable: Path) {
+        LOG.trace { "Setting permissions for $coreToolsExecutable" }
         coreToolsExecutable.setPosixFilePermissions(
             setOf(
                 PosixFilePermission.OWNER_EXECUTE,

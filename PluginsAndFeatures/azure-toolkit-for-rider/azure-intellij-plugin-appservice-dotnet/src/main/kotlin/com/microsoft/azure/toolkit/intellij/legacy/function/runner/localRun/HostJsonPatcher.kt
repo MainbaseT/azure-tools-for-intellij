@@ -8,6 +8,7 @@ import com.google.gson.*
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -63,7 +64,7 @@ class HostJsonPatcher {
             .filter { it.isNotBlank() }
             .sortedBy { it }
 
-        LOG.debug("Patching " + hostJsonFile.absolutePathString() + " with function names: ${functions.joinToString(", ")}")
+        LOG.trace { "Patching ${hostJsonFile.absolutePathString()} with function names: ${functions.joinToString(", ")}" }
         try {
             val gson = GsonBuilder().setPrettyPrinting().create()
             val hostJson = gson.fromJson(hostJsonFile.readText(), JsonElement::class.java).asJsonObject

@@ -11,6 +11,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.execution.ParametersListUtil
@@ -72,6 +73,7 @@ class FunctionHostDebugLauncher(private val project: Project) {
         dotNetRuntime: DotNetRuntime
     ): Pair<ExecutionResult, Int?> {
         val temporaryPidFile = withContext(Dispatchers.IO) { createTemporaryPidFile() }
+        LOG.trace { "Created temporary file ${temporaryPidFile.absolutePath}" }
         val programParameters = modifyProgramParameters(executable.programParameterString, temporaryPidFile)
         LOG.debug { "Program parameters: $programParameters" }
         val environmentVariables = modifyEnvironmentVariables(executable.environmentVariables)
@@ -155,6 +157,8 @@ class FunctionHostDebugLauncher(private val project: Project) {
                 LOG.debug("Got functions isolated worker process id from JSON output")
                 LOG.debug { "Functions isolated worker process id: $pidFromJsonOutput" }
                 return pidFromJsonOutput
+            } else {
+                LOG.debug("Unable to read process id from JSON file")
             }
 
             delay(500)
@@ -166,10 +170,20 @@ class FunctionHostDebugLauncher(private val project: Project) {
     }
 
     private suspend fun readPidFromJsonOutput(pidFile: File): Int? {
-        if (!pidFile.exists()) return null
+        if (!pidFile.exists()) {
+            LOG.trace { "${pidFile.absolutePath} does not exist" }
+            return null
+        }
         val jsonText = withContext(Dispatchers.IO) { pidFile.readText() }
-        if (jsonText.isEmpty()) return null
+        if (jsonText.isEmpty()) {
+            LOG.trace { "${pidFile.absolutePath} is empty" }
+            return null
+        } else {
+            LOG.trace { "Content of ${pidFile.absolutePath}: $jsonText" }
+        }
         val content = json.decodeFromString<JsonOutputFile>(jsonText)
+        LOG.trace { "Decoded content of ${pidFile.absolutePath}: $content" }
+
         return content.workerProcessId
     }
 
