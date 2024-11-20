@@ -101,6 +101,8 @@ class FunctionCoreToolsManager {
             return null
         }
 
+        LOG.trace { "Latest Functions tooling release path: $latestReleasePath " }
+
         return latestReleasePath
     }
 
@@ -121,6 +123,7 @@ class FunctionCoreToolsManager {
             .map { it.functionsVersion }
             .toMutableList()
         versionsManagedByRider.add("v0")
+        LOG.trace { "Functions tooling managed by Rider: ${versionsManagedByRider.joinToString()}" }
 
         val coreToolsDownloadFolder = settings.functionDownloadPath
         if (coreToolsDownloadFolder.isEmpty()) {
@@ -130,7 +133,10 @@ class FunctionCoreToolsManager {
         val versionsToUpdate = versionsManagedByRider.filter {
             coreToolsDownloadFolderPath.resolve(it).exists()
         }
-        if (versionsToUpdate.isEmpty()) return
+        if (versionsToUpdate.isEmpty()) {
+            LOG.trace { "Unable to find any Functions tooling versions to update" }
+            return
+        }
 
         val toolingReleases = FunctionsToolingFeedService
             .getInstance()
@@ -155,6 +161,8 @@ class FunctionCoreToolsManager {
         releaseTag: String,
         coreToolsDownloadFolder: Path
     ) {
+        LOG.trace { "Updating Functions tooling. Version: $functionsVersion, release: $releaseTag, folder: $coreToolsDownloadFolder" }
+
         val coreToolsPath = coreToolsDownloadFolder.resolve(functionsVersion).resolve(releaseTag)
         if (coreToolsPath.exists() && coreToolsPath.resolveFunctionCoreToolsExecutable().exists()) {
             LOG.trace { "Core tools with tag $releaseTag already exists" }
@@ -170,6 +178,8 @@ class FunctionCoreToolsManager {
     }
 
     private fun cleanUpCoreToolsForVersion(functionsVersion: String, coreToolsDownloadFolder: Path) {
+        LOG.trace { "Cleaning Functions tooling folders. Version: $functionsVersion, download folder: $coreToolsDownloadFolder" }
+
         val coreToolsPathForVersion = coreToolsDownloadFolder.resolve(functionsVersion)
         val tagFolders = coreToolsPathForVersion.listAllTagFolders()
 
@@ -190,7 +200,7 @@ class FunctionCoreToolsManager {
         val folderCountToDelete = tagFoldersWithoutEmpty.size - CORE_TOOLING_FOLDERS_COUNT
         for (tagFolderToDelete in tagFoldersWithoutEmpty.takeLast(folderCountToDelete)) {
             runCatching {
-                LOG.trace("Removing core tools folder $tagFolderToDelete")
+                LOG.trace { "Removing core tools folder $tagFolderToDelete" }
                 tagFolderToDelete.deleteRecursively()
             }.onFailure {
                 LOG.trace(it)
