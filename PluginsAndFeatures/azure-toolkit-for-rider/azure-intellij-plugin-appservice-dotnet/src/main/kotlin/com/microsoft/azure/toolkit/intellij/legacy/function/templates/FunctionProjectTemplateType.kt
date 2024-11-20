@@ -13,7 +13,7 @@ import com.jetbrains.rider.projectView.projectTemplates.templateTypes.Predefined
 import com.jetbrains.rider.projectView.projectTemplates.utils.hasClassification
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
-class AzureProjectTemplateType : PredefinedProjectTemplateType() {
+class FunctionProjectTemplateType : PredefinedProjectTemplateType() {
     override val uniqueId = "function.templates"
     override val group = "Other"
     override val name = "Azure Functions"

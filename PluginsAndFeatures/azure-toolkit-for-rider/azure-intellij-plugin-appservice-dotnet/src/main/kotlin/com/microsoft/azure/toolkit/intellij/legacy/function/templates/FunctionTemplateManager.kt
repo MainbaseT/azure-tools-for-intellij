@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.jetbrains.rider.projectView.projectTemplates.providers.RiderProjectTemplateProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
@@ -24,6 +25,14 @@ class FunctionTemplateManager {
 
     private val netIsolatedPath = Path("net-isolated")
 
+    /**
+     * Checks if the Azure Function templates are installed.
+     *
+     * This function verifies if the required Azure Function templates are available
+     * in the user's template sources.
+     *
+     * @return `true` if Azure Function templates are installed, otherwise `false`.
+     */
     fun areAzureFunctionTemplatesInstalled(): Boolean {
         val functionCoreToolsFolder = FunctionCoreToolsManager
             .getInstance()
@@ -35,7 +44,17 @@ class FunctionTemplateManager {
             .any { (isFunctionProjectTemplate(it.toPath(), functionCoreToolsFolder)) && it.exists() }
     }
 
+    /**
+     * Reloads the Azure Function templates.
+     *
+     * This function attempts to reload the Azure Function templates by performing the following steps:
+     * 1. Retrieves the path to the installed Azure Function core tools.
+     * 2. Removes any previously loaded templates from the user's template sources.
+     * 3. Checks and registers new templates from the Azure Function core tool folder.
+     */
     fun reloadAzureFunctionTemplates() {
+        LOG.trace { "Reloading Azure Functions templates" }
+
         ThreadingAssertions.assertBackgroundThread()
 
         val functionCoreToolsFolder = FunctionCoreToolsManager
@@ -53,11 +72,13 @@ class FunctionTemplateManager {
 
         for (templateFolder in templateFolders) {
             try {
+                LOG.trace { "Checking $templateFolder for Azure Functions templates" }
+
                 val templateFiles = templateFolder
                     .listDirectoryEntries()
                     .filter { isFunctionProjectTemplate(it, functionCoreToolsFolder) }
 
-                LOG.debug("Found ${templateFiles.size} function template(s) in $templateFolder")
+                LOG.trace { "Found ${templateFiles.size} function template(s) in $templateFolder" }
 
                 templateFiles.forEach { file ->
                     RiderProjectTemplateProvider.addUserTemplateSource(file.toFile())
@@ -85,6 +106,7 @@ class FunctionTemplateManager {
 
         templateSources.forEach {
             if (it.startsWith(functionCoreToolsFolder)) {
+                LOG.trace { "Removing Azure Functions template $it" }
                 RiderProjectTemplateProvider.removeUserTemplateSource(it.toFile())
             } else if (it.contains(netIsolatedPath)) {
                 val index = it.lastIndexOf(netIsolatedPath)
@@ -92,6 +114,7 @@ class FunctionTemplateManager {
                 val sourcesToRemove = templateSources.filter { ts -> ts.startsWith(prefix) }
 
                 sourcesToRemove.forEach { str ->
+                    LOG.trace { "Removing Azure Functions template $it" }
                     RiderProjectTemplateProvider.removeUserTemplateSource(str.toFile())
                 }
             }
