@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.3.5] - 2024-11-21
+
 ### Changed
 
 - Reimplement Function core tools management
@@ -223,7 +225,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.4...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.5...HEAD
+[4.3.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.4...v4.3.5
 [4.3.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.6...v4.3.4
 [4.3.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.5...v4.3.3
 [4.3.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.4...v4.3.2
