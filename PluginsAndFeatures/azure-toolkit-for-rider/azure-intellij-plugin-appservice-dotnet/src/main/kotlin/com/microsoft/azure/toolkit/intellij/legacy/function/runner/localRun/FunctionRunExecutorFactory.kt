@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.azure.model.AzureFunctionWorkerModel
 import com.jetbrains.rider.azure.model.AzureFunctionWorkerModelRequest
@@ -75,9 +76,11 @@ class FunctionRunExecutorFactory(
         }
 
         val functionCoreToolsPath =  withContext(Dispatchers.Default) {
-            FunctionCoreToolsManager
-                .getInstance()
-                .getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsRuntimeVersion)
+            withBackgroundProgress(project, "Getting Azure Functions core tools") {
+                FunctionCoreToolsManager
+                    .getInstance()
+                    .getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsRuntimeVersion)
+            }
         }
         if (functionCoreToolsPath == null) {
             LOG.warn("Unable to find or download Function core tools for the project '${parameters.projectFilePath}'")
