@@ -9,5 +9,5 @@ profile:
 exclude:
   - name: All
     paths:
-      - PluginsAndFeatures/azure-toolkit-for-rider/protocol
-      - PluginsAndFeatures/azure-toolkit-for-rider/azure-intellij-plugin-resharper-host
+      - protocol
+      - azure-intellij-plugin-resharper-host
