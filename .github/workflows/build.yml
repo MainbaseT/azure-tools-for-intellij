@@ -325,12 +325,82 @@ jobs:
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
 
+  # Run Qodana inspections on the dotnet part and provide a report
+  qodanaBackend:
+    name: Qodana Frontend
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: write
+      pull-requests: write
+    steps:
+
+      # Free GitHub Actions Environment Disk Space
+      - name: Maximize Build Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          large-packages: false
+
+      # Download azure artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: azure-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/azure/
+
+      # Download hdinsight artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: hdinsight-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/hdinsight/
+
+      # Download azuretools artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: azuretools-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/azuretools/
+
+      # Check out the current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
+          fetch-depth: 0  # a full history is required for pull request analysis
+
+      # Set up Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      # Setup .NET 8 environment for the next steps
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      # Run Qodana inspections
+      - name: Qodana - Code Inspection
+        uses: JetBrains/qodana-action@v2024.2
+        with:
+          args: --config,qodana-backend.yaml,--project-dir,./PluginsAndFeatures/azure-toolkit-for-rider
+          artifact-name: qodana-backend
+          cache-default-branch-only: true
+          pr-mode: false
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_BACKEND }}
+
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
   releaseDraft:
     name: Release draft
     if: github.event_name != 'pull_request'
-    needs: [ build, qodanaFrontend ]
+    needs: [ build, qodanaFrontend, qodanaBackend ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
