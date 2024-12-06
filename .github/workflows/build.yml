@@ -321,7 +321,6 @@ jobs:
           args: --config,qodana-frontend.yaml,--project-dir,./PluginsAndFeatures/azure-toolkit-for-rider
           artifact-name: qodana-frontend
           cache-default-branch-only: true
-          pr-mode: false
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
 
@@ -391,7 +390,6 @@ jobs:
           args: --config,qodana-backend.yaml,--project-dir,./PluginsAndFeatures/azure-toolkit-for-rider
           artifact-name: qodana-backend
           cache-default-branch-only: true
-          pr-mode: false
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_BACKEND }}
 
