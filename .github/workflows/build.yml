@@ -255,9 +255,9 @@ jobs:
   #          name: tests-result
   #          path: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider/build/reports/tests
 
-  # Run Qodana inspections and provide report
-  inspectCode:
-    name: Inspect code
+  # Run Qodana inspections on the Kotlin part and provide a report
+  qodanaFrontend:
+    name: Qodana Frontend
     needs: [ build ]
     runs-on: ubuntu-latest
     permissions:
@@ -314,23 +314,23 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Temp
-        run: cat ${{ github.workspace }}/qodana.yaml
-
       # Run Qodana inspections
       - name: Qodana - Code Inspection
         uses: JetBrains/qodana-action@v2024.2
+        with:
+          args: --config,qodana-frontend.yml,--project-dir,./PluginsAndFeatures/azure-toolkit-for-rider
+          artifact-name: qodana-frontend
+          cache-default-branch-only: true
+          pr-mode: false
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
-        with:
-          args: --source-directory,${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider
 
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
   releaseDraft:
     name: Release draft
     if: github.event_name != 'pull_request'
-    needs: [ build, inspectCode ]
+    needs: [ build, qodanaFrontend ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
