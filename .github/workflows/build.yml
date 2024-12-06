@@ -318,7 +318,7 @@ jobs:
       - name: Qodana - Code Inspection
         uses: JetBrains/qodana-action@v2024.2
         with:
-          args: --config,qodana-frontend.yml,--project-dir,./PluginsAndFeatures/azure-toolkit-for-rider
+          args: --config,qodana-frontend.yaml,--project-dir,./PluginsAndFeatures/azure-toolkit-for-rider
           artifact-name: qodana-frontend
           cache-default-branch-only: true
           pr-mode: false
