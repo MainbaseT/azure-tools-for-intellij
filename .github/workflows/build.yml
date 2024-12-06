@@ -327,7 +327,7 @@ jobs:
 
   # Run Qodana inspections on the dotnet part and provide a report
   qodanaBackend:
-    name: Qodana Frontend
+    name: Qodana Backend
     needs: [ build ]
     runs-on: ubuntu-latest
     permissions:
