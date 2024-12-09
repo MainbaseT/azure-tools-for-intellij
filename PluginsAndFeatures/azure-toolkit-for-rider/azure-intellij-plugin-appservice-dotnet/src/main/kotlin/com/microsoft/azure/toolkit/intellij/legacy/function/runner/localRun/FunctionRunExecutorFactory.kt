@@ -67,19 +67,36 @@ class FunctionRunExecutorFactory(
         environment: ExecutionEnvironment,
         lifetime: Lifetime
     ): RunProfileState {
-        val azureFunctionsRuntimeVersion = FunctionsVersionMsBuildService
+        val msBuildVersionProperty = FunctionsVersionMsBuildService
             .getInstance(project)
             .requestAzureFunctionsVersion(parameters.projectFilePath)
-        if (azureFunctionsRuntimeVersion == null) {
+        if (msBuildVersionProperty == null) {
             LOG.warn("Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'")
             throw CantRunException("Can't run Azure Functions host. Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'")
         }
+        LOG.debug { "Function version project property: $msBuildVersionProperty"}
+
+        val projectFilePath = Path(parameters.projectFilePath)
+        val functionLocalSettings = withContext(Dispatchers.Default) {
+            FunctionLocalSettingsService
+                .getInstance(project)
+                .getFunctionLocalSettings(projectFilePath)
+        }
+        val workerRuntime = if (functionLocalSettings?.values?.workerRuntime == null) {
+            getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath)
+        } else {
+            functionLocalSettings.values.workerRuntime
+        }
+        LOG.debug { "Worker runtime: $workerRuntime" }
+
+        val functionRuntimeVersion = calculateFunctionRuntimeVersion(msBuildVersionProperty, workerRuntime)
+        LOG.debug { "Function runtime version: $functionRuntimeVersion" }
 
         val functionCoreToolsPath =  withContext(Dispatchers.Default) {
             withBackgroundProgress(project, "Getting Azure Functions core tools") {
                 FunctionCoreToolsManager
                     .getInstance()
-                    .getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsRuntimeVersion)
+                    .getFunctionCoreToolsPathOrDownloadForVersion(functionRuntimeVersion)
             }
         }
         if (functionCoreToolsPath == null) {
@@ -90,13 +107,6 @@ class FunctionRunExecutorFactory(
         val functionCoreToolsExecutablePath = functionCoreToolsPath.resolveFunctionCoreToolsExecutable()
         LOG.trace { "Function core tools executable path: $functionCoreToolsExecutablePath" }
 
-        val projectFilePath = Path(parameters.projectFilePath)
-        val functionLocalSettings = withContext(Dispatchers.Default) {
-            FunctionLocalSettingsService
-                .getInstance(project)
-                .getFunctionLocalSettings(projectFilePath)
-        }
-
         val dotNetExecutable = getDotNetExecutable(functionCoreToolsExecutablePath, functionLocalSettings)
             ?: throw CantRunException("Can't run Azure Functions host. Unable to create .NET executable")
 
@@ -105,14 +115,7 @@ class FunctionRunExecutorFactory(
             .getInstance()
             .tryPatchHostJsonFile(dotNetExecutable.workingDirectory, parameters.functionNames)
 
-        val workerRuntime = if (functionLocalSettings?.values?.workerRuntime == null) {
-            getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath)
-        } else {
-            functionLocalSettings.values.workerRuntime
-        }
-        LOG.debug { "Worker runtime: $workerRuntime" }
-
-        val runtimeToExecute = if (azureFunctionsRuntimeVersion.equals("v1", ignoreCase = true)) {
+        val runtimeToExecute = if (functionRuntimeVersion.equals("v1", ignoreCase = true)) {
             MsNetRuntime()
         } else {
             FunctionNetCoreRuntime(functionCoreToolsExecutablePath, workerRuntime, lifetime)
@@ -125,6 +128,20 @@ class FunctionRunExecutorFactory(
             else -> throw CantRunException("Unsupported executor $executorId")
         }
     }
+
+    private fun calculateFunctionRuntimeVersion(msBuildVersionProperty: String, workerRuntime: FunctionWorkerRuntime) =
+        if (msBuildVersionProperty.equals("v0", ignoreCase = true)) msBuildVersionProperty
+        else if (msBuildVersionProperty.equals("v1", ignoreCase = true)) msBuildVersionProperty
+        else if (msBuildVersionProperty.equals("v2", ignoreCase = true)) msBuildVersionProperty
+        else if (msBuildVersionProperty.equals("v3", ignoreCase = true)) msBuildVersionProperty
+        else if (msBuildVersionProperty.equals("v4", ignoreCase = true)) {
+            when (workerRuntime) {
+                FunctionWorkerRuntime.DOTNET -> "v0"
+                FunctionWorkerRuntime.DOTNET_ISOLATED -> "v4"
+            }
+        } else {
+            error("Function runtime version not supported: $workerRuntime")
+        }
 
     private suspend fun getDotNetExecutable(
         functionCoreToolsExecutablePath: Path,
