@@ -57,10 +57,18 @@ class FunctionCoreToolsManager {
     fun getFunctionCoreToolsPathForVersion(azureFunctionsVersion: String): Path? {
         val settings = AzureFunctionSettings.getInstance()
         val coreToolsPathEntries = settings.azureCoreToolsPathEntries
-        val coreToolsPathFromSettings = coreToolsPathEntries
-            .firstOrNull { it.functionsVersion.equals(azureFunctionsVersion, ignoreCase = true) }
-            ?.coreToolsPath
-            ?.let(::resolveCoreToolsPathFromSettings)
+        val coreToolsPathFromSettings =
+            if (azureFunctionsVersion.equals("v0", true)) {
+                coreToolsPathEntries
+                    .firstOrNull { it.functionsVersion.equals("v4", ignoreCase = true) }
+                    ?.coreToolsPath
+                    ?.let(::resolveCoreToolsPathFromSettings)
+            } else {
+                coreToolsPathEntries
+                    .firstOrNull { it.functionsVersion.equals(azureFunctionsVersion, ignoreCase = true) }
+                    ?.coreToolsPath
+                    ?.let(::resolveCoreToolsPathFromSettings)
+            }
         if (coreToolsPathFromSettings?.exists() == true) {
             LOG.trace { "Get Azure Function core tools path from the settings: $coreToolsPathFromSettings" }
             return coreToolsPathFromSettings

@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Use core tools `v4` path from the settings for the `v0` `AzureFunctionsVersion` property ([RIDER-120285](https://youtrack.jetbrains.com/issue/RIDER-120285))
+
 ## [4.3.6] - 2024-12-09
 
 ### Fixed
