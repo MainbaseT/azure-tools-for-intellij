@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.3.6] - 2024-12-09
+
 ### Fixed
 
 - Use the local settings file to calculate the proper version of the core tools
@@ -229,7 +231,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.5...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.6...HEAD
+[4.3.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.5...v4.3.6
 [4.3.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.4...v4.3.5
 [4.3.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.6...v4.3.4
 [4.3.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.5...v4.3.3
