@@ -6,13 +6,12 @@ package com.microsoft.azure.toolkit.intellij.appservice.webapp
 
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.appservice.servicePlan.CreateServicePlanTask
 import com.microsoft.azure.toolkit.intellij.common.RiderRunProcessHandlerMessager
 import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
-import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft
 import com.microsoft.azure.toolkit.lib.appservice.webapp.*
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
@@ -76,26 +75,8 @@ class CreateOrUpdateDotNetWebAppTask(
     private fun getResourceGroupTask(): AzureTask<ResourceGroup> =
         CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), config.region())
 
-    private fun getServicePlanTask(): AzureTask<AppServicePlan>? {
-        if (!config.deploymentSlotName().isNullOrEmpty()) {
-            processHandlerMessager?.info("Skip updating app service plan for deployment slot")
-            return null
-        }
-
-        return AzureTask<AppServicePlan>(Callable {
-            val planConfig = AppServiceConfig.getServicePlanConfig(config)
-            val draft = Azure.az(AzureAppService::class.java)
-                .plans(planConfig.subscriptionId)
-                .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)
-                .apply {
-                    operatingSystem = planConfig.os
-                    region = planConfig.region
-                    pricingTier = planConfig.pricingTier
-                }
-
-            return@Callable draft.commit()
-        })
-    }
+    private fun getServicePlanTask(): AzureTask<AppServicePlan> =
+        CreateServicePlanTask(AppServiceConfig.getServicePlanConfig(config))
 
     private fun getCreateWebAppTask(draft: DotNetWebAppDraft) =
         AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
