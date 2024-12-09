@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.3.7] - 2024-12-09
+
 ### Fixed
 
 - Use core tools `v4` path from the settings for the `v0` `AzureFunctionsVersion` property ([RIDER-120285](https://youtrack.jetbrains.com/issue/RIDER-120285))
@@ -235,7 +237,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.6...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.7...HEAD
+[4.3.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.6...v4.3.7
 [4.3.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.5...v4.3.6
 [4.3.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.4...v4.3.5
 [4.3.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.2.6...v4.3.4
