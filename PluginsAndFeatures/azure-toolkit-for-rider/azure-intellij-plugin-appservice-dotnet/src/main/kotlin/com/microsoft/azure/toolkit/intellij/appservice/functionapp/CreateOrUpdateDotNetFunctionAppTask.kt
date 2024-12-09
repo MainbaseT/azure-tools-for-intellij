@@ -24,11 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask
-import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount
-import com.microsoft.azure.toolkit.lib.storage.StorageAccountDraft
-import com.microsoft.azure.toolkit.lib.storage.model.Kind
-import com.microsoft.azure.toolkit.lib.storage.model.Redundancy
 import org.apache.commons.lang3.StringUtils
 import java.util.concurrent.Callable
 
@@ -103,23 +99,18 @@ class CreateOrUpdateDotNetFunctionAppTask(
     private fun getServicePlanTask(): AzureTask<AppServicePlan> =
         CreateServicePlanTask(AppServiceConfig.getServicePlanConfig(config))
 
-    private fun getStorageAccountTask(): AzureTask<StorageAccount> =
-        AzureTask<StorageAccount>(Callable {
-            val storageAccountName = config.storageAccountName() ?: getDefaultStorageAccountName(config.appName())
-            val storageResourceGroup = config.storageAccountResourceGroup() ?: config.resourceGroup()
-            val accounts = Azure.az(AzureStorageAccount::class.java).accounts(config.subscriptionId())
-            val existingAccount = accounts.get(storageAccountName, storageResourceGroup)
-            if (existingAccount != null && existingAccount.exists()) {
-                return@Callable existingAccount
-            }
+    private fun getStorageAccountTask(): AzureTask<StorageAccount> {
+        val storageResourceGroup = config.storageAccountResourceGroup() ?: config.resourceGroup()
+        val storageAccountName = config.storageAccountName() ?: getDefaultStorageAccountName(config.appName())
+        val storageAccountRegion = getNonStageRegion(config.region())
 
-            with(accounts.create<StorageAccountDraft>(storageAccountName, storageResourceGroup)) {
-                setRegion(getNonStageRegion(config.region()))
-                setKind(Kind.STORAGE_V2)
-                setRedundancy(Redundancy.STANDARD_LRS)
-                commit()
-            }
-        })
+        return CreateStorageAccountTask(
+            config.subscriptionId(),
+            storageResourceGroup,
+            storageAccountName,
+            storageAccountRegion
+        )
+    }
 
     private fun getDefaultStorageAccountName(functionAppName: String): String {
         val context = ResourceManagerUtils.InternalRuntimeContext()
