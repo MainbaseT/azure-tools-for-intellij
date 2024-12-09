@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Use the local settings file to calculate the proper version of the core tools
+
 ## [4.3.5] - 2024-11-21
 
 ### Changed

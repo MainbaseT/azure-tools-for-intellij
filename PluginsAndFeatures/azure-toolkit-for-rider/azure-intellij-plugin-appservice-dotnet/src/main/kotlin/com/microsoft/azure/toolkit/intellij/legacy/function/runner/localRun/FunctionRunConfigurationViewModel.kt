@@ -337,6 +337,7 @@ class FunctionRunConfigurationViewModel(
         if (selectedTfm != null) {
             tfmSelector.string.set(selectedTfm)
         } else {
+            tfmSelector.stringList.add("")
             tfmSelector.string.set("")
         }
 
