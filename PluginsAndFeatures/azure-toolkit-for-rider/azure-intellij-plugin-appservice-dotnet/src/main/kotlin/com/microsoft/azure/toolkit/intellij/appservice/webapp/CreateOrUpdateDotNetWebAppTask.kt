@@ -35,22 +35,25 @@ class CreateOrUpdateDotNetWebAppTask(
         registerSubTask(getResourceGroupTask()) {}
         registerSubTask(getServicePlanTask()) { appServicePlan = it }
 
-        val appDraft = Azure.az(AzureWebApp::class.java)
+        val webApp = Azure.az(AzureWebApp::class.java)
             .webApps(config.subscriptionId())
-            .updateOrCreate<WebAppDraft>(config.appName(), config.resourceGroup())
-            .toDotNetWebAppDraft()
+            .getOrDraft(config.appName(), config.resourceGroup())
 
-        if (config.deploymentSlotName().isNullOrEmpty()) {
-            val webAppTask =
-                if (appDraft.exists()) getUpdateWebAppTask(appDraft)
-                else getCreateWebAppTask(appDraft)
-            registerSubTask(webAppTask) { webApp = it }
-        } else {
-            val slotDraft = getWebAppDeploymentSlot(appDraft)
-            val slotTask =
-                if (slotDraft.exists()) getUpdateWebAppSlotTask(slotDraft)
-                else getCreateWebAppSlotTask(slotDraft)
-            registerSubTask(slotTask) { webApp = it }
+        if (webApp.isDraftForCreating) {
+            val webAppDraft = (webApp as? WebAppDraft)?.toDotNetWebAppDraft()
+                ?: error("Unable to get web app draft")
+            registerSubTask(getCreateWebAppTask(webAppDraft)) { this@CreateOrUpdateDotNetWebAppTask.webApp = it }
+        } else if (!config.deploymentSlotName().isNullOrEmpty()) {
+            val slot = webApp
+                .slots()
+                .getOrDraft(config.deploymentSlotName(), config.resourceGroup())
+            if (slot.isDraftForCreating) {
+                val slotDraft = (slot as? WebAppDeploymentSlotDraft)?.toDotNetWebAppDeploymentSlotDraft()
+                    ?: error("Unable to get web app deployment slot draft")
+                registerSubTask(getCreateWebAppSlotTask(slotDraft)) { this@CreateOrUpdateDotNetWebAppTask.webApp = it }
+            } else {
+                this@CreateOrUpdateDotNetWebAppTask.webApp = slot
+            }
         }
     }
 
@@ -79,7 +82,8 @@ class CreateOrUpdateDotNetWebAppTask(
         CreateServicePlanTask(AppServiceConfig.getServicePlanConfig(config))
 
     private fun getCreateWebAppTask(draft: DotNetWebAppDraft) =
-        AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
+        AzureTask(
+            "Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
                 with(draft) {
                     appServicePlan = this@CreateOrUpdateDotNetWebAppTask.appServicePlan
@@ -92,33 +96,9 @@ class CreateOrUpdateDotNetWebAppTask(
             }
         )
 
-    private fun getUpdateWebAppTask(draft: DotNetWebAppDraft) =
-        AzureTask<WebApp>("Update function app(${config.appName()})",
-            Callable {
-                with(draft) {
-                    appServicePlan = this@CreateOrUpdateDotNetWebAppTask.appServicePlan
-                    dotNetRuntime = getRuntime(config.dotnetRuntime)
-                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                    diagnosticConfig = config.diagnosticConfig()
-
-                    updateIfExist()
-                }
-            }
-        )
-
-    private fun getWebAppDeploymentSlot(webApp: WebApp): DotNetWebAppDeploymentSlotDraft {
-        if (!webApp.exists()) {
-            throw AzureToolkitRuntimeException("The Web App does not exist. Please make sure the Web App name is correct")
-        }
-
-        return webApp
-            .slots()
-            .updateOrCreate<WebAppDeploymentSlotDraft>(config.deploymentSlotName(), config.resourceGroup())
-            .toDotNetWebAppDeploymentSlotDraft()
-    }
-
     private fun getCreateWebAppSlotTask(draft: DotNetWebAppDeploymentSlotDraft) =
-        AzureTask("Create new slot(${config.deploymentSlotName()}) on web app (${config.appName()})",
+        AzureTask(
+            "Create new slot(${config.deploymentSlotName()}) on web app (${config.appName()})",
             Callable {
                 with(draft) {
                     dotNetRuntime = getRuntime(config.dotnetRuntime)
@@ -126,20 +106,7 @@ class CreateOrUpdateDotNetWebAppTask(
                     diagnosticConfig = config.diagnosticConfig()
                     configurationSource = config.deploymentSlotConfigurationSource()
 
-                    commit()
-                }
-            }
-        )
-
-    private fun getUpdateWebAppSlotTask(draft: DotNetWebAppDeploymentSlotDraft) =
-        AzureTask("Update function deployment slot(${config.deploymentSlotName()})",
-            Callable {
-                with(draft) {
-                    dotNetRuntime = getRuntime(config.dotnetRuntime)
-                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                    diagnosticConfig = config.diagnosticConfig()
-
-                    commit()
+                    createIfNotExist()
                 }
             }
         )

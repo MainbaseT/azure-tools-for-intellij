@@ -25,11 +25,12 @@ class CreateStorageAccountTask(
             .getOrDraft(storageAccountName, resourceGroupName)
 
         if (account.isDraftForCreating) {
-            val draft = (account as StorageAccountDraft).apply {
+            val draft = (account as? StorageAccountDraft)?.apply {
                 setRegion(storageAccountRegion)
                 setKind(Kind.STORAGE_V2)
                 setRedundancy(Redundancy.STANDARD_LRS)
-            }
+            } ?: error("Unable to get storage account draft")
+
             draft.createIfNotExist()
         }
 

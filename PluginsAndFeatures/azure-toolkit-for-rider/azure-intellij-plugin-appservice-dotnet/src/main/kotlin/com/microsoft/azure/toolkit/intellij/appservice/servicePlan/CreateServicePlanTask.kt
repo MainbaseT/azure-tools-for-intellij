@@ -18,11 +18,12 @@ class CreateServicePlanTask(private val config: AppServicePlanConfig) : AzureTas
             .getOrDraft(config.name, config.resourceGroupName)
 
         if (plan.isDraftForCreating) {
-            val draft = (plan as AppServicePlanDraft).apply {
+            val draft = (plan as? AppServicePlanDraft)?.apply {
                 operatingSystem = config.os
                 region = config.region
                 pricingTier = config.pricingTier
-            }
+            } ?: error("Unable to get app service plan draft")
+
             draft.createIfNotExist()
         }
 

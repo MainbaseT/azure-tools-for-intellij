@@ -52,26 +52,34 @@ class CreateOrUpdateDotNetFunctionAppTask(
         registerSubTask(getResourceGroupTask()) {}
         registerSubTask(getServicePlanTask()) { appServicePlan = it }
 
-        val appDraft = Azure.az(AzureFunctions::class.java)
+        val functionApp = Azure.az(AzureFunctions::class.java)
             .functionApps(config.subscriptionId())
-            .updateOrCreate<FunctionAppDraft>(config.appName(), config.resourceGroup())
-            .toDotNetFunctionAppDraft()
+            .getOrDraft(config.appName(), config.resourceGroup())
 
-        if (appDraft.isDraftForCreating) {
+        if (functionApp.isDraftForCreating) {
             registerSubTask(getStorageAccountTask()) { storageAccount = it }
-        }
+            val functionAppDraft = (functionApp as? FunctionAppDraft)?.toDotNetFunctionAppDraft()
+                ?: error("Unable to get function app draft")
+            registerSubTask(getCreateFunctionAppTask(functionAppDraft)) {
+                this@CreateOrUpdateDotNetFunctionAppTask.functionApp = it
+            }
+        } else if (!config.deploymentSlotName().isNullOrEmpty()) {
+            if (requireNotNull(functionApp.appServicePlan).pricingTier.isFlexConsumption) {
+                throw AzureToolkitRuntimeException("Deployment slot is not supported for function app with consumption plan")
+            }
 
-        if (config.deploymentSlotName().isNullOrEmpty()) {
-            val functionTask =
-                if (appDraft.exists()) getUpdateFunctionAppTask(appDraft)
-                else getCreateFunctionAppTask(appDraft)
-            registerSubTask(functionTask) { functionApp = it }
-        } else {
-            val slotDraft = getFunctionDeploymentSlot(appDraft)
-            val slotTask =
-                if (slotDraft.exists()) getUpdateFunctionSlotTask(slotDraft)
-                else getCreateFunctionSlotTask(slotDraft)
-            registerSubTask(slotTask) { functionApp = it }
+            val slot = functionApp
+                .slots()
+                .getOrDraft(config.deploymentSlotName(), config.resourceGroup())
+            if (slot.isDraftForCreating) {
+                val slotDraft = (slot as? FunctionAppDeploymentSlotDraft)?.toDotNetFunctionAppDeploymentSlotDraft()
+                    ?: error("Unable to get function app deployment slot draft")
+                registerSubTask(getCreateFunctionSlotTask(slotDraft)) {
+                    this@CreateOrUpdateDotNetFunctionAppTask.functionApp = it
+                }
+            } else {
+                this@CreateOrUpdateDotNetFunctionAppTask.functionApp = slot
+            }
         }
     }
 
@@ -170,35 +178,6 @@ class CreateOrUpdateDotNetFunctionAppTask(
                 }
             })
 
-    private fun getUpdateFunctionAppTask(draft: DotNetFunctionAppDraft) =
-        AzureTask<FunctionApp>("Update function app(${config.appName()})",
-            Callable {
-                with(draft) {
-                    appServicePlan = this@CreateOrUpdateDotNetFunctionAppTask.appServicePlan
-                    dotNetRuntime = getRuntime(config.dotnetRuntime)
-                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                    diagnosticConfig = config.diagnosticConfig()
-                    flexConsumptionConfiguration = config.flexConsumptionConfiguration()
-                    storageAccount = this@CreateOrUpdateDotNetFunctionAppTask.storageAccount
-
-                    updateIfExist()
-                }
-            })
-
-    private fun getFunctionDeploymentSlot(functionApp: FunctionApp): DotNetFunctionAppDeploymentSlotDraft {
-        if (!functionApp.exists()) {
-            throw AzureToolkitRuntimeException("The Function App does not exist. Please make sure the Function App name is correct")
-        }
-        if (requireNotNull(functionApp.appServicePlan).pricingTier.isFlexConsumption) {
-            throw AzureToolkitRuntimeException("Deployment slot is not supported for function app with consumption plan")
-        }
-
-        return functionApp
-            .slots()
-            .updateOrCreate<FunctionAppDeploymentSlotDraft>(config.deploymentSlotName(), config.resourceGroup())
-            .toDotNetFunctionAppDeploymentSlotDraft()
-    }
-
     private fun getCreateFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
         AzureTask("Create new slot(${config.deploymentSlotName()}) on function app (${config.appName()})",
             Callable {
@@ -209,19 +188,7 @@ class CreateOrUpdateDotNetFunctionAppTask(
                     configurationSource = config.deploymentSlotConfigurationSource()
                     appSettings = config.appSettings()
 
-                    commit()
-                }
-            })
-
-    private fun getUpdateFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
-        AzureTask("Update function deployment slot(${config.deploymentSlotName()})",
-            Callable {
-                with(draft) {
-                    dotNetRuntime = getRuntime(config.dotnetRuntime)
-                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                    diagnosticConfig = config.diagnosticConfig()
-
-                    commit()
+                    createIfNotExist()
                 }
             })
 
