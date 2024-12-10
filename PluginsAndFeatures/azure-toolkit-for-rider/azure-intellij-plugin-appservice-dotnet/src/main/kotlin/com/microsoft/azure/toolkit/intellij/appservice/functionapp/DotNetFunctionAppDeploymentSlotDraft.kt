@@ -6,10 +6,8 @@ package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
 import com.azure.core.management.exception.ManagementException
 import com.azure.resourcemanager.appservice.fluent.models.SitePatchResourceInner
-import com.azure.resourcemanager.appservice.models.DeploymentSlotBase
 import com.azure.resourcemanager.appservice.models.FunctionApp
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot
-import com.azure.resourcemanager.appservice.models.WebAppBase
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.getDotNetRuntime
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
@@ -17,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
@@ -30,8 +27,7 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         const val CONFIGURATION_SOURCE_NEW = "new"
     }
 
-    constructor(name: String, module: FunctionAppDeploymentSlotModule) :
-            super(name, module) {
+    constructor(name: String, module: FunctionAppDeploymentSlotModule) : super(name, module) {
         origin = null
     }
 
@@ -59,19 +55,10 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         }
     }
 
-    override fun isModified(): Boolean {
-        val localConfig = config
-        val notModified = localConfig == null ||
-                ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
-                        localConfig.dockerConfiguration == null &&
-                        (localConfig.diagnosticConfig == null || localConfig.diagnosticConfig == super.getDiagnosticConfig()) &&
-                        localConfig.configurationSource.isNullOrEmpty())
-
-        return !notModified
-    }
+    override fun isModified() = false
 
     override fun createResourceInAzure(): FunctionDeploymentSlot {
-        val functionApp = requireNotNull(parent.remote)
+        val functionApp = checkNotNull(parent.remote)
 
         val newAppSettings = appSettings
         val newDiagnosticConfig = diagnosticConfig
@@ -88,7 +75,7 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
                 else -> {
                     try {
                         val sourceSlot = functionApp.deploymentSlots().getByName(newConfigurationSource)
-                        requireNotNull(sourceSlot) { "Target slot configuration source does not exists in current app" }
+                        checkNotNull(sourceSlot) { "Target slot configuration source does not exists in current app" }
                         blank.withConfigurationFromDeploymentSlot(sourceSlot)
                     } catch (e: ManagementException) {
                         throw AzureToolkitRuntimeException("Failed to get configuration source slot", e)
@@ -101,11 +88,11 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         if (newDiagnosticConfig != null)
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig)
         val updateFlexConsumptionConfiguration =
-            newFlexConsumptionConfiguration != null &&
-                    parent.appServicePlan?.pricingTier?.isFlexConsumption == true
+            newFlexConsumptionConfiguration != null && parent.appServicePlan?.pricingTier?.isFlexConsumption == true
         if (updateFlexConsumptionConfiguration) {
-            (withCreate as? FunctionApp)?.innerModel()
-                ?.withContainerSize(requireNotNull(newFlexConsumptionConfiguration).instanceSize)
+            (withCreate as? FunctionApp)
+                ?.innerModel()
+                ?.withContainerSize(newFlexConsumptionConfiguration.instanceSize)
         }
 
         val messager = AzureMessager.getMessager()
@@ -113,99 +100,16 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
 
         var slot = withCreate.create()
         if (updateFlexConsumptionConfiguration) {
-            updateFlexConsumptionConfiguration(slot, requireNotNull(newFlexConsumptionConfiguration))
+            updateFlexConsumptionConfiguration(slot, newFlexConsumptionConfiguration)
         }
-        ensureConfig().appSettings = null
-        ensureConfig().diagnosticConfig = null
-        slot = updateRuntime(slot)
 
         messager.success("Function App deployment slot ($name) is successfully created")
 
         return slot
     }
 
-    private fun updateRuntime(slot: FunctionDeploymentSlot): FunctionDeploymentSlot {
-        val dotnetRuntime = dotNetRuntime
-        val isRuntimeModified =
-            (dotnetRuntime != null && dotnetRuntime != parent.getDotNetRuntime()) || dockerConfiguration != null
-        return if (isRuntimeModified)
-            updateResourceInAzure(slot)
-        else
-            slot
-    }
-
     override fun updateResourceInAzure(remote: FunctionDeploymentSlot): FunctionDeploymentSlot {
-        val newRuntime = ensureConfig().runtime
-        val newDockerConfig = ensureConfig().dockerConfiguration
-        val newDiagnosticConfig = ensureConfig().diagnosticConfig
-        val newFlexConsumptionConfiguration = ensureConfig().flexConsumptionConfiguration
-
-        val oldRuntime = remote.getDotNetRuntime()
-        val oldDiagnosticConfig = super.getDiagnosticConfig()
-        val oldFlexConsumptionConfiguration = super.getFlexConsumptionConfiguration()
-
-        val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
-        val dockerModified = oldRuntime.isDocker && newDockerConfig != null
-        val diagnosticModified = newDiagnosticConfig != null && newDiagnosticConfig != oldDiagnosticConfig
-        val flexConsumptionModified = parent.appServicePlan?.pricingTier?.isFlexConsumption == true &&
-                newFlexConsumptionConfiguration != null &&
-                newFlexConsumptionConfiguration != oldFlexConsumptionConfiguration
-        val isModified = runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified
-
-        var result = remote
-        if (isModified) {
-            val update = remote.update()
-
-            if (runtimeModified) newRuntime?.let { updateRuntime(update, it) }
-            if (dockerModified) newDockerConfig?.let { updateDockerConfiguration(update, it) }
-            if (diagnosticModified) newDiagnosticConfig?.let {
-                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it)
-            }
-
-            val messager = AzureMessager.getMessager()
-            messager.info("Start updating Function App deployment slot (${remote.name()})...")
-
-            result = update.apply()
-
-            messager.success("Function app deployment slot (${remote.name()}) is successfully updated")
-        }
-
-        return result
-    }
-
-    private fun updateRuntime(update: DeploymentSlotBase.Update<*>, newRuntime: DotNetRuntime) {
-        val oldRuntime = (update as WebAppBase).getDotNetRuntime()
-        if (newRuntime.operatingSystem != oldRuntime.operatingSystem) {
-            throw AzureToolkitRuntimeException("Can not update the operation system for existing app service")
-        }
-
-        when (oldRuntime.operatingSystem) {
-            OperatingSystem.LINUX -> {
-                AzureMessager.getMessager().warning("Update runtime is not supported for Linux app service")
-            }
-
-            OperatingSystem.WINDOWS -> {
-                val functionStack = requireNotNull(newRuntime.functionStack) { "Unable to configure function runtime" }
-                update.withRuntime(functionStack.runtime())
-                    .withRuntimeVersion(functionStack.version())
-            }
-
-            OperatingSystem.DOCKER -> return
-        }
-    }
-
-    private fun updateDockerConfiguration(update: DeploymentSlotBase.Update<*>, newConfig: DockerConfiguration) {
-        val draft =
-            if (newConfig.userName.isNullOrEmpty() && newConfig.password.isNullOrEmpty()) {
-                update.withPublicDockerHubImage(newConfig.image)
-            } else if (newConfig.registryUrl.isNullOrEmpty()) {
-                update.withPrivateDockerHubImage(newConfig.image)
-                    .withCredentials(newConfig.userName, newConfig.password)
-            } else {
-                update.withPrivateRegistryImage(newConfig.image, newConfig.registryUrl)
-                    .withCredentials(newConfig.userName, newConfig.password)
-            }
-        draft.withStartUpCommand(newConfig.startUpCommand)
+        throw AzureToolkitRuntimeException("Updating function app deployment slot is not supported")
     }
 
     private fun updateFlexConsumptionConfiguration(
@@ -260,10 +164,6 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
 
     override fun getFlexConsumptionConfiguration() =
         config?.flexConsumptionConfiguration ?: super.getFlexConsumptionConfiguration()
-
-    fun setFlexConsumptionConfiguration(value: FlexConsumptionConfiguration?) {
-        ensureConfig().flexConsumptionConfiguration = value
-    }
 
     data class Config(
         var runtime: DotNetRuntime? = null,

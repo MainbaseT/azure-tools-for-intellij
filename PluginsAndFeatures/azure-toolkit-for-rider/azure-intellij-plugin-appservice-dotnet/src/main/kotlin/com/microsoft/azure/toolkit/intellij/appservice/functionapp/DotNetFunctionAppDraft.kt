@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.storage.StorageAccount
 
 class DotNetFunctionAppDraft : FunctionApp,
     AzResource.Draft<FunctionApp, com.azure.resourcemanager.appservice.models.FunctionApp> {
+
     constructor(name: String, resourceGroupName: String, module: FunctionAppModule) :
             super(name, resourceGroupName, module) {
         origin = null
@@ -51,20 +52,11 @@ class DotNetFunctionAppDraft : FunctionApp,
         }
     }
 
-    override fun isModified(): Boolean {
-        val localConfig = config
-        val notModified = localConfig == null ||
-                ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
-                        (localConfig.plan == null || localConfig.plan == super.getAppServicePlan()) &&
-                        localConfig.dockerConfiguration == null &&
-                        localConfig.diagnosticConfig == null)
-
-        return !notModified
-    }
+    override fun isModified() = false
 
     override fun createResourceInAzure(): com.azure.resourcemanager.appservice.models.FunctionApp {
-        val newRuntime = requireNotNull(dotNetRuntime) { "'runtime' is required to create a Function App" }
-        val newPlan = requireNotNull(appServicePlan) { "'service plan' is required to create a Function App" }
+        val newRuntime = checkNotNull(dotNetRuntime) { "'runtime' is required to create a Function App" }
+        val newPlan = checkNotNull(appServicePlan) { "'service plan' is required to create a Function App" }
         val os = newRuntime.operatingSystem
         if (os != newPlan.operatingSystem) {
             throw AzureToolkitRuntimeException("Could not create $os app service in ${newPlan.operatingSystem} service plan")
@@ -74,7 +66,7 @@ class DotNetFunctionAppDraft : FunctionApp,
         val newFlexConsumptionConfiguration = flexConsumptionConfiguration
         val newStorageAccount = storageAccount
 
-        val manager = requireNotNull(parent.remote)
+        val manager = checkNotNull(parent.remote)
         val blank = manager.functionApps().define(name)
         val withCreate = createFunctionApp(blank, os, newPlan, newRuntime)
 
@@ -88,7 +80,7 @@ class DotNetFunctionAppDraft : FunctionApp,
         val updateFlexConsumptionConfiguration =
             newFlexConsumptionConfiguration != null && newPlan.pricingTier.isFlexConsumption
         if (updateFlexConsumptionConfiguration) {
-            withCreate.withContainerSize(newFlexConsumptionConfiguration!!.instanceSize)
+            withCreate.withContainerSize(newFlexConsumptionConfiguration.instanceSize)
             withCreate.withWebAppAlwaysOn(false)
         }
 
@@ -97,7 +89,7 @@ class DotNetFunctionAppDraft : FunctionApp,
 
         val functionApp = withCreate.create()
         if (updateFlexConsumptionConfiguration) {
-            updateFlexConsumptionConfiguration(functionApp, newFlexConsumptionConfiguration!!)
+            updateFlexConsumptionConfiguration(functionApp, newFlexConsumptionConfiguration)
         }
 
         messager.success(AzureString.format("Function App ({0}) is successfully created", name))
@@ -132,109 +124,7 @@ class DotNetFunctionAppDraft : FunctionApp,
     }
 
     override fun updateResourceInAzure(remote: com.azure.resourcemanager.appservice.models.FunctionApp): com.azure.resourcemanager.appservice.models.FunctionApp {
-        if (origin == null)
-            throw AzureToolkitRuntimeException("Updating target is not specified")
-
-        val newPlan = ensureConfig().plan
-        val newRuntime = ensureConfig().runtime
-        val newDockerConfig = ensureConfig().dockerConfiguration
-        val newDiagnosticConfig = ensureConfig().diagnosticConfig
-        val newFlexConsumptionConfiguration = ensureConfig().flexConsumptionConfiguration
-        val storageAccount = storageAccount
-
-        val oldPlan = origin.appServicePlan
-        val oldRuntime = requireNotNull(origin.getDotNetRuntime())
-        val oldDiagnosticConfig = super.getDiagnosticConfig()
-        val oldFlexConsumptionConfiguration = origin.flexConsumptionConfiguration
-
-        val planModified = newPlan != null && newPlan != oldPlan
-        val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
-        val dockerModified = oldRuntime.isDocker && newDockerConfig != null
-        val diagnosticModified = newDiagnosticConfig != null && newDiagnosticConfig != oldDiagnosticConfig
-        val flexConsumptionModified = appServicePlan?.pricingTier?.isFlexConsumption == true &&
-                newFlexConsumptionConfiguration != null &&
-                !newFlexConsumptionConfiguration.isEmpty &&
-                newFlexConsumptionConfiguration != oldFlexConsumptionConfiguration
-        val isModified =
-            planModified || runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified
-
-        var result = remote
-        if (isModified) {
-            val update = remote.update()
-
-            if (planModified) newPlan?.let { updateAppServicePlan(update, it) }
-            if (runtimeModified) newRuntime?.let { updateRuntime(update, it) }
-            if (dockerModified) newDockerConfig?.let { updateDockerConfiguration(update, it) }
-            if (diagnosticModified) newDiagnosticConfig?.let {
-                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it)
-            }
-            if (flexConsumptionModified) newFlexConsumptionConfiguration?.let { update.withContainerSize(it.instanceSize) }
-            storageAccount?.let { update.withExistingStorageAccount(it.remote) }
-
-            val messager = AzureMessager.getMessager()
-            messager.info("Start updating Function App (${remote.name()})")
-
-            result = update.apply()
-
-            if (flexConsumptionModified && newFlexConsumptionConfiguration != null) {
-                updateFlexConsumptionConfiguration(remote, newFlexConsumptionConfiguration)
-            }
-
-            messager.success("Function App (${remote.name()}) is successfully updated")
-        }
-
-        return result
-    }
-
-    private fun updateAppServicePlan(
-        update: com.azure.resourcemanager.appservice.models.FunctionApp.Update,
-        newPlan: AppServicePlan
-    ) {
-        val plan = requireNotNull(newPlan.remote) { "Target app service plan doesn't exist" }
-        val runtime = requireNotNull(dotNetRuntime) { "Unable to find function app runtime" }
-        if (runtime.operatingSystem != newPlan.operatingSystem) {
-            throw AzureToolkitRuntimeException("Could not migrate ${runtime.operatingSystem} app service to ${newPlan.operatingSystem} service plan")
-        }
-        update.withExistingAppServicePlan(plan)
-    }
-
-    private fun updateRuntime(
-        update: com.azure.resourcemanager.appservice.models.FunctionApp.Update,
-        newRuntime: DotNetRuntime
-    ) {
-        val oldRuntime = requireNotNull(origin?.getDotNetRuntime())
-        if (newRuntime.operatingSystem != oldRuntime.operatingSystem) {
-            throw AzureToolkitRuntimeException("Can not update the operation system for existing app service")
-        }
-
-        val functionStack = requireNotNull(newRuntime.functionStack) { "Unable to configure function runtime" }
-        when (oldRuntime.operatingSystem) {
-            OperatingSystem.LINUX -> {
-                update.withBuiltInImage(functionStack)
-            }
-
-            OperatingSystem.WINDOWS -> {
-                update.withRuntime(functionStack.runtime())
-                    .withRuntimeVersion(functionStack.version())
-            }
-
-            OperatingSystem.DOCKER -> return
-        }
-    }
-
-    private fun updateDockerConfiguration(
-        update: com.azure.resourcemanager.appservice.models.FunctionApp.Update,
-        newConfig: DockerConfiguration
-    ) {
-        if (newConfig.userName.isNullOrEmpty() && newConfig.password.isNullOrEmpty()) {
-            update.withPublicDockerHubImage(newConfig.image)
-        } else if (newConfig.registryUrl.isNullOrEmpty()) {
-            update.withPrivateDockerHubImage(newConfig.image)
-                .withCredentials(newConfig.userName, newConfig.password)
-        } else {
-            update.withPrivateRegistryImage(newConfig.image, newConfig.registryUrl)
-                .withCredentials(newConfig.userName, newConfig.password)
-        }
+        throw AzureToolkitRuntimeException("Updating function app is not supported")
     }
 
     private fun updateFlexConsumptionConfiguration(

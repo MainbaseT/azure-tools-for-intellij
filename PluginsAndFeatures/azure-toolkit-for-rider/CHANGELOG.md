@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Do not update App Services during the deployment ([RIDER-119626](https://youtrack.jetbrains.com/issue/RIDER-119626))
+
 ## [4.3.7] - 2024-12-09
 
 ### Fixed
