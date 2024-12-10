@@ -6,7 +6,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContaine
 
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
+import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
@@ -36,7 +36,7 @@ class WebAppContainerDeploymentState(
 
         //create web app
         val config = createDotNetAppServiceConfig(options)
-        val task = CreateOrUpdateDotNetWebAppTask(config, processHandlerMessenger)
+        val task = CreateDotNetWebAppTask(config, processHandlerMessenger)
         return task.execute()
     }
 

@@ -28,7 +28,7 @@ import com.microsoft.azure.toolkit.lib.storage.StorageAccount
 import org.apache.commons.lang3.StringUtils
 import java.util.concurrent.Callable
 
-class CreateOrUpdateDotNetFunctionAppTask(
+class CreateDotNetFunctionAppTask(
     private val config: DotNetFunctionAppConfig,
     private val processHandlerMessager: RiderRunProcessHandlerMessager?
 ) : AzureTask<FunctionAppBase<*, *, *>>() {
@@ -61,7 +61,7 @@ class CreateOrUpdateDotNetFunctionAppTask(
             val functionAppDraft = (functionApp as? FunctionAppDraft)?.toDotNetFunctionAppDraft()
                 ?: error("Unable to get function app draft")
             registerSubTask(getCreateFunctionAppTask(functionAppDraft)) {
-                this@CreateOrUpdateDotNetFunctionAppTask.functionApp = it
+                this@CreateDotNetFunctionAppTask.functionApp = it
             }
         } else if (!config.deploymentSlotName().isNullOrEmpty()) {
             if (requireNotNull(functionApp.appServicePlan).pricingTier.isFlexConsumption) {
@@ -75,10 +75,10 @@ class CreateOrUpdateDotNetFunctionAppTask(
                 val slotDraft = (slot as? FunctionAppDeploymentSlotDraft)?.toDotNetFunctionAppDeploymentSlotDraft()
                     ?: error("Unable to get function app deployment slot draft")
                 registerSubTask(getCreateFunctionSlotTask(slotDraft)) {
-                    this@CreateOrUpdateDotNetFunctionAppTask.functionApp = it
+                    this@CreateDotNetFunctionAppTask.functionApp = it
                 }
             } else {
-                this@CreateOrUpdateDotNetFunctionAppTask.functionApp = slot
+                this@CreateDotNetFunctionAppTask.functionApp = slot
             }
         }
     }
@@ -143,12 +143,12 @@ class CreateOrUpdateDotNetFunctionAppTask(
         AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
                 with(draft) {
-                    appServicePlan = this@CreateOrUpdateDotNetFunctionAppTask.appServicePlan
+                    appServicePlan = this@CreateDotNetFunctionAppTask.appServicePlan
                     dotNetRuntime = getRuntime(config.dotnetRuntime)
                     dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
                     diagnosticConfig = config.diagnosticConfig()
                     flexConsumptionConfiguration = config.flexConsumptionConfiguration()
-                    storageAccount = this@CreateOrUpdateDotNetFunctionAppTask.storageAccount
+                    storageAccount = this@CreateDotNetFunctionAppTask.storageAccount
                     appSettings = (config.appSettings() ?: mutableMapOf()).apply {
 
                         //Controls remote build behavior during deployment.
