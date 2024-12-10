@@ -44,18 +44,18 @@ class CreateDotNetFunctionAppTask(
     private var functionApp: FunctionAppBase<*, *, *>? = null
 
     init {
-        registerSubTask(getResourceGroupTask()) {}
-        registerSubTask(getServicePlanTask()) { appServicePlan = it }
-
         val functionApp = Azure.az(AzureFunctions::class.java)
             .functionApps(config.subscriptionId())
             .getOrDraft(config.appName(), config.resourceGroup())
 
         if (functionApp.isDraftForCreating) {
-            registerSubTask(getStorageAccountTask()) { storageAccount = it }
+            registerSubTask(createResourceGroupTask()) {}
+            registerSubTask(createServicePlanTask()) { appServicePlan = it }
+            registerSubTask(createStorageAccountTask()) { storageAccount = it }
+
             val functionAppDraft = (functionApp as? FunctionAppDraft)?.toDotNetFunctionAppDraft()
                 ?: error("Unable to get function app draft")
-            registerSubTask(getCreateFunctionAppTask(functionAppDraft)) {
+            registerSubTask(createFunctionAppTask(functionAppDraft)) {
                 this@CreateDotNetFunctionAppTask.functionApp = it
             }
         } else if (!config.deploymentSlotName().isNullOrEmpty()) {
@@ -69,12 +69,14 @@ class CreateDotNetFunctionAppTask(
             if (slot.isDraftForCreating) {
                 val slotDraft = (slot as? FunctionAppDeploymentSlotDraft)?.toDotNetFunctionAppDeploymentSlotDraft()
                     ?: error("Unable to get function app deployment slot draft")
-                registerSubTask(getCreateFunctionSlotTask(slotDraft)) {
+                registerSubTask(createFunctionSlotTask(slotDraft)) {
                     this@CreateDotNetFunctionAppTask.functionApp = it
                 }
             } else {
                 this@CreateDotNetFunctionAppTask.functionApp = slot
             }
+        } else {
+            this@CreateDotNetFunctionAppTask.functionApp = functionApp
         }
     }
 
@@ -96,13 +98,13 @@ class CreateDotNetFunctionAppTask(
         return draft
     }
 
-    private fun getResourceGroupTask(): AzureTask<ResourceGroup> =
+    private fun createResourceGroupTask(): AzureTask<ResourceGroup> =
         CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), config.region())
 
-    private fun getServicePlanTask(): AzureTask<AppServicePlan> =
+    private fun createServicePlanTask(): AzureTask<AppServicePlan> =
         CreateServicePlanTask(AppServiceConfig.getServicePlanConfig(config))
 
-    private fun getStorageAccountTask(): AzureTask<StorageAccount> {
+    private fun createStorageAccountTask(): AzureTask<StorageAccount> {
         val storageResourceGroup = config.storageAccountResourceGroup() ?: config.resourceGroup()
         val storageAccountName = config.storageAccountName() ?: getDefaultStorageAccountName(config.appName())
         val storageAccountRegion = getNonStageRegion(config.region())
@@ -134,7 +136,7 @@ class CreateDotNetFunctionAppTask(
         }
     }
 
-    private fun getCreateFunctionAppTask(draft: DotNetFunctionAppDraft) =
+    private fun createFunctionAppTask(draft: DotNetFunctionAppDraft) =
         AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
                 with(draft) {
@@ -173,7 +175,7 @@ class CreateDotNetFunctionAppTask(
                 }
             })
 
-    private fun getCreateFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
+    private fun createFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
         AzureTask("Create new slot(${config.deploymentSlotName()}) on function app (${config.appName()})",
             Callable {
                 with(draft) {

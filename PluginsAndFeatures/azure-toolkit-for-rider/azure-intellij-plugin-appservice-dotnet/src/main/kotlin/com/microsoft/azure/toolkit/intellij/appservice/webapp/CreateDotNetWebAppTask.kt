@@ -27,17 +27,17 @@ class CreateDotNetWebAppTask(
     private var webApp: WebAppBase<*, *, *>? = null
 
     init {
-        registerSubTask(getResourceGroupTask()) {}
-        registerSubTask(getServicePlanTask()) { appServicePlan = it }
-
         val webApp = Azure.az(AzureWebApp::class.java)
             .webApps(config.subscriptionId())
             .getOrDraft(config.appName(), config.resourceGroup())
 
         if (webApp.isDraftForCreating) {
+            registerSubTask(createResourceGroupTask()) {}
+            registerSubTask(createServicePlanTask()) { appServicePlan = it }
+
             val webAppDraft = (webApp as? WebAppDraft)?.toDotNetWebAppDraft()
                 ?: error("Unable to get web app draft")
-            registerSubTask(getCreateWebAppTask(webAppDraft)) { this@CreateDotNetWebAppTask.webApp = it }
+            registerSubTask(createWebAppTask(webAppDraft)) { this@CreateDotNetWebAppTask.webApp = it }
         } else if (!config.deploymentSlotName().isNullOrEmpty()) {
             val slot = webApp
                 .slots()
@@ -45,10 +45,12 @@ class CreateDotNetWebAppTask(
             if (slot.isDraftForCreating) {
                 val slotDraft = (slot as? WebAppDeploymentSlotDraft)?.toDotNetWebAppDeploymentSlotDraft()
                     ?: error("Unable to get web app deployment slot draft")
-                registerSubTask(getCreateWebAppSlotTask(slotDraft)) { this@CreateDotNetWebAppTask.webApp = it }
+                registerSubTask(createWebAppSlotTask(slotDraft)) { this@CreateDotNetWebAppTask.webApp = it }
             } else {
                 this@CreateDotNetWebAppTask.webApp = slot
             }
+        } else {
+            this@CreateDotNetWebAppTask.webApp = webApp
         }
     }
 
@@ -70,13 +72,13 @@ class CreateDotNetWebAppTask(
         return draft
     }
 
-    private fun getResourceGroupTask(): AzureTask<ResourceGroup> =
+    private fun createResourceGroupTask(): AzureTask<ResourceGroup> =
         CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), config.region())
 
-    private fun getServicePlanTask(): AzureTask<AppServicePlan> =
+    private fun createServicePlanTask(): AzureTask<AppServicePlan> =
         CreateServicePlanTask(AppServiceConfig.getServicePlanConfig(config))
 
-    private fun getCreateWebAppTask(draft: DotNetWebAppDraft) =
+    private fun createWebAppTask(draft: DotNetWebAppDraft) =
         AzureTask(
             "Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
@@ -91,7 +93,7 @@ class CreateDotNetWebAppTask(
             }
         )
 
-    private fun getCreateWebAppSlotTask(draft: DotNetWebAppDeploymentSlotDraft) =
+    private fun createWebAppSlotTask(draft: DotNetWebAppDeploymentSlotDraft) =
         AzureTask(
             "Create new slot(${config.deploymentSlotName()}) on web app (${config.appName()})",
             Callable {
