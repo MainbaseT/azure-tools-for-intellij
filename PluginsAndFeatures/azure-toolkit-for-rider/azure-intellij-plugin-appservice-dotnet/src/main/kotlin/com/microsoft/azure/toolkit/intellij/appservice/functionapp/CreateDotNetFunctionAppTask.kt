@@ -5,14 +5,12 @@
 package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils
-import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
-import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.appservice.CreateAppServiceTask
 import com.microsoft.azure.toolkit.intellij.appservice.servicePlan.CreateServicePlanTask
 import com.microsoft.azure.toolkit.intellij.common.RiderRunProcessHandlerMessager
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.*
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
@@ -20,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.Operation
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask
@@ -30,8 +27,8 @@ import java.util.concurrent.Callable
 
 class CreateDotNetFunctionAppTask(
     private val config: DotNetFunctionAppConfig,
-    private val processHandlerMessager: RiderRunProcessHandlerMessager?
-) : AzureTask<FunctionAppBase<*, *, *>>() {
+    processHandlerMessager: RiderRunProcessHandlerMessager?
+) : CreateAppServiceTask<FunctionAppBase<*, *, *>>(processHandlerMessager) {
     companion object {
         private const val FUNCTION_APP_NAME_PATTERN = "[^a-zA-Z0-9]"
 
@@ -41,8 +38,6 @@ class CreateDotNetFunctionAppTask(
     }
 
     private val functionAppRegex = Regex(FUNCTION_APP_NAME_PATTERN)
-
-    private val subTasks: MutableList<AzureTask<*>> = mutableListOf()
 
     private var appServicePlan: AppServicePlan? = null
     private var storageAccount: StorageAccount? = null
@@ -192,48 +187,9 @@ class CreateDotNetFunctionAppTask(
                 }
             })
 
-    private fun getRuntime(runtimeConfig: DotNetRuntimeConfig?): DotNetRuntime? {
-        if (runtimeConfig == null) return null
-        if (runtimeConfig.isDocker) return null
-
-        return DotNetRuntime(
-            runtimeConfig.os(),
-            runtimeConfig.stack,
-            runtimeConfig.frameworkVersion,
-            runtimeConfig.functionStack,
-            false
-        )
-    }
-
-    private fun getDockerConfiguration(runtimeConfig: DotNetRuntimeConfig?): DockerConfiguration? {
-        if (runtimeConfig == null || !runtimeConfig.isDocker) return null
-
-        return DockerConfiguration.builder()
-            .userName(runtimeConfig.username())
-            .password(runtimeConfig.password())
-            .registryUrl(runtimeConfig.registryUrl())
-            .image(runtimeConfig.image())
-            .startUpCommand(runtimeConfig.startUpCommand())
-            .build()
-    }
-
-    private fun <T> registerSubTask(task: AzureTask<T>?, consumer: (result: T) -> Unit) {
-        if (task != null) {
-            subTasks.add(AzureTask<T>(Callable {
-                val result = task.body.call()
-                consumer(result)
-                return@Callable result
-            }))
-        }
-    }
-
     override fun doExecute(): FunctionAppBase<*, *, *> {
         Operation.execute(AzureString.fromString("Creating or updating Function App"), {
-            processHandlerMessager?.let { OperationContext.current().messager = it }
-
-            for (task in subTasks) {
-                task.body.call()
-            }
+            executeSubTasks()
         }, null)
 
         return requireNotNull(functionApp)
