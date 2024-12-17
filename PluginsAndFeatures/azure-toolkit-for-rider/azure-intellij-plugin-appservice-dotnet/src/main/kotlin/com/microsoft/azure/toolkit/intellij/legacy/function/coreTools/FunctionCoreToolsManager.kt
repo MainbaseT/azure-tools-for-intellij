@@ -34,11 +34,15 @@ class FunctionCoreToolsManager {
      * or downloads the latest core tools if not available.
      *
      * @param functionsRuntimeVersion The version of Azure Functions runtime for which to get or download the core tools.
+     * @param targetFramework The target framework of the Azure Functions project. It is used to find local tools with the in-process model.
      * @return The path to the Azure Function core tools for the specified Azure Function runtime version,
      * or null if the path cannot be determined or the download fails.
      */
-    suspend fun getFunctionCoreToolsPathOrDownloadForVersion(functionsRuntimeVersion: String): Path? {
-        val existingCoreToolsPath = getFunctionCoreToolsPathForVersion(functionsRuntimeVersion)
+    suspend fun getFunctionCoreToolsPathOrDownloadForVersion(
+        functionsRuntimeVersion: String,
+        targetFramework: String? = null
+    ): Path? {
+        val existingCoreToolsPath = getFunctionCoreToolsPathForVersion(functionsRuntimeVersion, targetFramework)
         if (existingCoreToolsPath != null) {
             LOG.trace { "Found existing core tools path: $existingCoreToolsPath" }
             return existingCoreToolsPath
@@ -52,22 +56,25 @@ class FunctionCoreToolsManager {
      * Retrieves the path to the Azure Function core tools folder for a specified Azure Function runtime version.
      *
      * @param functionsRuntimeVersion The version of Azure Functions runtime for which to get the folder.
+     * @param targetFramework The target framework of the Azure Functions project. It is used to find local tools with the in-process model.
      * @return The path to the Azure Function core tools folder for the specified Azure Function runtime version, or null if not found.
      */
-    fun getFunctionCoreToolsPathForVersion(functionsRuntimeVersion: String): Path? {
+    fun getFunctionCoreToolsPathForVersion(functionsRuntimeVersion: String, targetFramework: String? = null): Path? {
         val settings = AzureFunctionSettings.getInstance()
         val coreToolsPathEntries = settings.azureCoreToolsPathEntries
+        LOG.trace { "Core tools path from the settings: ${coreToolsPathEntries.joinToString()}" }
+
         val coreToolsPathFromSettings =
             if (functionsRuntimeVersion.equals("v0", true)) {
                 coreToolsPathEntries
                     .firstOrNull { it.functionsVersion.equals("v4", ignoreCase = true) }
                     ?.coreToolsPath
-                    ?.let(::resolveCoreToolsPathFromSettings)
+                    ?.let { resolveCoreToolsPathFromSettings(it, targetFramework) }
             } else {
                 coreToolsPathEntries
                     .firstOrNull { it.functionsVersion.equals(functionsRuntimeVersion, ignoreCase = true) }
                     ?.coreToolsPath
-                    ?.let(::resolveCoreToolsPathFromSettings)
+                    ?.let { resolveCoreToolsPathFromSettings(it, null) }
             }
         if (coreToolsPathFromSettings?.exists() == true) {
             LOG.trace { "Get Azure Function core tools path from the settings: $coreToolsPathFromSettings" }
@@ -216,18 +223,33 @@ class FunctionCoreToolsManager {
         }
     }
 
-    private fun resolveCoreToolsPathFromSettings(coreToolsPathValue: String): Path? {
+    private fun resolveCoreToolsPathFromSettings(coreToolsPathValue: String, targetFramework: String?): Path? {
         if (coreToolsPathValue.isEmpty()) return null
 
-        if (isFunctionCoreToolsExecutable(coreToolsPathValue)) {
+        val coreToolsFolderPath = if (isFunctionCoreToolsExecutable(coreToolsPathValue)) {
             val coreToolsPathFromEnvironment = FunctionCliResolver.resolveFunc()?.let(::Path) ?: return null
             LOG.trace { "Resolved core tools path from environment: $coreToolsPathFromEnvironment" }
-            return patchCoreToolsPath(coreToolsPathFromEnvironment)
-        } else {
+            patchCoreToolsPath(coreToolsPathFromEnvironment)
+        }  else {
             val coreToolsPathFromSettings = Path(coreToolsPathValue)
             LOG.trace { "Resolved core tools path from settings: $coreToolsPathFromSettings" }
-            return patchCoreToolsPath(coreToolsPathFromSettings)
+            patchCoreToolsPath(coreToolsPathFromSettings)
         }
+
+        if (targetFramework == null) return coreToolsFolderPath
+
+        val inProcFolder = when(targetFramework) {
+            "net8.0" -> "in-proc8"
+            "net6.0" -> "in-proc6"
+            else -> {
+                LOG.info("Unsupported target framework: $targetFramework for in-process worker model")
+                return coreToolsFolderPath
+            }
+        }
+
+        val inProcCoreToolsFolderPath = coreToolsFolderPath.resolve(inProcFolder)
+
+        return if (inProcCoreToolsFolderPath.exists()) inProcCoreToolsFolderPath else coreToolsFolderPath
     }
 
     private fun patchCoreToolsPath(funcCoreToolsPath: Path): Path {

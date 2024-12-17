@@ -89,14 +89,17 @@ class FunctionRunExecutorFactory(
         }
         LOG.debug { "Worker runtime: $workerRuntime" }
 
-        val functionsRuntimeVersion = calculateFunctionRuntimeVersion(msBuildVersionProperty, workerRuntime)
+        val functionsRuntimeVersion = calculateFunctionsRuntimeVersion(msBuildVersionProperty, workerRuntime)
         LOG.debug { "Functions runtime version: $functionsRuntimeVersion" }
+
+        val functionsTfm = if (workerRuntime == FunctionWorkerRuntime.DOTNET) parameters.projectTfm else null
+        LOG.debug { "Functions target framework: $functionsTfm" }
 
         val functionCoreToolsPath =  withContext(Dispatchers.Default) {
             withBackgroundProgress(project, "Getting Azure Functions core tools") {
                 FunctionCoreToolsManager
                     .getInstance()
-                    .getFunctionCoreToolsPathOrDownloadForVersion(functionsRuntimeVersion)
+                    .getFunctionCoreToolsPathOrDownloadForVersion(functionsRuntimeVersion, functionsTfm)
             }
         }
         if (functionCoreToolsPath == null) {
@@ -129,7 +132,7 @@ class FunctionRunExecutorFactory(
         }
     }
 
-    private fun calculateFunctionRuntimeVersion(msBuildVersionProperty: String, workerRuntime: FunctionWorkerRuntime) =
+    private fun calculateFunctionsRuntimeVersion(msBuildVersionProperty: String, workerRuntime: FunctionWorkerRuntime) =
         if (msBuildVersionProperty.equals("v0", ignoreCase = true)) msBuildVersionProperty
         else if (msBuildVersionProperty.equals("v1", ignoreCase = true)) msBuildVersionProperty
         else if (msBuildVersionProperty.equals("v2", ignoreCase = true)) msBuildVersionProperty
