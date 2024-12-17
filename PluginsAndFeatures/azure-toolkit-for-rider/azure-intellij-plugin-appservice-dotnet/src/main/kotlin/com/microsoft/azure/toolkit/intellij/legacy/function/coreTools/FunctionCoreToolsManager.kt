@@ -33,41 +33,48 @@ class FunctionCoreToolsManager {
      * Retrieves the path to the Azure Function core tools for a specified Azure Function runtime version
      * or downloads the latest core tools if not available.
      *
-     * @param azureFunctionsVersion The version of Azure Functions runtime for which to get or download the core tools.
+     * @param functionsRuntimeVersion The version of Azure Functions runtime for which to get or download the core tools.
+     * @param targetFramework The target framework of the Azure Functions project. It is used to find local tools with the in-process model.
      * @return The path to the Azure Function core tools for the specified Azure Function runtime version,
      * or null if the path cannot be determined or the download fails.
      */
-    suspend fun getFunctionCoreToolsPathOrDownloadForVersion(azureFunctionsVersion: String): Path? {
-        val existingCoreToolsPath = getFunctionCoreToolsPathForVersion(azureFunctionsVersion)
+    suspend fun getFunctionCoreToolsPathOrDownloadForVersion(
+        functionsRuntimeVersion: String,
+        targetFramework: String? = null
+    ): Path? {
+        val existingCoreToolsPath = getFunctionCoreToolsPathForVersion(functionsRuntimeVersion, targetFramework)
         if (existingCoreToolsPath != null) {
             LOG.trace { "Found existing core tools path: $existingCoreToolsPath" }
             return existingCoreToolsPath
         }
 
         LOG.trace { "Existing core tools aren't found, downloading the latest one" }
-        return downloadLatestFunctionCoreToolsForVersion(azureFunctionsVersion)
+        return downloadLatestFunctionCoreToolsForVersion(functionsRuntimeVersion)
     }
 
     /**
      * Retrieves the path to the Azure Function core tools folder for a specified Azure Function runtime version.
      *
-     * @param azureFunctionsVersion The version of Azure Functions runtime for which to get the folder.
+     * @param functionsRuntimeVersion The version of Azure Functions runtime for which to get the folder.
+     * @param targetFramework The target framework of the Azure Functions project. It is used to find local tools with the in-process model.
      * @return The path to the Azure Function core tools folder for the specified Azure Function runtime version, or null if not found.
      */
-    fun getFunctionCoreToolsPathForVersion(azureFunctionsVersion: String): Path? {
+    fun getFunctionCoreToolsPathForVersion(functionsRuntimeVersion: String, targetFramework: String? = null): Path? {
         val settings = AzureFunctionSettings.getInstance()
         val coreToolsPathEntries = settings.azureCoreToolsPathEntries
+        LOG.trace { "Core tools path from the settings: ${coreToolsPathEntries.joinToString()}" }
+
         val coreToolsPathFromSettings =
-            if (azureFunctionsVersion.equals("v0", true)) {
+            if (functionsRuntimeVersion.equals("v0", true)) {
                 coreToolsPathEntries
                     .firstOrNull { it.functionsVersion.equals("v4", ignoreCase = true) }
                     ?.coreToolsPath
-                    ?.let(::resolveCoreToolsPathFromSettings)
+                    ?.let { resolveCoreToolsPathFromSettings(it, targetFramework) }
             } else {
                 coreToolsPathEntries
-                    .firstOrNull { it.functionsVersion.equals(azureFunctionsVersion, ignoreCase = true) }
+                    .firstOrNull { it.functionsVersion.equals(functionsRuntimeVersion, ignoreCase = true) }
                     ?.coreToolsPath
-                    ?.let(::resolveCoreToolsPathFromSettings)
+                    ?.let { resolveCoreToolsPathFromSettings(it, null) }
             }
         if (coreToolsPathFromSettings?.exists() == true) {
             LOG.trace { "Get Azure Function core tools path from the settings: $coreToolsPathFromSettings" }
@@ -79,9 +86,9 @@ class FunctionCoreToolsManager {
             LOG.info("Unable to find any downloaded core tools because tool download path is not set up")
             return null
         }
-        val coreToolsPathForVersion = Path(coreToolsDownloadFolder).resolve(azureFunctionsVersion)
+        val coreToolsPathForVersion = Path(coreToolsDownloadFolder).resolve(functionsRuntimeVersion)
         if (coreToolsPathForVersion.notExists()) {
-            LOG.info("Unable to find any downloaded core tools in the folder $coreToolsDownloadFolder for version $azureFunctionsVersion")
+            LOG.info("Unable to find any downloaded core tools in the folder $coreToolsDownloadFolder for version $functionsRuntimeVersion")
             return null
         }
 
@@ -92,18 +99,18 @@ class FunctionCoreToolsManager {
     /**
      * Downloads the latest Azure Function core tools release for the specified Azure Functions runtime version.
      *
-     * @param azureFunctionsVersion The version of Azure Functions runtime for which to download the latest core tools release.
+     * @param functionsRuntimeVersion The version of Azure Functions runtime for which to download the latest core tools release.
      * @return The path to the downloaded Azure Function core tools, or null if the download was unsuccessful.
      */
-    suspend fun downloadLatestFunctionCoreToolsForVersion(azureFunctionsVersion: String): Path? {
+    suspend fun downloadLatestFunctionCoreToolsForVersion(functionsRuntimeVersion: String): Path? {
         val downloadLatestReleaseResult = FunctionsToolingFeedService
             .getInstance()
-            .downloadLatestFunctionsToolingRelease(azureFunctionsVersion)
+            .downloadLatestFunctionsToolingRelease(functionsRuntimeVersion)
 
         val latestReleasePath = downloadLatestReleaseResult.getOrNull()
         if (latestReleasePath == null) {
             LOG.warn(
-                "Unable to download the latest Azure Function core tooling release for version $azureFunctionsVersion",
+                "Unable to download the latest Azure Function core tooling release for version $functionsRuntimeVersion",
                 downloadLatestReleaseResult.exceptionOrNull()
             )
             return null
@@ -165,13 +172,13 @@ class FunctionCoreToolsManager {
     }
 
     private suspend fun updateFunctionCoreToolsForVersion(
-        functionsVersion: String,
+        functionsRuntimeVersion: String,
         releaseTag: String,
         coreToolsDownloadFolder: Path
     ) {
-        LOG.trace { "Updating Functions tooling. Version: $functionsVersion, release: $releaseTag, folder: $coreToolsDownloadFolder" }
+        LOG.trace { "Updating Functions tooling. Version: $functionsRuntimeVersion, release: $releaseTag, folder: $coreToolsDownloadFolder" }
 
-        val coreToolsPath = coreToolsDownloadFolder.resolve(functionsVersion).resolve(releaseTag)
+        val coreToolsPath = coreToolsDownloadFolder.resolve(functionsRuntimeVersion).resolve(releaseTag)
         if (coreToolsPath.exists() && coreToolsPath.resolveFunctionCoreToolsExecutable().exists()) {
             LOG.trace { "Core tools with tag $releaseTag already exists" }
             return
@@ -179,16 +186,16 @@ class FunctionCoreToolsManager {
 
         FunctionsToolingFeedService
             .getInstance()
-            .downloadLatestFunctionsToolingRelease(functionsVersion)
+            .downloadLatestFunctionsToolingRelease(functionsRuntimeVersion)
             .onFailure {
-                LOG.warn("Unable to update core tools for version $functionsVersion", it)
+                LOG.warn("Unable to update core tools for version $functionsRuntimeVersion", it)
             }
     }
 
-    private fun cleanUpCoreToolsForVersion(functionsVersion: String, coreToolsDownloadFolder: Path) {
-        LOG.trace { "Cleaning Functions tooling folders. Version: $functionsVersion, download folder: $coreToolsDownloadFolder" }
+    private fun cleanUpCoreToolsForVersion(functionsRuntimeVersion: String, coreToolsDownloadFolder: Path) {
+        LOG.trace { "Cleaning Functions tooling folders. Version: $functionsRuntimeVersion, download folder: $coreToolsDownloadFolder" }
 
-        val coreToolsPathForVersion = coreToolsDownloadFolder.resolve(functionsVersion)
+        val coreToolsPathForVersion = coreToolsDownloadFolder.resolve(functionsRuntimeVersion)
         val tagFolders = coreToolsPathForVersion.listAllTagFolders()
 
         for (tagFolder in tagFolders) {
@@ -216,18 +223,33 @@ class FunctionCoreToolsManager {
         }
     }
 
-    private fun resolveCoreToolsPathFromSettings(coreToolsPathValue: String): Path? {
+    private fun resolveCoreToolsPathFromSettings(coreToolsPathValue: String, targetFramework: String?): Path? {
         if (coreToolsPathValue.isEmpty()) return null
 
-        if (isFunctionCoreToolsExecutable(coreToolsPathValue)) {
+        val coreToolsFolderPath = if (isFunctionCoreToolsExecutable(coreToolsPathValue)) {
             val coreToolsPathFromEnvironment = FunctionCliResolver.resolveFunc()?.let(::Path) ?: return null
             LOG.trace { "Resolved core tools path from environment: $coreToolsPathFromEnvironment" }
-            return patchCoreToolsPath(coreToolsPathFromEnvironment)
-        } else {
+            patchCoreToolsPath(coreToolsPathFromEnvironment)
+        }  else {
             val coreToolsPathFromSettings = Path(coreToolsPathValue)
             LOG.trace { "Resolved core tools path from settings: $coreToolsPathFromSettings" }
-            return patchCoreToolsPath(coreToolsPathFromSettings)
+            patchCoreToolsPath(coreToolsPathFromSettings)
         }
+
+        if (targetFramework == null) return coreToolsFolderPath
+
+        val inProcFolder = when(targetFramework) {
+            "net8.0" -> "in-proc8"
+            "net6.0" -> "in-proc6"
+            else -> {
+                LOG.info("Unsupported target framework: $targetFramework for in-process worker model")
+                return coreToolsFolderPath
+            }
+        }
+
+        val inProcCoreToolsFolderPath = coreToolsFolderPath.resolve(inProcFolder)
+
+        return if (inProcCoreToolsFolderPath.exists()) inProcCoreToolsFolderPath else coreToolsFolderPath
     }
 
     private fun patchCoreToolsPath(funcCoreToolsPath: Path): Path {
