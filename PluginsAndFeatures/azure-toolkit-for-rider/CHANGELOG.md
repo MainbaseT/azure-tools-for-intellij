@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.3.8] - 2024-12-17
+
 ### Fixed
 
 - Do not update App Services during the deployment ([RIDER-119626](https://youtrack.jetbrains.com/issue/RIDER-119626))
@@ -242,7 +244,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.7...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.8...HEAD
+[4.3.8]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.7...v4.3.8
 [4.3.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.6...v4.3.7
 [4.3.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.5...v4.3.6
 [4.3.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.3.4...v4.3.5
