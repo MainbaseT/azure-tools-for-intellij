@@ -15,7 +15,7 @@ import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
+import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetAppServiceDeployer
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
@@ -49,7 +49,7 @@ class WebAppDeploymentState(
         checkCanceled()
 
         val config = createDotNetAppServiceConfig(publishableProject, options)
-        val createTask = CreateOrUpdateDotNetWebAppTask(config, processHandlerMessenger)
+        val createTask = CreateDotNetWebAppTask(config, processHandlerMessenger)
         val deployTarget = createTask.execute()
 
         if (deployTarget is AzResource.Draft<*, *>) {

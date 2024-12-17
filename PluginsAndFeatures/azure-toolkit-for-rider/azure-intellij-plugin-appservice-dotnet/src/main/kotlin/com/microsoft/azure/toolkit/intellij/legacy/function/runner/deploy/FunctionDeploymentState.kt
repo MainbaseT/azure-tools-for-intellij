@@ -15,7 +15,7 @@ import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetAppServiceDeployer
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
-import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateOrUpdateDotNetFunctionAppTask
+import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateDotNetFunctionAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
@@ -50,7 +50,7 @@ class FunctionDeploymentState(
         checkCanceled()
 
         val config = creatDotNetFunctionAppConfig(publishableProject, options)
-        val createTask = CreateOrUpdateDotNetFunctionAppTask(config, processHandlerMessenger)
+        val createTask = CreateDotNetFunctionAppTask(config, processHandlerMessenger)
         val deployTarget = createTask.execute()
 
         if (deployTarget is AzResource.Draft<*, *>) {
