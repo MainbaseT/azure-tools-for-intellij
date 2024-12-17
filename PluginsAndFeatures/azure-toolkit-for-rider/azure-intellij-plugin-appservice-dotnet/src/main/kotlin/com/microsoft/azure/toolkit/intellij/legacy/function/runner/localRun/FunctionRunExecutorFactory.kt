@@ -89,14 +89,14 @@ class FunctionRunExecutorFactory(
         }
         LOG.debug { "Worker runtime: $workerRuntime" }
 
-        val functionRuntimeVersion = calculateFunctionRuntimeVersion(msBuildVersionProperty, workerRuntime)
-        LOG.debug { "Function runtime version: $functionRuntimeVersion" }
+        val functionsRuntimeVersion = calculateFunctionRuntimeVersion(msBuildVersionProperty, workerRuntime)
+        LOG.debug { "Functions runtime version: $functionsRuntimeVersion" }
 
         val functionCoreToolsPath =  withContext(Dispatchers.Default) {
             withBackgroundProgress(project, "Getting Azure Functions core tools") {
                 FunctionCoreToolsManager
                     .getInstance()
-                    .getFunctionCoreToolsPathOrDownloadForVersion(functionRuntimeVersion)
+                    .getFunctionCoreToolsPathOrDownloadForVersion(functionsRuntimeVersion)
             }
         }
         if (functionCoreToolsPath == null) {
@@ -115,7 +115,7 @@ class FunctionRunExecutorFactory(
             .getInstance()
             .tryPatchHostJsonFile(dotNetExecutable.workingDirectory, parameters.functionNames)
 
-        val runtimeToExecute = if (functionRuntimeVersion.equals("v1", ignoreCase = true)) {
+        val runtimeToExecute = if (functionsRuntimeVersion.equals("v1", ignoreCase = true)) {
             MsNetRuntime()
         } else {
             FunctionNetCoreRuntime(functionCoreToolsExecutablePath, workerRuntime, lifetime)

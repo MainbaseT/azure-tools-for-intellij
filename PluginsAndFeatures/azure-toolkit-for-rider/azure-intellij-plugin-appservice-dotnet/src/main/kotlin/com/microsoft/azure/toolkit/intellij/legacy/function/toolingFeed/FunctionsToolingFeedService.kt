@@ -114,16 +114,16 @@ class FunctionsToolingFeedService : Disposable {
      * This method fetches the release information, determines if the release has already been downloaded,
      * and if not, it downloads the release, extracts it to the appropriate directory and cleans up any temporary files.
      *
-     * @param azureFunctionsVersion The version of Azure Functions runtime for which to download the latest tooling release.
+     * @param functionsRuntimeVersion The version of Azure Functions runtime for which to download the latest tooling release.
      * @return A Result wrapping the path to the latest Azure Functions tooling release.
      */
-    suspend fun downloadLatestFunctionsToolingRelease(azureFunctionsVersion: String): Result<Path> {
+    suspend fun downloadLatestFunctionsToolingRelease(functionsRuntimeVersion: String): Result<Path> {
         downloadAndSaveReleaseFeed().onFailure { exception ->
             LOG.warn("Unable to download Function tooling release feed", exception)
             return Result.failure(exception)
         }
 
-        val toolingRelease = getLatestFunctionsToolingRelease(azureFunctionsVersion)
+        val toolingRelease = getLatestFunctionsToolingRelease(functionsRuntimeVersion)
         if (toolingRelease == null) {
             return Result.failure(IllegalStateException("Unable to obtain latest function tooling release"))
         }
@@ -205,16 +205,16 @@ class FunctionsToolingFeedService : Disposable {
     /**
      * Retrieves a list of Azure Functions tooling releases for the specified Azure Functions runtime versions.
      *
-     * @param azureFunctionsVersions List of Azure Functions runtime versions.
+     * @param functionsRuntimeVersions List of Azure Functions runtime versions.
      * @return List of tooling releases corresponding to the given versions, or null if the release feed could not be downloaded.
      */
-    suspend fun getFunctionsToolingReleaseForVersions(azureFunctionsVersions: List<String>): List<FunctionsToolingRelease>? {
+    suspend fun getFunctionsToolingReleaseForVersions(functionsRuntimeVersions: List<String>): List<FunctionsToolingRelease>? {
         downloadAndSaveReleaseFeed().onFailure { exception ->
             LOG.warn("Unable to download Function tooling release feed", exception)
             return null
         }
 
-        return azureFunctionsVersions.mapNotNull { getLatestFunctionsToolingRelease(it) }
+        return functionsRuntimeVersions.mapNotNull { getLatestFunctionsToolingRelease(it) }
     }
 
     private suspend fun getReleaseFeed(): ReleaseFeed {
@@ -228,14 +228,14 @@ class FunctionsToolingFeedService : Disposable {
         return response.body<ReleaseFeed>()
     }
 
-    private fun getLatestFunctionsToolingRelease(azureFunctionsVersion: String): FunctionsToolingRelease? {
-        val toolingRelease = releaseCache[azureFunctionsVersion.lowercase()]
+    private fun getLatestFunctionsToolingRelease(functionsRuntimeVersion: String): FunctionsToolingRelease? {
+        val toolingRelease = releaseCache[functionsRuntimeVersion.lowercase()]
         if (toolingRelease == null) {
-            LOG.warn("Could not determine Functions tooling release for version: '$azureFunctionsVersion'")
+            LOG.warn("Could not determine Functions tooling release for version: '$functionsRuntimeVersion'")
             return null
         }
 
-        LOG.trace { "Latest Functions tooling release for version '$azureFunctionsVersion' is '$toolingRelease'" }
+        LOG.trace { "Latest Functions tooling release for version '$functionsRuntimeVersion' is '$toolingRelease'" }
 
         return toolingRelease
     }
