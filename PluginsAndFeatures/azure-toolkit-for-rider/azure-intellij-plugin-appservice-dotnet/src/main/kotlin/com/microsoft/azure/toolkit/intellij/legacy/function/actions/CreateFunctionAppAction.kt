@@ -13,7 +13,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.rd.util.lifetime
 import com.jetbrains.rd.util.threading.coroutines.launch
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp.FunctionDeploymentConfigurationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

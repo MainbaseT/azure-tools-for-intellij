@@ -15,8 +15,8 @@ import com.jetbrains.rider.projectView.workspace.ProjectModelEntity
 import com.jetbrains.rider.run.configurations.publishing.RiderContextPublishProvider
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfiguration
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp.FunctionDeploymentConfiguration
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp.FunctionDeploymentConfigurationType
 import javax.swing.Icon
 
 class FunctionAppContextPublishProvider : RiderContextPublishProvider {
