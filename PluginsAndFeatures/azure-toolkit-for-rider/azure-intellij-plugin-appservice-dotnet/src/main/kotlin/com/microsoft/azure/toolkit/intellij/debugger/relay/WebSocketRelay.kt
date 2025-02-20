@@ -12,12 +12,13 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.seconds
 
 class WebSocketRelay(private val requestProvider: HttpRequestBuilder.() -> Unit) : Relay {
     private val logger = logger<WebSocketRelay>()
     private val client = HttpClient(CIO) {
         install(WebSockets) {
-            pingInterval = 30000
+            pingInterval = 30.seconds
         }
     }
 
