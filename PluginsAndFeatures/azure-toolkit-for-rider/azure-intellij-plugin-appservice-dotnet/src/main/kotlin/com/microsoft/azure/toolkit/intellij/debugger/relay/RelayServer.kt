@@ -2,6 +2,7 @@ package com.microsoft.azure.toolkit.intellij.debugger.relay
 
 import com.azure.core.credential.TokenRequestContext
 import com.azure.identity.implementation.util.ScopeUtil
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.platform.util.coroutines.childScope
 import com.intellij.remote.RemoteCredentials
 import com.intellij.remote.RemoteCredentialsHolder
@@ -64,7 +65,9 @@ abstract class RelayServer(protected val appServiceApp: AppServiceAppBase<*, *, 
 
     protected inner class SocketServer(hostName: String, port: Int = 0) {
         private val selectorManager = ActorSelectorManager(Dispatchers.IO)
-        private val serverSocket = aSocket(selectorManager).tcp().bind(InetSocketAddress(hostName, port))
+        private val serverSocket: ServerSocket = runBlocking {
+             aSocket(selectorManager).tcp().bind(InetSocketAddress(hostName, port))
+        }
 
         val port = (serverSocket.localAddress as InetSocketAddress).port
 
