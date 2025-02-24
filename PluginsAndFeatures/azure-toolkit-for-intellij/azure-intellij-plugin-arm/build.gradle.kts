@@ -21,6 +21,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
+        bundledModules("intellij.json.split")
         bundledPlugins("com.intellij.modules.json")
     }
 
