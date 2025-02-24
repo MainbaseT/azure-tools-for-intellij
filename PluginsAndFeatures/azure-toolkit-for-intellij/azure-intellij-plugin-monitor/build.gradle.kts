@@ -20,7 +20,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
-        bundledModule("intellij.libraries.microba")
+        bundledModules("intellij.libraries.microba", "intellij.json.split")
         bundledPlugins(listOf("com.intellij.properties", "com.intellij.modules.json"))
     }
 

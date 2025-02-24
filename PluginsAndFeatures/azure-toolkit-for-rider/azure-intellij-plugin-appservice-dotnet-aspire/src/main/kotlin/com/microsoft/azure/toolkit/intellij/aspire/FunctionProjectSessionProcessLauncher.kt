@@ -2,6 +2,8 @@
  * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.aspire
 
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -19,6 +21,8 @@ import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.aspire.generated.CreateSessionRequest
 import com.jetbrains.rider.aspire.run.AspireHostConfiguration
 import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.SessionProcessLauncherExtension
+import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.getAspireHostRunConfiguration
+import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.getDotNetRuntime
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.runtime.DotNetExecutable
@@ -27,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.io.path.nameWithoutExtension
 
 class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
     companion object {
@@ -64,12 +67,12 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         ) ?: return
         val runtime = getDotNetRuntime(executable, project) ?: return
 
-        val projectName = Path(sessionModel.projectPath).nameWithoutExtension
+        val projectPath = Path(sessionModel.projectPath)
         val aspireHostProjectPath = aspireHostRunConfig?.let { Path(it.parameters.projectFilePath) }
 
         val profile = getRunProfile(
             sessionId,
-            projectName,
+            projectPath,
             executable,
             runtime,
             sessionProcessEventListener,
@@ -111,12 +114,12 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         ) ?: return
         val runtime = getDotNetRuntime(executable, project) ?: return
 
-        val projectName = Path(sessionModel.projectPath).nameWithoutExtension
+        val projectPath = Path(sessionModel.projectPath)
         val aspireHostProjectPath = aspireHostRunConfig?.let { Path(it.parameters.projectFilePath) }
 
         val profile = getDebugProfile(
             sessionId,
-            projectName,
+            projectPath,
             executable,
             runtime,
             sessionProcessEventListener,
@@ -162,7 +165,7 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
 
     private fun getRunProfile(
         sessionId: String,
-        projectName: String,
+        projectPath: Path,
         dotnetExecutable: DotNetExecutable,
         dotnetRuntime: DotNetCoreRuntime,
         sessionProcessEventListener: ProcessListener,
@@ -170,7 +173,7 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         aspireHostProjectPath: Path?
     ) = FunctionProjectSessionRunProfile(
         sessionId,
-        projectName,
+        projectPath,
         dotnetExecutable,
         dotnetRuntime,
         sessionProcessEventListener,
@@ -180,7 +183,7 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
 
     private fun getDebugProfile(
         sessionId: String,
-        projectName: String,
+        projectPath: Path,
         dotnetExecutable: DotNetExecutable,
         dotnetRuntime: DotNetCoreRuntime,
         sessionProcessEventListener: ProcessListener,
@@ -188,7 +191,7 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         aspireHostProjectPath: Path?
     ) = FunctionProjectSessionDebugProfile(
         sessionId,
-        projectName,
+        projectPath,
         dotnetExecutable,
         dotnetRuntime,
         sessionProcessEventListener,
