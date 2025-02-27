@@ -19,7 +19,7 @@ import java.util.function.Supplier
 
 class FunctionAppInfoAdvancedPanel(
     projectName: String,
-    targetProjectOnNetFramework: Boolean,
+    targetProjectOnNetFramework: Boolean = false,
     defaultConfigSupplier: Supplier<FunctionAppConfig>
 ) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 

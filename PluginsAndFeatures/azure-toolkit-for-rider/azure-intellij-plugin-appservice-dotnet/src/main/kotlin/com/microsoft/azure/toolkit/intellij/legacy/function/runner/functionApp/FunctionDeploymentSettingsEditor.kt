@@ -2,6 +2,8 @@
  * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("DuplicatedCode")
+
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
 import com.intellij.openapi.options.SettingsEditor
@@ -54,7 +56,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                 configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
                     .align(Align.FILL)
             }
-            row("Function:") {
+            row("Function App:") {
                 functionAppComboBox = functionAppComboBox(project)
                     .align(Align.FILL)
                     .resizableColumn()

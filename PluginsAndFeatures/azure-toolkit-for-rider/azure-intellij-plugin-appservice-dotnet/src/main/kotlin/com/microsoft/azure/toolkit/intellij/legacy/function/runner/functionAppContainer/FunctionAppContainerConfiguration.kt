@@ -2,9 +2,9 @@
  * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("UnstableApiUsage", "DuplicatedCode")
+@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage", "DuplicatedCode")
 
-package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionAppContainer
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -17,29 +17,30 @@ import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
 import com.microsoft.azure.toolkit.intellij.legacy.utils.*
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 
-class FunctionDeploymentConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-    LocatableConfigurationBase<FunctionDeploymentConfigurationOptions>(project, factory, name) {
+class FunctionAppContainerConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
+    LocatableConfigurationBase<FunctionAppContainerConfigurationOptions>(project, factory, name) {
 
-    var publishableProjectPath: String?
-        get() = getState()?.publishableProjectPath
-        set(value) {
-            getState()?.publishableProjectPath = value
-        }
+    companion object {
+        private const val REPO_COMPONENT_REGEX_PATTERN = "[a-z0-9]+(?:[._-][a-z0-9]+)*"
+        private const val TAG_REGEX_PATTERN = "^\\w+[\\w.-]*\$"
+    }
 
-    override fun suggestedName() = "Publish Function App"
+    private val repoComponentRegex = Regex(REPO_COMPONENT_REGEX_PATTERN)
+    private val tagRegex = Regex(TAG_REGEX_PATTERN)
 
-    override fun getState() = options as? FunctionDeploymentConfigurationOptions
+    override fun suggestedName() = "Publish Function App Container"
+
+    override fun getState() = options as? FunctionAppContainerConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
-        FunctionDeploymentState(
+        FunctionAppContainerDeploymentState(
             project,
-            AppServiceProjectService.getInstance(project).scope.childScope("FunctionDeploymentState"),
+            AppServiceProjectService.getInstance(project).scope.childScope("FunctionAppContainerDeploymentState"),
             this
         )
 
-    override fun getConfigurationEditor() = FunctionDeploymentSettingsEditor(project)
+    override fun getConfigurationEditor() = FunctionAppContainerSettingEditor(project)
 
     override fun checkConfiguration() {
         val options = getState() ?: return
@@ -54,8 +55,20 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             if (appServicePlanResourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan resource group is not provided")
             if (pricingTier.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing tier is not provided")
             if (pricingSize.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing size is not provided")
-            if (operatingSystem.isNullOrEmpty()) throw RuntimeConfigurationError("Operating system is not provided")
-            if (publishableProjectPath.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project to deploy")
+
+            val repository = imageRepository
+            if (repository.isNullOrEmpty()) throw RuntimeConfigurationError("Image repository is not provided")
+            if (repository.length > 255) throw RuntimeConfigurationError("The length of image repository must be less than 256 characters")
+            if (repository.endsWith('/')) throw RuntimeConfigurationError("The repository name should not end with '/'")
+            val tag = imageTag
+            if (tag.isNullOrEmpty()) throw RuntimeConfigurationError("Image tag is not provided")
+            if (tag.length > 127) throw RuntimeConfigurationError("The length of tag name must be less than 128 characters")
+            if (!tagRegex.matches(tag)) throw RuntimeConfigurationError("Invalid tag: $tag, should follow: $TAG_REGEX_PATTERN")
+            val repositoryParts = repository.split('/')
+            if (repositoryParts.last().isEmpty()) throw RuntimeConfigurationError("Image name is not provided")
+            repositoryParts.forEach {
+                if (!repoComponentRegex.matches(it)) throw RuntimeConfigurationError("Invalid repository component: $it, should follow: $REPO_COMPONENT_REGEX_PATTERN")
+            }
 
             val functionApp = Azure.az(AzureFunctions::class.java)
                 .functionApps(requireNotNull(subscriptionId))
@@ -67,37 +80,6 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
                 if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
                 if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             }
-
-            if (isDeployToSlot) {
-                if (slotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
-
-                if (functionApp != null) {
-                    val slot = functionApp.slots().get(requireNotNull(slotName), requireNotNull(resourceGroupName))
-                    if (slot == null) {
-                        //Validate slot name only for the new Deployment Slots
-                        if (!isValidApplicationSlotName(slotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
-                    }
-                }
-            }
-        }
-    }
-
-    fun setFunctionApp(functionApp: FunctionAppBase<*, *, *>) {
-        getState()?.apply {
-            functionAppName = functionApp.name
-            subscriptionId = functionApp.subscriptionId
-            resourceGroupName = functionApp.resourceGroupName
-            region = functionApp.region.toString()
-            appServicePlanName = functionApp.appServicePlan?.name
-            appServicePlanResourceGroupName = functionApp.appServicePlan?.resourceGroupName
-            pricingTier = functionApp.appServicePlan?.pricingTier?.tier
-            pricingSize = functionApp.appServicePlan?.pricingTier?.size
-            operatingSystem = functionApp.runtime?.operatingSystem?.toString()
-            isDeployToSlot = false
-            slotName = null
-            slotConfigurationSource = null
-            storageAccountName = null
-            storageAccountResourceGroup = null
         }
     }
 }

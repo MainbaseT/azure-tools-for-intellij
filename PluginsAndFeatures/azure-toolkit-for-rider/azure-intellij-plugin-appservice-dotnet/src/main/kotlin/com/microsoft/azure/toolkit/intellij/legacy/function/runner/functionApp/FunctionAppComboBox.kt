@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.function.Supplier
 import java.util.stream.Collectors
 
-class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConfig>(project) {
+open class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConfig>(project) {
     var targetProjectOnNetFramework: Boolean = false
 
     init {

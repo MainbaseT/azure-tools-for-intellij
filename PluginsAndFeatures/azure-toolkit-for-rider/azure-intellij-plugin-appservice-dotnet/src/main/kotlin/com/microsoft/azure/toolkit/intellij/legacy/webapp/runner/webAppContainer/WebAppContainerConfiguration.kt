@@ -2,7 +2,7 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
+@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage", "DuplicatedCode")
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer
 
@@ -40,7 +40,7 @@ class WebAppContainerConfiguration(private val project: Project, factory: Config
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
         WebAppContainerDeploymentState(
             project,
-            AppServiceProjectService.getInstance(project).scope.childScope("WebAppContainersRunState"),
+            AppServiceProjectService.getInstance(project).scope.childScope("WebAppContainerDeploymentState"),
             this
         )
 

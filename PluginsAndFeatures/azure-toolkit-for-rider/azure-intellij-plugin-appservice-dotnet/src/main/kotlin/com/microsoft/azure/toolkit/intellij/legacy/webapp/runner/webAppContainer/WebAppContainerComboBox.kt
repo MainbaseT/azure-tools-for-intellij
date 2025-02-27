@@ -53,7 +53,7 @@ class WebAppContainerComboBox(project: Project) : WebAppComboBox(project) {
     }
 }
 
-fun Row.dockerWebAppComboBox(project: Project): Cell<WebAppContainerComboBox> {
+fun Row.webAppContainerComboBox(project: Project): Cell<WebAppContainerComboBox> {
     val component = WebAppContainerComboBox(project)
     return cell(component)
 }
