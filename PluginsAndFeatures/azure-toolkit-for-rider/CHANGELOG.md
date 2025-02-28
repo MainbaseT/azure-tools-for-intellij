@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.4.4] - 2025-02-28
+
 ### Changed
 
 - Support for Rider 2025.1 EAP 6
@@ -282,7 +284,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.3...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.4...HEAD
+[4.4.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.3...v4.4.4
 [4.4.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.2...v4.4.3
 [4.4.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.1...v4.4.2
 [4.4.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.0...v4.4.1
