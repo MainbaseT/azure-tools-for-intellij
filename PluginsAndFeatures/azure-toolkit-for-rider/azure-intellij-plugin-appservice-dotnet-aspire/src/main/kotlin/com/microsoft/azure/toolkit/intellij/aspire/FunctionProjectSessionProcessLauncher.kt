@@ -6,33 +6,27 @@
 
 package com.microsoft.azure.toolkit.intellij.aspire
 
-import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessListener
-import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ExecutionEnvironmentBuilder
-import com.intellij.execution.runners.ProgramRunner
-import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.EDT
+import com.intellij.ide.browsers.StartBrowserSettings
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.aspire.generated.CreateSessionRequest
 import com.jetbrains.rider.aspire.run.AspireHostConfiguration
-import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.SessionProcessLauncherExtension
-import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.getAspireHostRunConfiguration
-import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.getDotNetRuntime
+import com.jetbrains.rider.aspire.sessionHost.findBySessionProject
+import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.DotNetExecutableSessionProcessLauncher
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntime
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
+/**
+ * Launches an Azure Function .NET project from an Aspire session request.
+ */
+class FunctionProjectSessionProcessLauncher : DotNetExecutableSessionProcessLauncher() {
     companion object {
         private val LOG = logger<FunctionProjectSessionProcessLauncher>()
     }
@@ -44,126 +38,30 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         project: Project
     ): Boolean {
         val path = Path(projectPath)
-        val runnableProject = project.solution.runnableProjectsModel.findBySessionProject(path)
+        val runnableProject = project.solution.runnableProjectsModel.findBySessionProject(path) {
+            it.kind == AzureRunnableProjectKinds.AzureFunctions
+        }
+
         return runnableProject != null
     }
 
-    override suspend fun launchRunProcess(
-        sessionId: String,
+    override suspend fun getDotNetExecutable(
         sessionModel: CreateSessionRequest,
-        sessionProcessEventListener: ProcessListener,
-        sessionProcessLifetime: Lifetime,
-        aspireHostRunConfigName: String?,
-        project: Project
-    ) {
-        LOG.trace { "Starting run session for ${sessionModel.projectPath}" }
-
-        val aspireHostRunConfig = getAspireHostRunConfiguration(aspireHostRunConfigName, project)
-        val executable = getDotNetExecutable(
-            sessionModel,
-            aspireHostRunConfig,
-            true,
-            project
-        ) ?: return
-        val runtime = getDotNetRuntime(executable, project) ?: return
-
-        val projectPath = Path(sessionModel.projectPath)
-        val aspireHostProjectPath = aspireHostRunConfig?.let { Path(it.parameters.projectFilePath) }
-
-        val profile = getRunProfile(
-            sessionId,
-            projectPath,
-            executable,
-            runtime,
-            sessionProcessEventListener,
-            sessionProcessLifetime,
-            aspireHostProjectPath
-        )
-
-        val environment = ExecutionEnvironmentBuilder
-            .createOrNull(project, DefaultRunExecutor.getRunExecutorInstance(), profile)
-            ?.build()
-        if (environment == null) {
-            LOG.warn("Unable to create run execution environment")
-            return
-        }
-
-        setProgramCallbacks(environment)
-
-        withContext(Dispatchers.EDT) {
-            environment.runner.execute(environment)
-        }
-    }
-
-    override suspend fun launchDebugProcess(
-        sessionId: String,
-        sessionModel: CreateSessionRequest,
-        sessionProcessEventListener: ProcessListener,
-        sessionProcessLifetime: Lifetime,
-        aspireHostRunConfigName: String?,
-        project: Project
-    ) {
-        LOG.trace { "Starting debug session for project ${sessionModel.projectPath}" }
-
-        val aspireHostRunConfig = getAspireHostRunConfiguration(aspireHostRunConfigName, project)
-        val executable = getDotNetExecutable(
-            sessionModel,
-            aspireHostRunConfig,
-            true,
-            project
-        ) ?: return
-        val runtime = getDotNetRuntime(executable, project) ?: return
-
-        val projectPath = Path(sessionModel.projectPath)
-        val aspireHostProjectPath = aspireHostRunConfig?.let { Path(it.parameters.projectFilePath) }
-
-        val profile = getDebugProfile(
-            sessionId,
-            projectPath,
-            executable,
-            runtime,
-            sessionProcessEventListener,
-            sessionProcessLifetime,
-            aspireHostProjectPath
-        )
-        val debugRunner = ProgramRunner.findRunnerById(FunctionProjectSessionDebugProgramRunner.ID)
-        if (debugRunner == null) {
-            LOG.warn("Unable to find runner: ${FunctionProjectSessionDebugProgramRunner.ID}")
-            return
-        }
-
-        val environment = ExecutionEnvironmentBuilder
-            .createOrNull(project, DefaultDebugExecutor.getDebugExecutorInstance(), profile)
-            ?.runner(debugRunner)
-            ?.build()
-        if (environment == null) {
-            LOG.warn("Unable to create debug execution environment")
-            return
-        }
-
-        setProgramCallbacks(environment)
-
-        withContext(Dispatchers.EDT) {
-            environment.runner.execute(environment)
-        }
-    }
-
-    private suspend fun getDotNetExecutable(
-        sessionModel: CreateSessionRequest,
+        isDebugSession: Boolean,
         hostRunConfiguration: AspireHostConfiguration?,
-        addBrowserAction: Boolean,
         project: Project
-    ): DotNetExecutable? {
+    ): Pair<DotNetExecutable, StartBrowserSettings?>? {
         val factory = FunctionSessionExecutableFactory.getInstance(project)
-        val executable = factory.createExecutable(sessionModel, hostRunConfiguration, addBrowserAction)
+        val executable = factory.createExecutable(sessionModel, hostRunConfiguration)
         if (executable == null) {
             LOG.warn("Unable to create executable for project: ${sessionModel.projectPath}")
+            return null
         }
 
-        return executable
+        return executable to null
     }
 
-    private fun getRunProfile(
+    override fun getRunProfile(
         sessionId: String,
         projectPath: Path,
         dotnetExecutable: DotNetExecutable,
@@ -181,11 +79,12 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         aspireHostProjectPath
     )
 
-    private fun getDebugProfile(
+    override fun getDebugProfile(
         sessionId: String,
         projectPath: Path,
         dotnetExecutable: DotNetExecutable,
         dotnetRuntime: DotNetCoreRuntime,
+        browserSettings: StartBrowserSettings?,
         sessionProcessEventListener: ProcessListener,
         sessionProcessLifetime: Lifetime,
         aspireHostProjectPath: Path?
@@ -198,15 +97,4 @@ class FunctionProjectSessionProcessLauncher : SessionProcessLauncherExtension {
         sessionProcessLifetime,
         aspireHostProjectPath
     )
-
-    private fun setProgramCallbacks(environment: ExecutionEnvironment) {
-        environment.callback = object : ProgramRunner.Callback {
-            override fun processStarted(runContentDescriptor: RunContentDescriptor?) {
-                runContentDescriptor?.apply {
-                    isActivateToolWindowWhenAdded = false
-                    isAutoFocusContent = false
-                }
-            }
-        }
-    }
 }
