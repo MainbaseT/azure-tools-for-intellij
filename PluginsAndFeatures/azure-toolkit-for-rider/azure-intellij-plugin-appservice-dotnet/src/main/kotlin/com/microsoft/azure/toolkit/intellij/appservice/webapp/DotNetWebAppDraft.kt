@@ -58,7 +58,7 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         val newRuntime = checkNotNull(dotNetRuntime) { "'runtime' is required to create Azure Web App" }
         val newPlan = checkNotNull(appServicePlan) { "'service plan' is required to create Azure Web App" }
         val os = newRuntime.operatingSystem
-        if (os != newPlan.operatingSystem) {
+        if (os != newPlan.operatingSystem && newPlan.operatingSystem != OperatingSystem.DOCKER) {
             throw AzureToolkitRuntimeException("Could not create $os app service in ${newPlan.operatingSystem} service plan")
         }
         val newAppSettings = appSettings
