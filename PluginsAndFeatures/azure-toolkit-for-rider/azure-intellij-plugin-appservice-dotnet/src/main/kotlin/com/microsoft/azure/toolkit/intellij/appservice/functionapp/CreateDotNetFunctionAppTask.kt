@@ -11,8 +11,6 @@ import com.microsoft.azure.toolkit.intellij.common.RiderRunProcessHandlerMessage
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.*
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
@@ -31,10 +29,6 @@ class CreateDotNetFunctionAppTask(
 ) : CreateAppServiceTask<FunctionAppBase<*, *, *>>(processHandlerMessager) {
     companion object {
         private const val FUNCTION_APP_NAME_PATTERN = "[^a-zA-Z0-9]"
-
-        private const val SCM_DO_BUILD_DURING_DEPLOYMENT = "SCM_DO_BUILD_DURING_DEPLOYMENT"
-        private const val WEBSITE_RUN_FROM_PACKAGE = "WEBSITE_RUN_FROM_PACKAGE"
-        private const val FUNCTIONS_INPROC_NET8_ENABLED = "FUNCTIONS_INPROC_NET8_ENABLED"
     }
 
     private val functionAppRegex = Regex(FUNCTION_APP_NAME_PATTERN)
@@ -146,30 +140,7 @@ class CreateDotNetFunctionAppTask(
                     diagnosticConfig = config.diagnosticConfig()
                     flexConsumptionConfiguration = config.flexConsumptionConfiguration()
                     storageAccount = this@CreateDotNetFunctionAppTask.storageAccount
-                    appSettings = (config.appSettings() ?: mutableMapOf()).apply {
-
-                        //Controls remote build behavior during deployment.
-                        //see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#scm_do_build_during_deployment
-                        if (config.pricingTier == PricingTier.CONSUMPTION && config.runtime.os == OperatingSystem.LINUX) {
-                            put(SCM_DO_BUILD_DURING_DEPLOYMENT, "0")
-                        }
-
-                        //Enables your function app to run from a package file, which can be locally mounted or deployed to an external URL.
-                        //see: https://learn.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package
-                        if (config.runtime.os == OperatingSystem.WINDOWS ||
-                            (config.runtime.os == OperatingSystem.LINUX && config.pricingTier != PricingTier.CONSUMPTION)
-                        ) {
-                            put(WEBSITE_RUN_FROM_PACKAGE, "1")
-                        }
-
-                        //Indicates whether to an app can use .NET 8 on the in-process model.
-                        //see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library?tabs=v4%2Ccmd#updating-to-target-net-8
-                        if (config.dotnetRuntime?.functionStack?.runtime() == "DOTNET" &&
-                            (config.dotnetRuntime?.stack?.version() == "8.0" || config.dotnetRuntime?.frameworkVersion?.toString() == "v8.0")
-                        ) {
-                            put(FUNCTIONS_INPROC_NET8_ENABLED, "1")
-                        }
-                    }
+                    appSettings = config.appSettings()
 
                     createIfNotExist()
                 }
