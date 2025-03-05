@@ -53,18 +53,25 @@ class FunctionAppContainerDeploymentState(
         storageAccountResourceGroup(options.storageAccountResourceGroup)
         runtime = createRuntimeConfig(options)
         dotnetRuntime = createDotNetRuntimeConfig(options)
+        appSettings(
+            mapOf(
+                "WEBSITES_ENABLE_APP_SERVICE_STORAGE" to "false"
+            )
+        )
     }
 
-    private fun createRuntimeConfig(options: FunctionAppContainerConfigurationOptions) = RuntimeConfig().apply {
-        os(OperatingSystem.DOCKER)
-        image("${options.imageRepository}:${options.imageTag}")
-    }
+    private fun createRuntimeConfig(options: FunctionAppContainerConfigurationOptions) =
+        RuntimeConfig().apply {
+            os(OperatingSystem.DOCKER)
+            image("${options.imageRepository}:${options.imageTag}")
+        }
 
-    private fun createDotNetRuntimeConfig(options: FunctionAppContainerConfigurationOptions) = DotNetRuntimeConfig().apply {
-        os(OperatingSystem.LINUX)
-        image("${options.imageRepository}:${options.imageTag}")
-        isDocker = true
-    }
+    private fun createDotNetRuntimeConfig(options: FunctionAppContainerConfigurationOptions) =
+        DotNetRuntimeConfig().apply {
+            os(OperatingSystem.LINUX)
+            image("${options.imageRepository}:${options.imageTag}")
+            isDocker = true
+        }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
         val options = requireNotNull(functionAppContainerConfiguration.state)

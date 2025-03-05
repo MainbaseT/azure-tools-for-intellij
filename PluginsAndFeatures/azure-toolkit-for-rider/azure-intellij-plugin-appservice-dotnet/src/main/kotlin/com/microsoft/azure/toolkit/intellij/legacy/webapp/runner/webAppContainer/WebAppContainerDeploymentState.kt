@@ -53,19 +53,25 @@ class WebAppContainerDeploymentState(
         appName(options.webAppName)
         runtime = createRuntimeConfig(options)
         dotnetRuntime = createDotNetRuntimeConfig(options)
-        appSettings(mapOf(WEBSITES_PORT to options.port.toString()))
+        appSettings(
+            mapOf(
+                WEBSITES_PORT to options.port.toString()
+            )
+        )
     }
 
-    private fun createRuntimeConfig(options: WebAppContainerConfigurationOptions) = RuntimeConfig().apply {
-        os(OperatingSystem.DOCKER)
-        image("${options.imageRepository}:${options.imageTag}")
-    }
+    private fun createRuntimeConfig(options: WebAppContainerConfigurationOptions) =
+        RuntimeConfig().apply {
+            os(OperatingSystem.DOCKER)
+            image("${options.imageRepository}:${options.imageTag}")
+        }
 
-    private fun createDotNetRuntimeConfig(options: WebAppContainerConfigurationOptions) = DotNetRuntimeConfig().apply {
-        os(OperatingSystem.LINUX)
-        image("${options.imageRepository}:${options.imageTag}")
-        isDocker = true
-    }
+    private fun createDotNetRuntimeConfig(options: WebAppContainerConfigurationOptions) =
+        DotNetRuntimeConfig().apply {
+            os(OperatingSystem.LINUX)
+            image("${options.imageRepository}:${options.imageTag}")
+            isDocker = true
+        }
 
     override fun onSuccess(result: AppServiceAppBase<*, *, *>, processHandler: RunProcessHandler) {
         val options = requireNotNull(webAppContainerConfiguration.state)
