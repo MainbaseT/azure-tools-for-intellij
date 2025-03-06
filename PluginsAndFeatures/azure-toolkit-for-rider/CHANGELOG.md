@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Support for Rider 2025.1 EAP 7
+
 ## [4.4.4] - 2025-02-28
 
 ### Changed
