@@ -78,9 +78,16 @@ class ArtifactService(private val project: Project) {
 
         val buildStatus =
             if (publishableProject.isDotNetCore) {
-                invokeMsBuild(publishableProject, listOf(tempDirMsBuildProperty) + extraProperties, false, true, true)
+                invokeMsBuild(publishableProject, listOf(tempDirMsBuildProperty) + extraProperties,
+                    diagnosticsMode = false,
+                    silentMode = true,
+                    noRestore = true
+                )
             } else {
-                webPublishToFileSystem(publishableProject.projectFilePath, outPath, extraProperties, false, true)
+                webPublishToFileSystem(publishableProject.projectFilePath, outPath, extraProperties,
+                    diagnosticsMode = false,
+                    silentMode = true
+                )
             }
 
         val buildResult = buildStatus.buildResultKind

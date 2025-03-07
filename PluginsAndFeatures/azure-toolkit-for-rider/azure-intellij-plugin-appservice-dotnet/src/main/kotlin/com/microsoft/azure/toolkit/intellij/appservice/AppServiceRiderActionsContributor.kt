@@ -41,13 +41,13 @@ class AppServiceRiderActionsContributor : IActionsContributor {
     private val initializeOrder =
         max(AppServiceActionsContributor.INITIALIZE_ORDER, ContainerRegistryActionsContributor.INITIALIZE_ORDER) + 1
 
-    val REMOTE_DEBUGGING: Action.Id<AppServiceAppBase<*, *, *>> = Action.Id.of("user/appservice.start_remote_debugging.app")
+    private val remoteDebuggingActionId: Action.Id<AppServiceAppBase<*, *, *>> = Action.Id.of("user/appservice.start_remote_debugging.app")
 
     override fun getOrder() = initializeOrder
 
     override fun registerGroups(am: AzureActionManager) {
-        am.getGroup(FUNCTION_APP_ACTIONS).prependActions(REMOTE_DEBUGGING, "---")
-        am.getGroup(WEBAPP_ACTIONS).prependActions(REMOTE_DEBUGGING, "---")
+        am.getGroup(FUNCTION_APP_ACTIONS).prependActions(remoteDebuggingActionId, "---")
+        am.getGroup(WEBAPP_ACTIONS).prependActions(remoteDebuggingActionId, "---")
     }
 
     override fun registerActions(am: AzureActionManager) {
@@ -78,7 +78,7 @@ class AppServiceRiderActionsContributor : IActionsContributor {
             }
             .register(am)
 
-        Action(REMOTE_DEBUGGING)
+        Action(remoteDebuggingActionId)
             .withLabel("Attach Debugger")
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.iconPath)
             .withIdParam { appService: AppServiceAppBase<*, *, *> -> appService.name }
@@ -130,7 +130,7 @@ class AppServiceRiderActionsContributor : IActionsContributor {
             })
 
         am.registerHandler(
-            REMOTE_DEBUGGING,
+            remoteDebuggingActionId,
             { r, _ -> r is  AppServiceAppBase<*, *, *> },
             AppServiceRemoteDebuggingHandler()
         )

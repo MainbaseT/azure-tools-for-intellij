@@ -39,6 +39,7 @@ class AzureFunctionsVersionInspection : XmlSuppressableInspectionTool() {
                             .map { SetVersionQuickFix(it) }
                             .toTypedArray<LocalQuickFix>()
 
+                        @Suppress("DialogTitleCapitalization")
                         holder.registerProblem(tag,
                             if (isVersionNotSpecified)
                                 "Azure Functions version not specified"

@@ -1,6 +1,5 @@
 package com.microsoft.azure.toolkit.intellij.debugger.relay
 
-import Relay
 import com.intellij.openapi.diagnostic.logger
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
