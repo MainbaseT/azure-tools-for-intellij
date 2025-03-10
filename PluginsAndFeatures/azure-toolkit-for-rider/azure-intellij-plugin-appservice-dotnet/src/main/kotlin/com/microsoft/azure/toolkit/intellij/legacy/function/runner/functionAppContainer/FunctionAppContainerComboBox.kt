@@ -10,10 +10,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
+import com.microsoft.azure.toolkit.intellij.appservice.components.AppServiceComboBoxDotNetRender
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp.FunctionAppComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainerCreationDialog
 import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
@@ -22,7 +21,7 @@ import java.util.stream.Collectors
 
 class FunctionAppContainerComboBox(project: Project) : FunctionAppComboBox(project) {
     init {
-        setRenderer(AppComboBoxRender(true))
+        setRenderer(AppServiceComboBoxDotNetRender())
     }
 
     override fun loadAppServiceModels(): MutableList<FunctionAppConfig> {
