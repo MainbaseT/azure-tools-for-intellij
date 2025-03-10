@@ -57,7 +57,7 @@ class IdentityConfigurable(private val project: Project) : BoundConfigurable("Az
             button("Sign in with Azure CLI...") {
                 val type = AuthConfiguration(AuthType.AZURE_CLI)
                 val account = Azure.az(AzureAccount::class.java)
-                val login = account.login(type, Azure.az().config().isAuthPersistenceEnabled())
+                val login = account.login(type, Azure.az().config().isAuthPersistenceEnabled)
                 if (login.isLoggedIn) {
                     val manager = AzureTaskManager.getInstance()
                     manager.runLater {
@@ -71,7 +71,7 @@ class IdentityConfigurable(private val project: Project) : BoundConfigurable("Az
             }.enabledIf(isAzureCLiAuthAvailablePredicate)
         }.visibleIf(isLoggedInPredicate.not())
         row {
-            button("Sign out...") {
+            button("Sign Out...") {
                 val account = Azure.az(AzureAccount::class.java)
                 account.logout()
                 update()

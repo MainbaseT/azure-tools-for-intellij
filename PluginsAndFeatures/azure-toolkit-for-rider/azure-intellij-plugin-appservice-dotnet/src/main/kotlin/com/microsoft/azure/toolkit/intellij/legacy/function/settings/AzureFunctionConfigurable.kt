@@ -129,7 +129,7 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
 
     override fun createPanel() = panel {
         row {
-            text("Configure the Azure Functions Core Tools to be used for an Azure Functions version")
+            text("Configure the Azure Functions core tools to be used for an Azure Functions version")
         }
         row {
             val azureCoreToolsPathEntries = settings.azureCoreToolsPathEntries
@@ -138,7 +138,7 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
                 setShowGrid(false)
                 setEnableAntialiasing(true)
                 preferredScrollableViewportSize = JBUI.size(200, 100)
-                emptyText.text = "No Azure Functions Core Tools configured"
+                emptyText.text = "No Azure Functions core tools configured"
                 selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
                 columnModel.getColumn(0).preferredWidth = JBUI.scale(250)
                 columnModel.getColumn(1).preferredWidth = JBUI.scale(750)

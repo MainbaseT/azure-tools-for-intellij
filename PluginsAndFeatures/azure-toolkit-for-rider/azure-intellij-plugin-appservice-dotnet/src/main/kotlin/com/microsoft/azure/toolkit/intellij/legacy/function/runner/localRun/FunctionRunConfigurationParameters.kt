@@ -66,10 +66,10 @@ class FunctionRunConfigurationParameters(
             "",
             true,
             hashMapOf(),
-            false,
-            true,
-            true,
-            DotNetStartBrowserParameters()
+            useExternalConsole = false,
+            trackUrl = true,
+            trackBrowserLaunch = true,
+            startBrowserParameters = DotNetStartBrowserParameters()
         )
     }
 

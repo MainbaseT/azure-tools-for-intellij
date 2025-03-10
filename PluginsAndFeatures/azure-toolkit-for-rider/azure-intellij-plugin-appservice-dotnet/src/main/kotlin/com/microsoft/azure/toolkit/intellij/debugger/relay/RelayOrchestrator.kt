@@ -1,6 +1,5 @@
 package com.microsoft.azure.toolkit.intellij.debugger.relay
 
-import Relay
 import com.intellij.openapi.diagnostic.logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

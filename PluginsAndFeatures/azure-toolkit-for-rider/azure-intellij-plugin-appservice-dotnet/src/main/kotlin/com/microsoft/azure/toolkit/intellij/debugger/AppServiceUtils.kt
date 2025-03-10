@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 import javax.swing.Icon
 
 fun AppServiceAppBase<*, *, *>.operatingSystem(): OperatingSystem {
-    return runtime?.operatingSystem ?: getAppServicePlan()?.operatingSystem ?: OperatingSystem.WINDOWS
+    return runtime?.operatingSystem ?: appServicePlan?.operatingSystem ?: OperatingSystem.WINDOWS
 }
 
 fun AppServiceAppBase<*, *, *>.getIcon(): Icon? {
@@ -52,7 +52,7 @@ fun AppServiceAppBase<*, *, *>.isDebugSupported(): Boolean {
 }
 
 fun AppServiceAppBase<*, *, *>.isRunning(): Boolean {
-    val formalStatus = getFormalStatus() ?: return false
+    val formalStatus = formalStatus ?: return false
     return when(formalStatus) {
         AzResource.FormalStatus.RUNNING,
         AzResource.FormalStatus.WRITING,

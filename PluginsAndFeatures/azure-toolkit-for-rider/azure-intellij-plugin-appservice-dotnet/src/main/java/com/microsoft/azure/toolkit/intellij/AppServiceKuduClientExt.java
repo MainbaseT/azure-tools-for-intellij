@@ -8,7 +8,6 @@ import com.azure.core.annotation.*;
 import com.azure.core.http.rest.Response;
 import com.azure.core.http.rest.RestProxy;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import reactor.core.publisher.Mono;
 

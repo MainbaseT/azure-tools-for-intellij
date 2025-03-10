@@ -177,7 +177,7 @@ class DotNetAppServiceDeployer(private val project: Project) {
 
         FileUtil.delete(zipFile)
 
-        if (!target.getFormalStatus().isRunning) {
+        if (!target.formalStatus.isRunning) {
             updateStatusText("Starting the application after deploying artifacts...")
             target.start()
             updateStatusText("Successfully started the application.")
