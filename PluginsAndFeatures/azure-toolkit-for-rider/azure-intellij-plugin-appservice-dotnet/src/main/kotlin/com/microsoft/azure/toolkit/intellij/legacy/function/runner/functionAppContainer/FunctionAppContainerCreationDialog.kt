@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier.SHARED_PRICING
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions
@@ -23,6 +24,13 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import javax.swing.JPanel
 
 class FunctionAppContainerCreationDialog(project: Project) : ConfigDialog<FunctionAppConfig>(project), Disposable {
+    companion object {
+        private val FUNCTION_APP_CONTAINER_PRICING = SHARED_PRICING.union(setOf(
+            PricingTier.ELASTIC_PREMIUM_EP1,
+            PricingTier.ELASTIC_PREMIUM_EP2,
+            PricingTier.ELASTIC_PREMIUM_EP3))
+    }
+
     private val basicPanel: AppServiceInfoBasicPanel<FunctionAppConfig>
     private val advancedPanel: FunctionAppInfoAdvancedPanel
     private val panel: JPanel
@@ -39,13 +47,17 @@ class FunctionAppContainerCreationDialog(project: Project) : ConfigDialog<Functi
 
         val projectName = removeInvalidCharacters(project.name)
         basicPanel = AppServiceInfoBasicPanel {
-            FunctionAppConfigProducer.getInstance().generateDefaultConfig()
+            FunctionAppConfigProducer.getInstance().generateDefaultConfig().apply {
+                pricingTier = PricingTier.ELASTIC_PREMIUM_EP1
+            }
         }
         basicPanel.setFixedRuntime(WebAppDockerRuntime.INSTANCE)
         Disposer.register(this, basicPanel)
 
         advancedPanel = FunctionAppInfoAdvancedPanel(projectName) {
-            FunctionAppConfig()
+            FunctionAppConfig().apply {
+                pricingTier = PricingTier.ELASTIC_PREMIUM_EP1
+            }
         }
         advancedPanel.setFixedRuntime(WebAppDockerRuntime.INSTANCE)
         Disposer.register(this, advancedPanel)
@@ -55,7 +67,7 @@ class FunctionAppContainerCreationDialog(project: Project) : ConfigDialog<Functi
             row { cell(advancedPanel) }
         }
 
-        advancedPanel.setValidPricingTier(PricingTier.FUNCTION_PRICING.toList(), PricingTier.CONSUMPTION)
+        advancedPanel.setValidPricingTier(FUNCTION_APP_CONTAINER_PRICING.toList(), PricingTier.ELASTIC_PREMIUM_EP1)
 
         this.init()
 
