@@ -71,6 +71,7 @@ class WebAppCreationDialog(
 
     override fun getAdvancedFormPanel() = advancedPanel
 
+    @Suppress("RedundantOverride")
     override fun dispose() {
         super.dispose()
     }

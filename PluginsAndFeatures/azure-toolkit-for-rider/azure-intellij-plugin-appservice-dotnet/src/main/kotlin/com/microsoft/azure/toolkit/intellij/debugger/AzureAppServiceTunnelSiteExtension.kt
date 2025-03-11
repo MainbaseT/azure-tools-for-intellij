@@ -38,14 +38,14 @@ object AzureAppServiceTunnelSiteExtension {
     }
 
     private fun AppServiceAppBase<*, *, *>.getKuduManagerExt(): AppServiceKuduClientExt? {
-        val remote = getRemote() ?: return null
+        val remote = remote ?: return null
         return AppServiceKuduClientExt.getClient(remote)
     }
 
     private suspend fun restartKuduAndCheckExtensionInstalled(manager: AppServiceKuduClientExt) {
         manager.killKuduProcess()
 
-        for (i in 1..10) {
+        (1..10).forEach { i ->
             delay(500)
 
             try {
@@ -53,8 +53,8 @@ object AzureAppServiceTunnelSiteExtension {
                 return
             } catch (e: ProcessesFetchingProblemException) {
                 throw e
-            } catch (e: Throwable) {
-                continue
+            } catch (_: Throwable) {
+                return@forEach
             }
         }
 

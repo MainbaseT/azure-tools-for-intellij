@@ -2,6 +2,8 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("DuplicatedCode")
+
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.Disposable
@@ -34,15 +36,13 @@ class AppServiceInfoBasicPanel<T>(
         isRequired = true
     }
 
-    private var operatingSystem: OperatingSystem
+    private var operatingSystem = OperatingSystem.WINDOWS
     private lateinit var operatingSystemGroup: ButtonsGroup
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
     private lateinit var dockerRadioButton: Cell<JBRadioButton>
 
     init {
-        operatingSystem = OperatingSystem.WINDOWS
-
         Disposer.register(this, textName)
 
         panel = panel {
@@ -112,6 +112,7 @@ class AppServiceInfoBasicPanel<T>(
 
     override fun setVisible(visible: Boolean) {
         panel.isVisible = visible
+        @Suppress("RemoveExplicitSuperQualifier")
         super<JPanel>.setVisible(visible)
     }
 

@@ -71,7 +71,7 @@ class FunctionsToolingFeedService : Disposable {
      *
      * @return Result wrapping any exception encountered during the execution.
      */
-    suspend fun downloadAndSaveReleaseFeed() = kotlin.runCatching {
+    private suspend fun downloadAndSaveReleaseFeed() = kotlin.runCatching {
         if (releaseCache.isNotEmpty()) return@runCatching
 
         releaseCacheMutex.withLock {
@@ -117,13 +117,10 @@ class FunctionsToolingFeedService : Disposable {
         }
 
         val toolingRelease = getLatestFunctionsToolingRelease(functionsRuntimeVersion)
-        if (toolingRelease == null) {
-            return Result.failure(IllegalStateException("Unable to obtain latest function tooling release"))
-        }
+            ?: return Result.failure(IllegalStateException("Unable to obtain latest function tooling release"))
         val toolingReleasePath = getPathForLatestFunctionsToolingRelease(toolingRelease)
-        if (toolingReleasePath == null) {
-            return Result.failure(IllegalStateException("Unable to path to download function tooling release"))
-        }
+            ?: return Result.failure(IllegalStateException("Unable to path to download function tooling release"))
+
         val coreToolsExecutablePath = toolingReleasePath.resolveFunctionCoreToolsExecutable()
         if (coreToolsExecutablePath.exists()) {
             LOG.trace { "The release $toolingRelease is already downloaded" }

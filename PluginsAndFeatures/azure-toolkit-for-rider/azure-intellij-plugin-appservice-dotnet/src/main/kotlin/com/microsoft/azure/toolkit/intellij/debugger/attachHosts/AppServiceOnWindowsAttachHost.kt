@@ -27,6 +27,6 @@ open class AppServiceOnWindowsAttachHost<T : AppServiceAppBase<*, *, *>>(project
     }
 
     private fun AppServiceAppBase<*, *, *>.webSocketsEnabled(): Boolean {
-        return getRemote()?.webSocketsEnabled() ?: false
+        return remote?.webSocketsEnabled() ?: false
     }
 }

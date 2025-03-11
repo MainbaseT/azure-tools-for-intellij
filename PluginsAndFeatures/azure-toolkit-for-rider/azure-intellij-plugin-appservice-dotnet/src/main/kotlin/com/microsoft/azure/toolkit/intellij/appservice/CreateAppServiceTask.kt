@@ -14,10 +14,10 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import java.util.concurrent.Callable
 
 abstract class CreateAppServiceTask<T>(
-    protected val processHandlerMessager: RiderRunProcessHandlerMessager?
+    private val processHandlerMessager: RiderRunProcessHandlerMessager?
 ) : AzureTask<T>() where T : AppServiceAppBase<*, *, *> {
 
-    protected val subTasks: MutableList<AzureTask<*>> = mutableListOf()
+    private val subTasks: MutableList<AzureTask<*>> = mutableListOf()
 
     protected fun <R> registerSubTask(task: AzureTask<R>?, consumer: (result: R) -> Unit) {
         if (task != null) {

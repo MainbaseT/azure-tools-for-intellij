@@ -121,7 +121,7 @@ class IdentityConfigurable(private val project: Project) : BoundConfigurable("Az
         )
     }
 
-    private fun isLoggedIn() = IdeAzureAccount.getInstance().isLoggedIn()
+    private fun isLoggedIn() = IdeAzureAccount.getInstance().isLoggedIn
 
     private fun isLoggedInWithCli(): Boolean {
         val isLoggedIn = isLoggedIn()

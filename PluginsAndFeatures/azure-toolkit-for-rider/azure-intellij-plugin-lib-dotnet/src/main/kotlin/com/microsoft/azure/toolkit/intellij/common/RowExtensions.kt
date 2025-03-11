@@ -22,11 +22,6 @@ fun Row.configurationAndPlatformComboBox(project: Project): Cell<LabeledComponen
     return cell(comboBox)
 }
 
-fun Row.dockerImageComboBox(project: Project): Cell<AzureDockerImageComboBox> {
-    val comboBox = AzureDockerImageComboBox(project)
-    return cell(comboBox)
-}
-
 fun Row.dockerContainerRegistryComboBox(): Cell<AzureContainerRegistryComboBox> {
     val comboBox = AzureContainerRegistryComboBox()
     return cell(comboBox)

@@ -84,51 +84,50 @@ public static class FunctionAppFinder
         foreach (var methodParameter in method.Parameters)
         {
             var httpTriggerAttribute = GetHttpTriggerAttribute(methodParameter);
-            if (httpTriggerAttribute != null)
-            {
-                var httpTriggerAttributeProperties = new HttpTriggerAttributeProperties();
+            if (httpTriggerAttribute == null) continue;
 
-                // Try with positional parameters (known signatures)
-                var positionParameters = httpTriggerAttribute.PositionParameters().ToArray();
-                if (positionParameters.Length == 1 && positionParameters[0].IsArray)
-                {
+            var httpTriggerAttributeProperties = new HttpTriggerAttributeProperties();
+
+            // Try with positional parameters (known signatures)
+            var positionParameters = httpTriggerAttribute.PositionParameters().ToArray();
+            switch (positionParameters.Length)
+            {
+                case 1 when positionParameters[0].IsArray:
                     // HttpTriggerAttribute(params string[] methods)
                     httpTriggerAttributeProperties.Methods =
                         positionParameters[0].ArrayValue?.Select(it => it.ConstantValue.StringValue).AsArray();
-                }
-                else if (positionParameters.Length == 1)
-                {
+                    break;
+                case 1:
                     // HttpTriggerAttribute(AuthLevel AuthLevel)
                     httpTriggerAttributeProperties.AuthLevel = positionParameters[0].ConstantValue.AsString();
-                }
-                else if (positionParameters.Length == 2 && positionParameters[1].IsArray)
-                {
+                    break;
+                case 2 when positionParameters[1].IsArray:
                     // HttpTriggerAttribute(AuthLevel, params string[] methods)
                     httpTriggerAttributeProperties.AuthLevel = positionParameters[0].ConstantValue.AsString();
                     httpTriggerAttributeProperties.Methods =
                         positionParameters[1].ArrayValue?.Select(it => it.ConstantValue.StringValue).AsArray();
-                }
-
-                // Try with named parameters
-                foreach (var (name, value) in httpTriggerAttribute.NamedParameters())
-                {
-                    if (string.Equals(name, "Route", StringComparison.OrdinalIgnoreCase) && value.IsConstant)
-                    {
-                        httpTriggerAttributeProperties.Route = value.ConstantValue.StringValue;
-                    }
-                    else if (string.Equals(name, "Methods", StringComparison.OrdinalIgnoreCase) && value.IsArray)
-                    {
-                        httpTriggerAttributeProperties.Methods =
-                            value.ArrayValue?.Select(it => it.ConstantValue.StringValue).AsArray();
-                    }
-                    else if (string.Equals(name, "AuthLevel", StringComparison.OrdinalIgnoreCase))
-                    {
-                        httpTriggerAttributeProperties.AuthLevel = value.ConstantValue.AsString();
-                    }
-                }
-
-                return httpTriggerAttributeProperties;
+                    break;
             }
+
+            // Try with named parameters
+            foreach (var (name, value) in httpTriggerAttribute.NamedParameters())
+            {
+                if (string.Equals(name, "Route", StringComparison.OrdinalIgnoreCase) && value.IsConstant)
+                {
+                    httpTriggerAttributeProperties.Route = value.ConstantValue.StringValue;
+                }
+                else if (string.Equals(name, "Methods", StringComparison.OrdinalIgnoreCase) && value.IsArray)
+                {
+                    httpTriggerAttributeProperties.Methods =
+                        value.ArrayValue?.Select(it => it.ConstantValue.StringValue).AsArray();
+                }
+                else if (string.Equals(name, "AuthLevel", StringComparison.OrdinalIgnoreCase))
+                {
+                    httpTriggerAttributeProperties.AuthLevel = value.ConstantValue.AsString();
+                }
+            }
+
+            return httpTriggerAttributeProperties;
         }
 
         return null;
