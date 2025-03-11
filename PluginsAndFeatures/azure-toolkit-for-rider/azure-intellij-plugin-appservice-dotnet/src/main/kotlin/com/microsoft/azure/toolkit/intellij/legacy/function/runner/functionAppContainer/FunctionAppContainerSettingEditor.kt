@@ -35,7 +35,7 @@ class FunctionAppContainerSettingEditor(project: Project) : SettingsEditor<Funct
     init {
         panel = panel {
             row("Container Registry:") {
-                containerRegistryComboBox = dockerContainerRegistryComboBox()
+                containerRegistryComboBox = dockerContainerRegistryComboBox(project)
                     .align(Align.FILL)
                     .resizableColumn()
             }

@@ -35,7 +35,7 @@ class WebAppContainerSettingEditor(private val project: Project) : SettingsEdito
     init {
         panel = panel {
             row("Container Registry:") {
-                containerRegistryComboBox = dockerContainerRegistryComboBox()
+                containerRegistryComboBox = dockerContainerRegistryComboBox(project)
                     .align(Align.FILL)
                     .resizableColumn()
             }
