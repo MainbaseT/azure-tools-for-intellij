@@ -7,10 +7,13 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.layout.selectedValueMatches
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountComboBox
 import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier.FLEX_CONSUMPTION
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.common.utils.Utils
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup
@@ -23,9 +26,28 @@ class FunctionAppInfoAdvancedPanel(
     defaultConfigSupplier: Supplier<FunctionAppConfig>
 ) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 
+    private var instanceSize = 512
     private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
 
     override fun getAdditionalPanel(): (Panel.() -> Unit) = {
+        group("Flex Consumption Properties") {
+            buttonsGroup {
+                row("Instance memory:") {
+                    radioButton("512MB", 512)
+                    radioButton("2048MB", 2048)
+                    radioButton("4096MB", 4096)
+                }
+            }.bind ({ instanceSize }, { instanceSize = it })
+            row("Maximum instances:") {
+
+            }
+            row("Auth method:") {
+
+            }
+            row("Storage connection:") {
+
+            }
+        }.visibleIf(selectorServicePlan.selectedValueMatches { it?.pricingTier == FLEX_CONSUMPTION })
         group("Storage") {
             row("Storage account:") {
                 storageAccountComboBox = cell(StorageAccountComboBox())

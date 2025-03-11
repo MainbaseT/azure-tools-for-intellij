@@ -68,7 +68,7 @@ open class AppServiceInfoAdvancedPanel<T>(
         addItemListener { onRegionChanged(it) }
         itemsLoader = RegionSupplier()
     }
-    private val selectorServicePlan = ServicePlanComboBox().apply {
+    protected val selectorServicePlan = ServicePlanComboBox().apply {
         isRequired = true
         addItemListener { onServicePlanChanged(it) }
     }
