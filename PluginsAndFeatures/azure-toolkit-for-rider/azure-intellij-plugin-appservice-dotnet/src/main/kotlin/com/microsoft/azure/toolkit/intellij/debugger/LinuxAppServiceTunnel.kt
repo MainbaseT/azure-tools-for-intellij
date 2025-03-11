@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 
 class LinuxAppServiceTunnel(private val appServiceApp: AppServiceAppBase<*, *, *>) {
     suspend fun waitUntilStarted() {
-        val kuduClient = appServiceApp.getKuduManager() ?: throw cantDetermineTunnelStatusException()
+        val kuduClient = appServiceApp.kuduManager ?: throw cantDetermineTunnelStatusException()
 
         withContext(Dispatchers.IO) {
             kuduClient.wakeUp()

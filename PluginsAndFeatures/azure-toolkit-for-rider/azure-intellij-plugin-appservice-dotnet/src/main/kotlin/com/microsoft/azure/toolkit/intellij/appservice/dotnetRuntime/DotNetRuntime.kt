@@ -8,7 +8,6 @@ import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack
 import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
 import com.azure.resourcemanager.appservice.models.RuntimeStack
 import com.azure.resourcemanager.appservice.models.WebAppBase
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 
 data class DotNetRuntime(
