@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Run configuration to deploy Function App as a container
+
 ## [4.4.5] - 2025-03-06
 
 ### Changed
