@@ -35,7 +35,18 @@ class InstallFunctionToolComponent(reloadTemplates: Runnable) : Viewable<JCompon
                 text("Rider requires the Azure Functions Core Tools to be installed and configured to create new Azure Functions projects.")
             }
             row {
-                link("Download Azure Functions Core Tools... (recommended)") {
+                link("Configure Azure Functions Core Tools...") {
+                    val project = ProjectManager.getInstance().defaultProject
+                    ShowSettingsUtilImpl.showSettingsDialog(
+                        project,
+                        "com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable",
+                        ""
+                    )
+                    reloadTemplates.run()
+                }
+            }
+            row {
+                link("Download Azure Functions Core Tools...") {
                     val project = ProjectManager.getInstance().defaultProject
                     runWithModalProgressBlocking(project, "Downloading Azure Functions Core Tools...") {
                         withContext(Dispatchers.Default) {
@@ -47,17 +58,6 @@ class InstallFunctionToolComponent(reloadTemplates: Runnable) : Viewable<JCompon
                     reloadTemplates.run()
                 }
             }.visible(isCoreToolsFeedEnabled)
-            row {
-                link("Configure Azure Functions Core Tools...") {
-                    val project = ProjectManager.getInstance().defaultProject
-                    ShowSettingsUtilImpl.showSettingsDialog(
-                        project,
-                        "com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable",
-                        ""
-                    )
-                    reloadTemplates.run()
-                }
-            }
         }.apply { border = IdeBorderFactory.createEmptyBorder(JBInsets(10, 20, 10, 20)) }
     }
 
