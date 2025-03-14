@@ -1,20 +1,21 @@
 /*
- * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer
+@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
+
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionAppContainer
 
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.JBIntSpinner
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.microsoft.azure.toolkit.intellij.common.AzureContainerRegistryComboBox
 import com.microsoft.azure.toolkit.intellij.common.ContainerRegistryModel
 import com.microsoft.azure.toolkit.intellij.common.dockerContainerRegistryComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime
@@ -22,15 +23,14 @@ import com.microsoft.azure.toolkit.lib.common.model.Region
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class WebAppContainerSettingEditor(private val project: Project) : SettingsEditor<WebAppContainerConfiguration>() {
+class FunctionAppContainerSettingEditor(project: Project) : SettingsEditor<FunctionAppContainerConfiguration>() {
 
     private val panel: JPanel
     private lateinit var containerRegistryComboBox: Cell<AzureContainerRegistryComboBox>
     private lateinit var repositoryLabel: Cell<JLabel>
     private lateinit var repositoryTextField: Cell<JBTextField>
     private lateinit var tagTextField: Cell<JBTextField>
-    private lateinit var webAppContainerComboBox: Cell<WebAppContainerComboBox>
-    private lateinit var portSpinner: Cell<JBIntSpinner>
+    private lateinit var functionAppContainerComboBox: Cell<FunctionAppContainerComboBox>
 
     init {
         panel = panel {
@@ -46,13 +46,10 @@ class WebAppContainerSettingEditor(private val project: Project) : SettingsEdito
                 tagTextField = textField()
                     .columns(COLUMNS_TINY)
             }
-            row("Web App:") {
-                webAppContainerComboBox = webAppContainerComboBox(project)
+            row("Function App:") {
+                functionAppContainerComboBox = functionAppContainerComboBox(project)
                     .align(Align.FILL)
-                Disposer.register(this@WebAppContainerSettingEditor, webAppContainerComboBox.component)
-            }
-            row("Website Port:") {
-                portSpinner = spinner(80..65535)
+                Disposer.register(this@FunctionAppContainerSettingEditor, functionAppContainerComboBox.component)
             }
         }
 
@@ -64,15 +61,15 @@ class WebAppContainerSettingEditor(private val project: Project) : SettingsEdito
         repositoryLabel.component.text = "${value.address}/"
     }
 
-    override fun resetEditorFrom(configuration: WebAppContainerConfiguration) {
+    override fun resetEditorFrom(configuration: FunctionAppContainerConfiguration) {
         val state = configuration.state ?: return
 
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
 
-        val webAppConfig = AppServiceConfig
+        val functionAppConfig = FunctionAppConfig
             .builder()
-            .appName(state.webAppName)
+            .appName(state.functionAppName)
             .subscriptionId(state.subscriptionId)
             .resourceGroup(state.resourceGroupName)
             .region(region)
@@ -80,9 +77,11 @@ class WebAppContainerSettingEditor(private val project: Project) : SettingsEdito
             .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig.fromRuntime(WebAppDockerRuntime.INSTANCE))
+            .storageAccountName(state.storageAccountName)
+            .storageAccountResourceGroup(state.storageAccountResourceGroup)
             .build()
-        webAppContainerComboBox.component.setConfigModel(webAppConfig)
-        webAppContainerComboBox.component.setValue { AppServiceComboBox.isSameApp(it, webAppConfig) }
+        functionAppContainerComboBox.component.setConfigModel(functionAppConfig)
+        functionAppContainerComboBox.component.setValue { AppServiceComboBox.isSameApp(it, functionAppConfig) }
 
         val imageNameParts = state.imageRepository?.let {
             val parts = it.split('/', limit = 2)
@@ -94,32 +93,30 @@ class WebAppContainerSettingEditor(private val project: Project) : SettingsEdito
         }
         tagTextField.component.text = state.imageTag
 
-        portSpinner.component.number = state.port
-
-        webAppContainerComboBox.component.reloadItems()
+        functionAppContainerComboBox.component.reloadItems()
     }
 
-    override fun applyEditorTo(configuration: WebAppContainerConfiguration) {
+    override fun applyEditorTo(configuration: FunctionAppContainerConfiguration) {
         val state = configuration.state ?: return
 
-        val webAppConfig = webAppContainerComboBox.component.value
+        val functionAppConfig = functionAppContainerComboBox.component.value
         val registry = containerRegistryComboBox.component.value
         val repository = repositoryTextField.component.text
         val tag = tagTextField.component.text
-        val portValue = portSpinner.component.number
 
         state.apply {
-            webAppName = webAppConfig?.appName
-            subscriptionId = webAppConfig?.subscriptionId
-            resourceGroupName = webAppConfig?.resourceGroup
-            region = webAppConfig?.region?.toString()
-            appServicePlanName = webAppConfig?.servicePlanName
-            appServicePlanResourceGroupName = webAppConfig?.servicePlanResourceGroup
-            pricingTier = webAppConfig?.pricingTier?.tier
-            pricingSize = webAppConfig?.pricingTier?.size
+            functionAppName = functionAppConfig?.appName
+            subscriptionId = functionAppConfig?.subscriptionId
+            resourceGroupName = functionAppConfig?.resourceGroup
+            region = functionAppConfig?.region?.toString()
+            appServicePlanName = functionAppConfig?.servicePlanName
+            appServicePlanResourceGroupName = functionAppConfig?.servicePlanResourceGroup
+            pricingTier = functionAppConfig?.pricingTier?.tier
+            pricingSize = functionAppConfig?.pricingTier?.size
+            storageAccountName = functionAppConfig?.storageAccountName
+            storageAccountResourceGroup = functionAppConfig?.storageAccountResourceGroup
             imageRepository = "${registry?.address}/$repository"
             imageTag = tag
-            port = portValue
         }
     }
 

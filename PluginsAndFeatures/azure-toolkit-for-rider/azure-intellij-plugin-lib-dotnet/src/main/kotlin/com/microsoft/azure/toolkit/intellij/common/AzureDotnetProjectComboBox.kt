@@ -18,7 +18,6 @@ import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.projectView.workspace.getProjectModelEntities
 import com.jetbrains.rider.projectView.workspace.isProject
 import com.jetbrains.rider.projectView.workspace.isUnloadedProject
-import org.apache.commons.lang3.StringUtils
 import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.JList
@@ -44,7 +43,7 @@ class AzureDotnetProjectComboBox(
         if (item is PublishableProjectModel) {
             item.projectName
         } else {
-            StringUtils.EMPTY
+            ""
         }
 
     override fun getItemIcon(item: Any?): Icon? =

@@ -4,6 +4,7 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
+import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.*
 import com.microsoft.azure.toolkit.intellij.appservice.dotnetRuntime.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.dotnetRuntime.getDotNetRuntime
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
@@ -58,7 +59,7 @@ class DotNetFunctionAppDraft : FunctionApp,
         val newRuntime = checkNotNull(dotNetRuntime) { "'runtime' is required to create a Function App" }
         val newPlan = checkNotNull(appServicePlan) { "'service plan' is required to create a Function App" }
         val os = newRuntime.operatingSystem
-        if (os != newPlan.operatingSystem) {
+        if (os != newPlan.operatingSystem && newPlan.operatingSystem != OperatingSystem.DOCKER) {
             throw AzureToolkitRuntimeException("Could not create $os app service in ${newPlan.operatingSystem} service plan")
         }
         val newAppSettings = appSettings
@@ -68,7 +69,9 @@ class DotNetFunctionAppDraft : FunctionApp,
 
         val manager = checkNotNull(parent.remote)
         val blank = manager.functionApps().define(name)
-        val withCreate = createFunctionApp(blank, os, newPlan, newRuntime)
+        val withCreate =
+            if (!newRuntime.isDocker) createFunctionApp(blank, os, newPlan, newRuntime)
+            else createDockerFunctionApp(blank, newPlan)
 
         if (!newAppSettings.isNullOrEmpty())
             withCreate.withAppSettings(newAppSettings)
@@ -98,11 +101,11 @@ class DotNetFunctionAppDraft : FunctionApp,
     }
 
     private fun createFunctionApp(
-        blank: com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.Blank,
+        blank: Blank,
         os: OperatingSystem,
         plan: AppServicePlan,
         runtime: DotNetRuntime
-    ) = when (os) {
+    ): WithCreate = when (os) {
         OperatingSystem.LINUX -> {
             val functionStack = requireNotNull(runtime.functionStack) { "Unable to configure function runtime" }
             blank
@@ -121,6 +124,30 @@ class DotNetFunctionAppDraft : FunctionApp,
         }
 
         OperatingSystem.DOCKER -> throw AzureToolkitRuntimeException("Unsupported operating system $os")
+    }
+
+    private fun createDockerFunctionApp(
+        blank: Blank,
+        plan: AppServicePlan
+    ): WithCreate {
+        val dockerConfig =
+            checkNotNull(dockerConfiguration) { "Docker configuration is required to create a docker based Azure Function App" }
+
+        val withImage = blank
+            .withExistingLinuxAppServicePlan(plan.remote)
+            .withExistingResourceGroup(resourceGroupName)
+
+        val draft =
+            if (dockerConfig.userName.isNullOrEmpty() && dockerConfig.password.isNullOrEmpty())
+                withImage.withPublicDockerHubImage(dockerConfig.image)
+            else if (dockerConfig.registryUrl.isNullOrEmpty())
+                withImage.withPrivateDockerHubImage(dockerConfig.image)
+                    .withCredentials(dockerConfig.userName, dockerConfig.password)
+            else
+                withImage.withPrivateRegistryImage(dockerConfig.image, dockerConfig.registryUrl)
+                    .withCredentials(dockerConfig.userName, dockerConfig.password)
+
+        return draft
     }
 
     override fun updateResourceInAzure(remote: com.azure.resourcemanager.appservice.models.FunctionApp): com.azure.resourcemanager.appservice.models.FunctionApp {

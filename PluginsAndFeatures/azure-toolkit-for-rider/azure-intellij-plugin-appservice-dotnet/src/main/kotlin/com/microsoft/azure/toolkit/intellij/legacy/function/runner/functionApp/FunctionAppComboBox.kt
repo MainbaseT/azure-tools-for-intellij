@@ -1,10 +1,10 @@
 /*
- * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 @file:Suppress("InvalidBundleOrProperty")
 
-package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.function.Supplier
 import java.util.stream.Collectors
 
-class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConfig>(project) {
+open class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConfig>(project) {
     var targetProjectOnNetFramework: Boolean = false
 
     init {

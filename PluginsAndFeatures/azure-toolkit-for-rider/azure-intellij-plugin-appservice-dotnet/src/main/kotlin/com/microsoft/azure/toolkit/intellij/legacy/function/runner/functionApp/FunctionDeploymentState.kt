@@ -4,7 +4,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
 import com.intellij.execution.ExecutionException
 import com.intellij.ide.BrowserUtil
@@ -36,6 +36,11 @@ class FunctionDeploymentState(
     scope: CoroutineScope,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
 ) : AzureDeploymentState<FunctionAppBase<*, *, *>>(project, scope) {
+    companion object {
+        private const val SCM_DO_BUILD_DURING_DEPLOYMENT = "SCM_DO_BUILD_DURING_DEPLOYMENT"
+        private const val WEBSITE_RUN_FROM_PACKAGE = "WEBSITE_RUN_FROM_PACKAGE"
+        private const val FUNCTIONS_INPROC_NET8_ENABLED = "FUNCTIONS_INPROC_NET8_ENABLED"
+    }
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         processHandlerMessenger?.info("Start Function App deployment...")
@@ -96,7 +101,9 @@ class FunctionDeploymentState(
         storageAccountResourceGroup(options.storageAccountResourceGroup)
         val os = OperatingSystem.fromString(options.operatingSystem)
         runtime = createRuntimeConfig(os)
-        dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
+        val dotnetRuntimeConfig = createDotNetRuntimeConfig(publishableProject, os)
+        dotnetRuntime = dotnetRuntimeConfig
+        appSettings(configureAppSettings(pricingTier, runtime, dotnetRuntimeConfig))
     }
 
     private fun createRuntimeConfig(os: OperatingSystem) =
@@ -113,6 +120,33 @@ class FunctionDeploymentState(
             frameworkVersion = stackAndVersion?.second
             functionStack = publishableProject.getFunctionStack(project, os)
         }
+
+    private fun configureAppSettings(
+        pricingTier: PricingTier,
+        runtime: RuntimeConfig,
+        dotnetRuntime: DotNetRuntimeConfig
+    ) = buildMap<String, String> {
+        //Controls remote build behavior during deployment.
+        //see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#scm_do_build_during_deployment
+        if (pricingTier == PricingTier.CONSUMPTION && runtime.os == OperatingSystem.LINUX) {
+            put(SCM_DO_BUILD_DURING_DEPLOYMENT, "0")
+        }
+
+        //Enables your function app to run from a package file, which can be locally mounted or deployed to an external URL.
+        //see: https://learn.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package
+        if (runtime.os == OperatingSystem.WINDOWS || (runtime.os == OperatingSystem.LINUX && pricingTier != PricingTier.CONSUMPTION)
+        ) {
+            put(WEBSITE_RUN_FROM_PACKAGE, "1")
+        }
+
+        //Indicates whether an app can use .NET 8 on the in-process model.
+        //see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library?tabs=v4%2Ccmd#updating-to-target-net-8
+        if (dotnetRuntime.functionStack?.runtime() == "DOTNET" &&
+            (dotnetRuntime.stack?.version() == "8.0" || dotnetRuntime.frameworkVersion?.toString() == "v8.0")
+        ) {
+            put(FUNCTIONS_INPROC_NET8_ENABLED, "1")
+        }
+    }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
         val options = requireNotNull(functionDeploymentConfiguration.state)

@@ -62,7 +62,6 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
 
         if (drafts.isNotEmpty()) {
             drafts
-                .asSequence()
                 .filter { it.subscriptionId == sid }
                 .sortedBy { it.name }
                 .forEach { result.add(it) }
@@ -71,11 +70,9 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
         val remoteAccounts = Azure.az(AzureStorageAccount::class.java)
             .accounts(sid)
             .list()
-            .asSequence()
-            .sortedBy { it.name }
             .filter { it.resourceGroupName.equals(resourceGroupName, true) }
+            .sortedBy { it.name }
             .map { StorageAccountConfig(it.subscriptionId, it.name) }
-            .toList()
 
         result.addAll(remoteAccounts)
 

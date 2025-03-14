@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
+import com.microsoft.azure.toolkit.intellij.appservice.components.AppServiceComboBoxDotNetRender
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppComboBox
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
@@ -20,7 +21,7 @@ import java.util.stream.Collectors
 
 class WebAppContainerComboBox(project: Project) : WebAppComboBox(project) {
     init {
-        setRenderer(AppComboBoxRender(true))
+        setRenderer(AppServiceComboBoxDotNetRender())
     }
 
     override fun loadAppServiceModels(): MutableList<AppServiceConfig> {
@@ -53,7 +54,7 @@ class WebAppContainerComboBox(project: Project) : WebAppComboBox(project) {
     }
 }
 
-fun Row.dockerWebAppComboBox(project: Project): Cell<WebAppContainerComboBox> {
+fun Row.webAppContainerComboBox(project: Project): Cell<WebAppContainerComboBox> {
     val component = WebAppContainerComboBox(project)
     return cell(component)
 }

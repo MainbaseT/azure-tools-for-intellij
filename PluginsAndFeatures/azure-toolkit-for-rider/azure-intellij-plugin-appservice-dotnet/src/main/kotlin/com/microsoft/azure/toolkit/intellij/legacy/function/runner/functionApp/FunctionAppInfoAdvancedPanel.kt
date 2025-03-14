@@ -2,7 +2,7 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
@@ -19,7 +19,7 @@ import java.util.function.Supplier
 
 class FunctionAppInfoAdvancedPanel(
     projectName: String,
-    targetProjectOnNetFramework: Boolean,
+    targetProjectOnNetFramework: Boolean = false,
     defaultConfigSupplier: Supplier<FunctionAppConfig>
 ) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 
