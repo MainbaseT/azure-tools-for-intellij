@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.settings
 
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.ComboBox
@@ -130,6 +131,12 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
     override fun createPanel() = panel {
         row {
             text("Configure the Azure Functions core tools to be used for an Azure Functions version")
+        }
+        row {
+            @Suppress("DialogTitleCapitalization")
+            link("How to install the Azure Functions Core Tools locally?") {
+                BrowserUtil.browse("https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools")
+            }
         }
         row {
             val azureCoreToolsPathEntries = settings.azureCoreToolsPathEntries

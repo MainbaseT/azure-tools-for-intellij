@@ -7,6 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.storage.azurite.settings
 
 import com.intellij.execution.services.ServiceEventListener
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.project.Project
@@ -47,6 +48,11 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
                     .align(Align.FILL)
                     .bindText(settings::executablePath)
                     .validationOnInput { validationForPath(it) }
+            }
+            row {
+                link("How to install the Azurite emulator locally?") {
+                    BrowserUtil.browse("https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=npm#install-azurite")
+                }
             }
         }
         group("General Settings") {
