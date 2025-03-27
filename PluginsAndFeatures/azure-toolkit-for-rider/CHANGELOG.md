@@ -8,6 +8,10 @@
 
 - Run configuration to deploy Function App as a container
 
+### Fixed
+
+- Unable to download Azure Functions Core Tools because of the `NoTransformationFoundException` ([#1042](https://github.com/JetBrains/azure-tools-for-intellij/issues/1042))
+
 ## [4.4.5] - 2025-03-06
 
 ### Changed
