@@ -22,17 +22,17 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFuncti
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -57,13 +57,17 @@ class FunctionsToolingFeedService : Disposable {
                 trustManager = CertificateManager.getInstance().trustManager
             }
         }
-        install(ContentNegotiation) {
-            json(Json {
-                explicitNulls = false
-                ignoreUnknownKeys = true
-                allowTrailingComma = true
-            })
+        install(HttpTimeout) {
+            requestTimeoutMillis = 300000
         }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private val json = Json {
+        explicitNulls = false
+        ignoreUnknownKeys = true
+        allowTrailingComma = true
+        allowComments = true
     }
 
     /**
@@ -160,11 +164,33 @@ class FunctionsToolingFeedService : Disposable {
         val feedUrl = Registry.get("azure.function_app.core_tools.feed.url").asString()
         LOG.trace { "Functions tooling release feed: $feedUrl" }
 
-        val response = withContext(Dispatchers.IO) {
-            client.get(feedUrl)
+        val temporaryFeedFile = FileUtil.createTempFile(
+            File(FileUtil.getTempDirectory()),
+            "AzureFunctionsToolingFeed",
+            ".json",
+            true,
+            false
+        )
+        val temporaryFeedPath = temporaryFeedFile.toPath()
+
+        LOG.trace { "Created a temporary feed file: ${temporaryFeedPath.absolutePathString()}" }
+
+        withContext(Dispatchers.IO) {
+            client.prepareGet(feedUrl).execute { httpResponse ->
+                val channel: ByteReadChannel = httpResponse.body()
+                channel.copyAndClose(temporaryFeedFile.writeChannel())
+            }
         }
 
-        return response.body<ReleaseFeed>()
+        LOG.trace { "Downloaded Functions tooling feed to the ${temporaryFeedPath.absolutePathString()}" }
+
+        val feed = withContext(Dispatchers.IO) {
+            json.decodeFromStream<ReleaseFeed>(temporaryFeedPath.inputStream())
+        }
+
+        temporaryFeedPath.deleteIfExists()
+
+        return Result.success(feed)
     }
 
 
@@ -215,7 +241,6 @@ class FunctionsToolingFeedService : Disposable {
             true,
             false
         )
-
         val temporaryArchivePath = temporaryArchive.toPath()
 
         LOG.trace { "Created a temporary file: ${temporaryArchivePath.absolutePathString()}" }
@@ -223,13 +248,7 @@ class FunctionsToolingFeedService : Disposable {
         withContext(Dispatchers.IO) {
             client.prepareGet(toolingRelease.artifactUrl).execute { httpResponse ->
                 val channel: ByteReadChannel = httpResponse.body()
-                while (!channel.isClosedForRead) {
-                    val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                    while (!packet.exhausted()) {
-                        val bytes = packet.readByteArray()
-                        temporaryArchive.appendBytes(bytes)
-                    }
-                }
+                channel.copyAndClose(temporaryArchive.writeChannel())
             }
         }
 
