@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Unable to open the Resource Group and Service Plan dialog ([#1021](https://github.com/JetBrains/azure-tools-for-intellij/issues/1021))
+
 ## [4.4.6] - 2025-03-27
 
 ### Added
