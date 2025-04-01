@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 data class DotNetRuntime(
     val operatingSystem: OperatingSystem,
     val stack: RuntimeStack?,
+    val dotnetVersion: String?,
     val frameworkVersion: NetFrameworkVersion?,
     val functionStack: FunctionRuntimeStack?,
     val isDocker: Boolean
@@ -31,6 +32,7 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                 null,
                 null,
                 null,
+                null,
                 true
             )
         } else {
@@ -39,6 +41,7 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                 val version = requireNotNull(appSettings[FUNCTIONS_EXTENSION_VERSION]).value()
                 return DotNetRuntime(
                     OperatingSystem.LINUX,
+                    null,
                     null,
                     null,
                     FunctionRuntimeStack(runtime, version, linuxFxVersion()),
@@ -50,6 +53,7 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                 return DotNetRuntime(
                     OperatingSystem.LINUX,
                     RuntimeStack(stack, version),
+                    version,
                     null,
                     null,
                     false
@@ -64,12 +68,14 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                 OperatingSystem.WINDOWS,
                 null,
                 null,
+                null,
                 FunctionRuntimeStack(runtime, version, linuxFxVersion()),
                 false
             )
         } else {
             return DotNetRuntime(
                 OperatingSystem.WINDOWS,
+                null,
                 null,
                 netFrameworkVersion(),
                 null,

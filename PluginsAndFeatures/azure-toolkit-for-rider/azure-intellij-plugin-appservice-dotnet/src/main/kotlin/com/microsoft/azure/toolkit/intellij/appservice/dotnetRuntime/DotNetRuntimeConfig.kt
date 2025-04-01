@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 class DotNetRuntimeConfig: RuntimeConfig() {
     var isDocker: Boolean = false
     var stack: RuntimeStack? = null
+    var dotnetVersion: String? = null
     var frameworkVersion: NetFrameworkVersion? = null
     var functionStack: FunctionRuntimeStack? = null
 }

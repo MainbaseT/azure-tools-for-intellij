@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdva
 import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountComboBox
 import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier.FLEX_CONSUMPTION
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.common.utils.Utils
@@ -26,27 +27,17 @@ class FunctionAppInfoAdvancedPanel(
     defaultConfigSupplier: Supplier<FunctionAppConfig>
 ) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 
-    private var instanceSize = 512
+    private var instanceMemorySize = 2048
     private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
 
     override fun getAdditionalPanel(): (Panel.() -> Unit) = {
         group("Flex Consumption Properties") {
             buttonsGroup {
                 row("Instance memory:") {
-                    radioButton("512MB", 512)
                     radioButton("2048MB", 2048)
                     radioButton("4096MB", 4096)
                 }
-            }.bind ({ instanceSize }, { instanceSize = it })
-            row("Maximum instances:") {
-
-            }
-            row("Auth method:") {
-
-            }
-            row("Storage connection:") {
-
-            }
+            }.bind ({ instanceMemorySize }, { instanceMemorySize = it })
         }.visibleIf(selectorServicePlan.selectedValueMatches { it?.pricingTier == FLEX_CONSUMPTION })
         group("Storage") {
             row("Storage account:") {
@@ -61,6 +52,14 @@ class FunctionAppInfoAdvancedPanel(
         storageAccount?.let {
             result.storageAccountName = it.name
             result.storageAccountResourceGroup = result.resourceGroup
+        }
+
+        if (result.pricingTier == FLEX_CONSUMPTION) {
+            result.flexConsumptionConfiguration = FlexConsumptionConfiguration().apply {
+                deploymentResourceGroup = result.resourceGroup
+                deploymentAccount = storageAccount?.name
+                instanceSize = instanceMemorySize
+            }
         }
     }
 

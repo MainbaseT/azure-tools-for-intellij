@@ -4,7 +4,15 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
+import com.azure.core.http.HttpHeaderName
+import com.azure.core.http.HttpMethod
+import com.azure.core.http.HttpRequest
+import com.azure.core.management.serializer.SerializerFactory
+import com.azure.core.util.serializer.SerializerEncoding
+import com.azure.resourcemanager.appservice.fluent.models.SiteConfigInner
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.*
+import com.azure.resourcemanager.appservice.models.NameValuePair
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.microsoft.azure.toolkit.intellij.appservice.dotnetRuntime.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.dotnetRuntime.getDotNetRuntime
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
@@ -12,7 +20,9 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.model.StorageAuthenticationMethod
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
@@ -64,8 +74,9 @@ class DotNetFunctionAppDraft : FunctionApp,
         }
         val newAppSettings = appSettings
         val newDiagnosticConfig = diagnosticConfig
-        val newFlexConsumptionConfiguration = flexConsumptionConfiguration
         val newStorageAccount = storageAccount
+
+        val isFlexConsumption = newPlan.pricingTier.isFlexConsumption
 
         val manager = checkNotNull(parent.remote)
         val blank = manager.functionApps().define(name)
@@ -80,19 +91,13 @@ class DotNetFunctionAppDraft : FunctionApp,
         if (newDiagnosticConfig != null)
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig)
 
-        val updateFlexConsumptionConfiguration =
-            newFlexConsumptionConfiguration != null && newPlan.pricingTier.isFlexConsumption
-        if (updateFlexConsumptionConfiguration) {
-            withCreate.withContainerSize(newFlexConsumptionConfiguration.instanceSize)
-            withCreate.withWebAppAlwaysOn(false)
-        }
-
         val messager = AzureMessager.getMessager()
         messager.info(AzureString.format("Start creating Function App ({0})...", name))
 
-        val functionApp = withCreate.create()
-        if (updateFlexConsumptionConfiguration) {
-            updateFlexConsumptionConfiguration(functionApp, newFlexConsumptionConfiguration)
+        val functionApp = if (!isFlexConsumption) {
+            withCreate.create()
+        } else {
+            createOrUpdateFlexConsumptionFunctionAppWithRawRequest(withCreate as com.azure.resourcemanager.appservice.models.FunctionApp)
         }
 
         messager.success(AzureString.format("Function App ({0}) is successfully created", name))
@@ -154,20 +159,154 @@ class DotNetFunctionAppDraft : FunctionApp,
         throw AzureToolkitRuntimeException("Updating function app is not supported")
     }
 
-    private fun updateFlexConsumptionConfiguration(
-        app: com.azure.resourcemanager.appservice.models.FunctionApp,
-        flexConfiguration: FlexConsumptionConfiguration
+    private fun createOrUpdateFlexConsumptionFunctionAppWithRawRequest(functionApp: com.azure.resourcemanager.appservice.models.FunctionApp): com.azure.resourcemanager.appservice.models.FunctionApp {
+        val flexConfig = flexConsumptionAppConfig
+        val siteInner = functionApp.innerModel()
+        updateSiteConfigurations(functionApp, flexConfig)
+
+        val authentication = flexConfig?.deployment?.storage?.authentication
+        val isManageIdentityAuthentication =
+            authentication != null && authentication.type != StorageAuthenticationMethod.StorageAccountConnectionString
+        if (isManageIdentityAuthentication) {
+            //TODO check if needed
+        }
+
+        val adapter = SerializerFactory.createDefaultManagementSerializerAdapter()
+        val originContent = adapter.serializeRaw(siteInner)
+        val jsonNode = adapter.deserialize<ObjectNode>(
+            originContent,
+            ObjectNode::class.java,
+            SerializerEncoding.JSON
+        )
+
+        val configNode = adapter.deserialize<ObjectNode>(
+            adapter.serializeRaw(flexConfig),
+            ObjectNode::class.java,
+            SerializerEncoding.JSON
+        )
+        val properties = jsonNode.get("properties") as ObjectNode
+        properties.set<ObjectNode>("functionAppConfig", configNode)
+        appServicePlan?.pricingTier?.let { properties.put("sku", it.tier) }
+
+        val newContent = adapter.serializeRaw(jsonNode)
+        val httpPipeline = functionApp.manager().httpPipeline()
+        val targetUrl = getRawRequestEndpoint(functionApp)
+        val method = if (exists()) HttpMethod.PATCH else HttpMethod.PUT
+        val request = HttpRequest(method, targetUrl)
+            .setHeader(HttpHeaderName.CONTENT_TYPE, "application/json")
+            .setBody(newContent)
+
+        try {
+            val response = httpPipeline.send(request).block()
+            if (response == null || response.statusCode >= 300 || response.statusCode < 200) {
+                val content = if (response != null) response.bodyAsString.block() else ""
+                throw AzureToolkitRuntimeException("Failed to create or update function app : $content")
+            }
+
+            val result = functionApp.manager()
+                .functionApps()
+                .getByResourceGroup(functionApp.resourceGroupName(), functionApp.name())
+
+            result.refresh()
+
+            if (isManageIdentityAuthentication) {
+                //TODO check if needed
+                grantPermissionToIdentity(result)
+            }
+
+            return result
+        } catch (e: Exception) {
+            throw AzureToolkitRuntimeException(e)
+        }
+    }
+
+    override fun getFlexConsumptionAppConfig(): FunctionAppConfig? {
+        val configuration = flexConsumptionConfiguration
+        val original = super.getFlexConsumptionAppConfig()
+        if (configuration == null) return original
+
+        val result = if (isDraftForCreating) FunctionAppConfig() else original
+        val deployment = result.deployment ?: FunctionAppConfig.FunctionsDeployment()
+        val storage = deployment.storage ?: FunctionAppConfig.Storage()
+
+        FunctionAppConfig.Storage.Authentication.fromConfiguration(configuration)?.let { storage.authentication = it }
+        deploymentContainerUrl?.let { storage.value = it }
+        deployment.storage = storage
+        result.deployment = deployment
+
+        val functionsRuntime = result.runtime ?: FunctionAppConfig.FunctionsRuntime()
+        dotNetRuntime?.let {
+            functionsRuntime.name = "dotnet-isolated"
+            functionsRuntime.version = it.dotnetVersion
+        }
+        result.runtime = functionsRuntime
+
+        val concurrency = result.scaleAndConcurrency ?: FunctionAppConfig.FunctionScaleAndConcurrency()
+        configuration.httpInstanceConcurrency
+            ?.let { FunctionAppConfig.FunctionTriggers(it) }
+            ?.let { concurrency.triggers = it }
+        configuration.instanceSize?.let { concurrency.instanceMemoryMB = it }
+        configuration.maximumInstances?.let { concurrency.maximumInstanceCount = it }
+        configuration.alwaysReadyInstances?.let { concurrency.alwaysReady = it }
+        result.scaleAndConcurrency = concurrency
+
+        return result
+    }
+
+    private fun updateSiteConfigurations(
+        functionApp: com.azure.resourcemanager.appservice.models.FunctionApp,
+        flexConfig: FunctionAppConfig?
     ) {
-        val webApps = app.manager().serviceClient().webApps
-        if (flexConfiguration.maximumInstances != null || flexConfiguration.alwaysReadyInstances != null) {
-            val configuration = webApps.getConfiguration(app.resourceGroupName(), app.name())
-            if (flexConfiguration.maximumInstances != configuration.functionAppScaleLimit() ||
-                flexConfiguration.alwaysReadyInstances.size != configuration.minimumElasticInstanceCount()
-            ) {
-                configuration.withFunctionAppScaleLimit(flexConfiguration.maximumInstances)
-                webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration)
+        val siteInner = functionApp.innerModel()
+        val siteConfigInner = siteInner.siteConfig() ?: SiteConfigInner()
+        siteInner.withSiteConfig(siteConfigInner)
+
+        val settings = hashMapOf<String, String>()
+        getAppSettings()?.let { settings.putAll(settings) }
+
+        storageAccount?.let { settings.put("AzureWebJobsStorage", it.connectionString) }
+
+        val authentication = flexConfig?.deployment?.storage?.authentication
+        if (authentication?.type == StorageAuthenticationMethod.StorageAccountConnectionString) {
+            deploymentAccount?.let {
+                settings.put(authentication.storageAccountConnectionStringName, it.connectionString)
             }
         }
+
+        with(settings) {
+            remove("FUNCTIONS_EXTENSION_VERSION")
+            remove("FUNCTIONS_WORKER_RUNTIME")
+            remove("FUNCTIONS_WORKER_RUNTIME_VERSION")
+            remove("FUNCTIONS_MAX_HTTP_CONCURRENCY")
+            remove("FUNCTIONS_WORKER_PROCESS_COUNT")
+            remove("FUNCTIONS_WORKER_DYNAMIC_CONCURRENCY_ENABLED")
+            remove("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+            remove("WEBSITE_CONTENTSHARE")
+        }
+
+        val settingPairs = settings.entries
+            .map { NameValuePair().withName(it.key).withValue(it.value) }
+            .toList()
+        siteConfigInner.withAppSettings(settingPairs)
+        siteConfigInner.withHttp20Enabled(true)
+        siteInner.withHttpsOnly(false)
+        siteInner.withIsXenon(null)
+        siteInner.withContainerSize(null)
+        siteInner.withReserved(null)
+        siteInner.siteConfig()?.apply {
+            withFtpsState(null)
+            withUse32BitWorkerProcess(null)
+            withWindowsFxVersion(null)
+            withLinuxFxVersion(null)
+            withAlwaysOn(null)
+            withPreWarmedInstanceCount(null)
+            withFunctionAppScaleLimit(null)
+            withJavaVersion(null)
+        }
+    }
+
+    private fun grantPermissionToIdentity(functionApp: com.azure.resourcemanager.appservice.models.FunctionApp) {
+
     }
 
     var dotNetRuntime: DotNetRuntime?
@@ -185,18 +324,34 @@ class DotNetFunctionAppDraft : FunctionApp,
         set(value) {
             ensureConfig().dockerConfiguration = value
         }
+    var deploymentAccount: StorageAccount?
+        get() = config?.deploymentAccount
+        set(value) {
+            ensureConfig().deploymentAccount = value
+        }
+    var deploymentContainerUrl: String?
+        get() = config?.deploymentContainerUrl
+        set(value) {
+            ensureConfig().deploymentContainerUrl = value
+        }
 
-    override fun getAppServicePlan() = config?.plan ?: super.getAppServicePlan()
+    override fun getAppServicePlan() =
+        config?.plan ?: super.getAppServicePlan()
+
     fun setAppServicePlan(value: AppServicePlan?) {
         ensureConfig().plan = value
     }
 
-    override fun getAppSettings() = config?.appSettings ?: super.getAppSettings()
+    override fun getAppSettings() =
+        config?.appSettings ?: super.getAppSettings()
+
     fun setAppSettings(value: Map<String, String>?) {
         ensureConfig().appSettings = value
     }
 
-    override fun getDiagnosticConfig() = config?.diagnosticConfig ?: super.getDiagnosticConfig()
+    override fun getDiagnosticConfig() =
+        config?.diagnosticConfig ?: super.getDiagnosticConfig()
+
     fun setDiagnosticConfig(value: DiagnosticConfig?) {
         ensureConfig().diagnosticConfig = value
     }
@@ -216,6 +371,8 @@ class DotNetFunctionAppDraft : FunctionApp,
         var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
         var flexConsumptionConfiguration: FlexConsumptionConfiguration? = null,
+        var deploymentAccount: StorageAccount? = null,
+        var deploymentContainerUrl: String? = null,
         var appSettings: Map<String, String>? = null
     )
 }

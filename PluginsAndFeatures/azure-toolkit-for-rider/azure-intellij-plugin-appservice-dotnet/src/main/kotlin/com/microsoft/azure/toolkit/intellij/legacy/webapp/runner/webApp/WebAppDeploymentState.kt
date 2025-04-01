@@ -106,8 +106,9 @@ class WebAppDeploymentState(
             os(os)
             isDocker = false
             val stackAndVersion = publishableProject.getStackAndVersion(project, os, false)
-            stack = stackAndVersion?.first
-            frameworkVersion = stackAndVersion?.second
+            stack = stackAndVersion?.runtimeStack
+            dotnetVersion = stackAndVersion?.dotnetVersion
+            frameworkVersion = stackAndVersion?.frameworkVersion
         }
 
     override fun onSuccess(result: WebAppBase<*, *, *>, processHandler: RunProcessHandler) {

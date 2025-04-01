@@ -116,8 +116,9 @@ class FunctionDeploymentState(
             os(os)
             isDocker = false
             val stackAndVersion = publishableProject.getStackAndVersion(project, os, true)
-            stack = stackAndVersion?.first
-            frameworkVersion = stackAndVersion?.second
+            stack = stackAndVersion?.runtimeStack
+            dotnetVersion = stackAndVersion?.dotnetVersion
+            frameworkVersion = stackAndVersion?.frameworkVersion
             functionStack = publishableProject.getFunctionStack(project, os)
         }
 
