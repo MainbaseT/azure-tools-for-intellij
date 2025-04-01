@@ -3,6 +3,7 @@
  */
 
 import com.jetbrains.plugin.structure.base.utils.isFile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.Constants
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
@@ -34,7 +35,7 @@ val riderSdkPath by lazy {
 
 // Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 repositories {
@@ -201,14 +202,12 @@ tasks {
     }
 
     val dotnetBuildConfiguration = providers.gradleProperty("dotnetBuildConfiguration").get()
-    val compileDotNet by registering {
+    val compileDotNet by registering(Exec::class) {
         dependsOn(prepareDotNetPart)
-        doLast {
-            exec {
-                executable("dotnet")
-                args("publish", "-c", dotnetBuildConfiguration, "/clp:ErrorsOnly", "ReSharper.Azure.sln")
-            }
-        }
+        inputs.property("dotnetBuildConfiguration", dotnetBuildConfiguration)
+
+        executable("dotnet")
+        args("build", "-consoleLoggerParameters:ErrorsOnly", "-c", dotnetBuildConfiguration, "ReSharper.Azure.sln")
     }
 
     withType<KotlinCompile> {
@@ -256,6 +255,15 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
+    }
+
+    test {
+        useTestNG()
+        testLogging {
+            showStandardStreams = true
+            exceptionFormat = TestExceptionFormat.FULL
+        }
+        environment["LOCAL_ENV_RUN"] = "true"
     }
 }
 
