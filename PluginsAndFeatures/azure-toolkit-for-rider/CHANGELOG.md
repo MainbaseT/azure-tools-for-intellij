@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.4.7] - 2025-04-02
+
 ### Fixed
 
 - Unable to open the Resource Group and Service Plan dialog ([#1021](https://github.com/JetBrains/azure-tools-for-intellij/issues/1021))
@@ -304,7 +306,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.6...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.7...HEAD
+[4.4.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.6...v4.4.7
 [4.4.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.5...v4.4.6
 [4.4.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.4...v4.4.5
 [4.4.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.3...v4.4.4
