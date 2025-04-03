@@ -4,11 +4,14 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
+import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.selected
 import com.intellij.ui.layout.selectedValueMatches
+import com.microsoft.azure.toolkit.intellij.appservice.functionapp.FlexConsumptionInstanceSize
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountComboBox
 import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountConfig
@@ -27,21 +30,20 @@ class FunctionAppInfoAdvancedPanel(
     defaultConfigSupplier: Supplier<FunctionAppConfig>
 ) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 
-    companion object {
-        private const val DEFAULT_INSTANCE_SIZE = 2048
-    }
-
-    private var instanceMemorySize = DEFAULT_INSTANCE_SIZE
+    private var instanceMemorySize = FlexConsumptionInstanceSize.Size2048MB
+    private lateinit var size2048RadioButton: Cell<JBRadioButton>
+    private lateinit var size4096RadioButton: Cell<JBRadioButton>
     private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
 
     override fun getAdditionalPanel(): (Panel.() -> Unit) = {
         group("Flex Consumption Properties") {
             buttonsGroup {
                 row("Instance memory:") {
-                    radioButton("2048MB", 2048)
-                    radioButton("4096MB", 4096)
+                    size2048RadioButton = radioButton("2048MB", FlexConsumptionInstanceSize.Size2048MB)
+                        .selected(true)
+                    size4096RadioButton = radioButton("4096MB", FlexConsumptionInstanceSize.Size4096MB)
                 }
-            }.bind ({ instanceMemorySize }, { instanceMemorySize = it })
+            }.bind(::instanceMemorySize)
         }.visibleIf(selectorServicePlan.selectedValueMatches { it?.pricingTier == FLEX_CONSUMPTION })
         group("Storage") {
             row("Storage account:") {
@@ -59,10 +61,14 @@ class FunctionAppInfoAdvancedPanel(
         }
 
         if (result.pricingTier == FLEX_CONSUMPTION) {
+            val selectedInstanceSize =
+                if (size2048RadioButton.component.isSelected) FlexConsumptionInstanceSize.Size2048MB.value
+                else if (size4096RadioButton.component.isSelected) FlexConsumptionInstanceSize.Size4096MB.value
+                else FlexConsumptionInstanceSize.Size2048MB.value
             result.flexConsumptionConfiguration = FlexConsumptionConfiguration().apply {
                 deploymentResourceGroup = result.resourceGroup
                 deploymentAccount = storageAccount?.name
-                instanceSize = instanceMemorySize
+                instanceSize = selectedInstanceSize
             }
         }
     }
@@ -78,7 +84,12 @@ class FunctionAppInfoAdvancedPanel(
         storageAccountComboBox.component.value = storageAccountConfig
 
         if (config.pricingTier == FLEX_CONSUMPTION) {
-            instanceMemorySize = config.flexConsumptionConfiguration?.instanceSize ?: DEFAULT_INSTANCE_SIZE
+            if (config.flexConsumptionConfiguration?.instanceSize == FlexConsumptionInstanceSize.Size4096MB.value) {
+                size4096RadioButton.component.isSelected = true
+            }
+            else {
+                size2048RadioButton.component.isSelected = true
+            }
         }
     }
 
