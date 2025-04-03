@@ -27,7 +27,11 @@ class FunctionAppInfoAdvancedPanel(
     defaultConfigSupplier: Supplier<FunctionAppConfig>
 ) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 
-    private var instanceMemorySize = 2048
+    companion object {
+        private const val DEFAULT_INSTANCE_SIZE = 2048
+    }
+
+    private var instanceMemorySize = DEFAULT_INSTANCE_SIZE
     private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
 
     override fun getAdditionalPanel(): (Panel.() -> Unit) = {
@@ -72,6 +76,10 @@ class FunctionAppInfoAdvancedPanel(
                 )
             else null
         storageAccountComboBox.component.value = storageAccountConfig
+
+        if (config.pricingTier == FLEX_CONSUMPTION) {
+            instanceMemorySize = config.flexConsumptionConfiguration?.instanceSize ?: DEFAULT_INSTANCE_SIZE
+        }
     }
 
     override fun onSubscriptionChanged(e: ItemEvent) {

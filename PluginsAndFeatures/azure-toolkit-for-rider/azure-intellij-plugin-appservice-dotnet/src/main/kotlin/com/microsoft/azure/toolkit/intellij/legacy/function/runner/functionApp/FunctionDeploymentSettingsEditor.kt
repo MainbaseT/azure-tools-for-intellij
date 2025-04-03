@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
@@ -146,6 +147,14 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
         val operatingSystem = OperatingSystem.fromString(state.operatingSystem)
 
+        val flexConsumptionConfiguration = if (pricingTier.isFlexConsumption) {
+            FlexConsumptionConfiguration.builder()
+                .deploymentResourceGroup(state.deploymentResourceGroup)
+                .deploymentAccount(state.deploymentAccountName)
+                .instanceSize(state.instanceSize)
+                .build()
+        } else null
+
         val functionAppConfig = FunctionAppConfig
             .builder()
             .appName(state.functionAppName)
@@ -158,6 +167,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .storageAccountName(state.storageAccountName)
             .storageAccountResourceGroup(state.storageAccountResourceGroup)
+            .flexConsumptionConfiguration(flexConsumptionConfiguration)
             .build()
         functionAppComboBox.component.setConfigModel(functionAppConfig)
         functionAppComboBox.component.setValue { AppServiceComboBox.isSameApp(it, functionAppConfig) }
@@ -209,6 +219,9 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             }
             storageAccountName = functionConfig?.storageAccountName
             storageAccountResourceGroup = functionConfig?.storageAccountResourceGroup
+            deploymentAccountName = functionConfig?.flexConsumptionConfiguration?.deploymentAccount
+            deploymentResourceGroup = functionConfig?.flexConsumptionConfiguration?.deploymentResourceGroup
+            instanceSize = functionConfig?.flexConsumptionConfiguration?.instanceSize ?: 0
             publishableProjectPath = dotnetProjectComboBox.component.value?.projectFilePath
             val (config, platform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()
             projectConfiguration = config

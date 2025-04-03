@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
@@ -103,6 +104,7 @@ class FunctionDeploymentState(
         runtime = createRuntimeConfig(os)
         val dotnetRuntimeConfig = createDotNetRuntimeConfig(publishableProject, os)
         dotnetRuntime = dotnetRuntimeConfig
+        flexConsumptionConfiguration = createFlexConsumptionConfiguration(options)
         appSettings(configureAppSettings(pricingTier, runtime, dotnetRuntimeConfig))
     }
 
@@ -122,6 +124,13 @@ class FunctionDeploymentState(
             functionStack = publishableProject.getFunctionStack(project, os)
         }
 
+    private fun createFlexConsumptionConfiguration(options: FunctionDeploymentConfigurationOptions) =
+        FlexConsumptionConfiguration().apply {
+            deploymentResourceGroup = options.deploymentResourceGroup
+            deploymentAccount = options.deploymentAccountName
+            instanceSize = options.instanceSize
+        }
+
     private fun configureAppSettings(
         pricingTier: PricingTier,
         runtime: RuntimeConfig,
@@ -135,7 +144,8 @@ class FunctionDeploymentState(
 
         //Enables your function app to run from a package file, which can be locally mounted or deployed to an external URL.
         //see: https://learn.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package
-        if (runtime.os == OperatingSystem.WINDOWS || (runtime.os == OperatingSystem.LINUX && pricingTier != PricingTier.CONSUMPTION)
+        if (pricingTier != PricingTier.FLEX_CONSUMPTION &&
+            (runtime.os == OperatingSystem.WINDOWS || (runtime.os == OperatingSystem.LINUX && pricingTier != PricingTier.CONSUMPTION))
         ) {
             put(WEBSITE_RUN_FROM_PACKAGE, "1")
         }

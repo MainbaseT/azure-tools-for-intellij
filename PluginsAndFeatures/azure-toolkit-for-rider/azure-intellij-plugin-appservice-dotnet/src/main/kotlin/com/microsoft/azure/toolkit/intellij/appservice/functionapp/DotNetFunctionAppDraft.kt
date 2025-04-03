@@ -161,17 +161,10 @@ class DotNetFunctionAppDraft : FunctionApp,
 
     private fun createOrUpdateFlexConsumptionFunctionAppWithRawRequest(functionApp: com.azure.resourcemanager.appservice.models.FunctionApp): com.azure.resourcemanager.appservice.models.FunctionApp {
         val flexConfig = flexConsumptionAppConfig
-        val siteInner = functionApp.innerModel()
         updateSiteConfigurations(functionApp, flexConfig)
 
-        val authentication = flexConfig?.deployment?.storage?.authentication
-        val isManageIdentityAuthentication =
-            authentication != null && authentication.type != StorageAuthenticationMethod.StorageAccountConnectionString
-        if (isManageIdentityAuthentication) {
-            //TODO check if needed
-        }
-
         val adapter = SerializerFactory.createDefaultManagementSerializerAdapter()
+        val siteInner = functionApp.innerModel()
         val originContent = adapter.serializeRaw(siteInner)
         val jsonNode = adapter.deserialize<ObjectNode>(
             originContent,
@@ -191,8 +184,7 @@ class DotNetFunctionAppDraft : FunctionApp,
         val newContent = adapter.serializeRaw(jsonNode)
         val httpPipeline = functionApp.manager().httpPipeline()
         val targetUrl = getRawRequestEndpoint(functionApp)
-        val method = if (exists()) HttpMethod.PATCH else HttpMethod.PUT
-        val request = HttpRequest(method, targetUrl)
+        val request = HttpRequest(HttpMethod.PUT, targetUrl)
             .setHeader(HttpHeaderName.CONTENT_TYPE, "application/json")
             .setBody(newContent)
 
@@ -209,11 +201,6 @@ class DotNetFunctionAppDraft : FunctionApp,
 
             result.refresh()
 
-            if (isManageIdentityAuthentication) {
-                //TODO check if needed
-                grantPermissionToIdentity(result)
-            }
-
             return result
         } catch (e: Exception) {
             throw AzureToolkitRuntimeException(e)
@@ -221,59 +208,46 @@ class DotNetFunctionAppDraft : FunctionApp,
     }
 
     override fun getFlexConsumptionAppConfig(): FunctionAppConfig? {
-        val configuration = flexConsumptionConfiguration
-        val original = super.getFlexConsumptionAppConfig()
-        if (configuration == null) return original
-
-        val result = if (isDraftForCreating) FunctionAppConfig() else original
-        val deployment = result.deployment ?: FunctionAppConfig.FunctionsDeployment()
-        val storage = deployment.storage ?: FunctionAppConfig.Storage()
-
-        FunctionAppConfig.Storage.Authentication.fromConfiguration(configuration)?.let { storage.authentication = it }
-        deploymentContainerUrl?.let { storage.value = it }
-        deployment.storage = storage
-        result.deployment = deployment
-
-        val functionsRuntime = result.runtime ?: FunctionAppConfig.FunctionsRuntime()
-        dotNetRuntime?.let {
-            functionsRuntime.name = "dotnet-isolated"
-            functionsRuntime.version = it.dotnetVersion
+        val configStorage = FunctionAppConfig.Storage().apply {
+            authentication = FunctionAppConfig.Storage.Authentication.DEFAULT_AUTHENTICATION
+            value = deploymentContainerUrl
         }
-        result.runtime = functionsRuntime
+        val configDeployment = FunctionAppConfig.FunctionsDeployment().apply {
+            storage = configStorage
+        }
 
-        val concurrency = result.scaleAndConcurrency ?: FunctionAppConfig.FunctionScaleAndConcurrency()
-        configuration.httpInstanceConcurrency
-            ?.let { FunctionAppConfig.FunctionTriggers(it) }
-            ?.let { concurrency.triggers = it }
-        configuration.instanceSize?.let { concurrency.instanceMemoryMB = it }
-        configuration.maximumInstances?.let { concurrency.maximumInstanceCount = it }
-        configuration.alwaysReadyInstances?.let { concurrency.alwaysReady = it }
-        result.scaleAndConcurrency = concurrency
+        val configRuntime = FunctionAppConfig.FunctionsRuntime().apply {
+            name = "dotnet-isolated"
+            version = requireNotNull(dotNetRuntime?.dotnetVersion)
+        }
 
-        return result
+        val flexConfiguration = requireNotNull(flexConsumptionConfiguration)
+        val configConcurrency = FunctionAppConfig.FunctionScaleAndConcurrency().apply {
+            instanceMemoryMB = flexConfiguration.instanceSize
+            maximumInstanceCount = 100
+        }
+
+        return FunctionAppConfig().apply {
+            deployment = configDeployment
+            runtime = configRuntime
+            scaleAndConcurrency = configConcurrency
+        }
     }
 
     private fun updateSiteConfigurations(
         functionApp: com.azure.resourcemanager.appservice.models.FunctionApp,
         flexConfig: FunctionAppConfig?
     ) {
-        val siteInner = functionApp.innerModel()
-        val siteConfigInner = siteInner.siteConfig() ?: SiteConfigInner()
-        siteInner.withSiteConfig(siteConfigInner)
+        val settings = buildMap {
+            getAppSettings()?.forEach { put(it.key, it.value) }
 
-        val settings = hashMapOf<String, String>()
-        getAppSettings()?.let { settings.putAll(settings) }
+            storageAccount?.let { put("AzureWebJobsStorage", it.connectionString) }
 
-        storageAccount?.let { settings.put("AzureWebJobsStorage", it.connectionString) }
-
-        val authentication = flexConfig?.deployment?.storage?.authentication
-        if (authentication?.type == StorageAuthenticationMethod.StorageAccountConnectionString) {
-            deploymentAccount?.let {
-                settings.put(authentication.storageAccountConnectionStringName, it.connectionString)
+            val authentication = flexConfig?.deployment?.storage?.authentication
+            if (authentication?.type == StorageAuthenticationMethod.StorageAccountConnectionString) {
+                deploymentAccount?.let { put(authentication.storageAccountConnectionStringName, it.connectionString) }
             }
-        }
 
-        with(settings) {
             remove("FUNCTIONS_EXTENSION_VERSION")
             remove("FUNCTIONS_WORKER_RUNTIME")
             remove("FUNCTIONS_WORKER_RUNTIME_VERSION")
@@ -282,18 +256,11 @@ class DotNetFunctionAppDraft : FunctionApp,
             remove("FUNCTIONS_WORKER_DYNAMIC_CONCURRENCY_ENABLED")
             remove("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
             remove("WEBSITE_CONTENTSHARE")
-        }
+        }.map { NameValuePair().withName(it.key).withValue(it.value) }
 
-        val settingPairs = settings.entries
-            .map { NameValuePair().withName(it.key).withValue(it.value) }
-            .toList()
-        siteConfigInner.withAppSettings(settingPairs)
-        siteConfigInner.withHttp20Enabled(true)
-        siteInner.withHttpsOnly(false)
-        siteInner.withIsXenon(null)
-        siteInner.withContainerSize(null)
-        siteInner.withReserved(null)
-        siteInner.siteConfig()?.apply {
+        val siteConfigInner = SiteConfigInner().apply {
+            withAppSettings(settings)
+            withHttp20Enabled(false)
             withFtpsState(null)
             withUse32BitWorkerProcess(null)
             withWindowsFxVersion(null)
@@ -303,10 +270,14 @@ class DotNetFunctionAppDraft : FunctionApp,
             withFunctionAppScaleLimit(null)
             withJavaVersion(null)
         }
-    }
 
-    private fun grantPermissionToIdentity(functionApp: com.azure.resourcemanager.appservice.models.FunctionApp) {
-
+        functionApp.innerModel().apply {
+            withSiteConfig(siteConfigInner)
+            withHttpsOnly(false)
+            withIsXenon(null)
+            withContainerSize(null)
+            withReserved(null)
+        }
     }
 
     var dotNetRuntime: DotNetRuntime?
