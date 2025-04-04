@@ -44,6 +44,7 @@ abstract class CreateAppServiceTask<T>(
             DotNetRuntime(
                 runtimeConfig.os(),
                 runtimeConfig.stack,
+                runtimeConfig.dotnetVersion,
                 runtimeConfig.frameworkVersion,
                 runtimeConfig.functionStack,
                 false
@@ -51,6 +52,7 @@ abstract class CreateAppServiceTask<T>(
         } else {
             DotNetRuntime(
                 runtimeConfig.os(),
+                null,
                 null,
                 null,
                 null,

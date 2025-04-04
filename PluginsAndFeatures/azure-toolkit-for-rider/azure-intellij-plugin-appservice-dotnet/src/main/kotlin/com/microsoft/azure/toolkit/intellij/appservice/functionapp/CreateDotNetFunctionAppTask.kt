@@ -35,17 +35,22 @@ class CreateDotNetFunctionAppTask(
 
     private var appServicePlan: AppServicePlan? = null
     private var storageAccount: StorageAccount? = null
+    private var deploymentContainerUrl: String? = null
     private var functionApp: FunctionAppBase<*, *, *>? = null
 
     init {
         val functionApp = Azure.az(AzureFunctions::class.java)
-            .functionApps(config.subscriptionId())
+            .functionApps(config.subscriptionId)
             .getOrDraft(config.appName(), config.resourceGroup())
 
         if (functionApp.isDraftForCreating) {
             registerSubTask(createResourceGroupTask()) {}
             registerSubTask(createServicePlanTask()) { appServicePlan = it }
             registerSubTask(createStorageAccountTask()) { storageAccount = it }
+
+            if (config.pricingTier.isFlexConsumption) {
+                registerSubTask(createDeploymentContainerTask()) { deploymentContainerUrl = it }
+            }
 
             val functionAppDraft = (functionApp as? FunctionAppDraft)?.toDotNetFunctionAppDraft()
                 ?: error("Unable to get function app draft")
@@ -92,8 +97,14 @@ class CreateDotNetFunctionAppTask(
         return draft
     }
 
-    private fun createResourceGroupTask(): AzureTask<ResourceGroup> =
-        CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), config.region())
+    private fun createResourceGroupTask(): AzureTask<ResourceGroup> {
+        val resourceGroupRegion = getNonStageRegion(config.region())
+        return CreateResourceGroupTask(
+            config.subscriptionId,
+            config.resourceGroup(),
+            resourceGroupRegion
+        )
+    }
 
     private fun createServicePlanTask(): AzureTask<AppServicePlan> =
         CreateServicePlanTask(AppServiceConfig.getServicePlanConfig(config))
@@ -104,7 +115,7 @@ class CreateDotNetFunctionAppTask(
         val storageAccountRegion = getNonStageRegion(config.region())
 
         return CreateStorageAccountTask(
-            config.subscriptionId(),
+            config.subscriptionId,
             storageResourceGroup,
             storageAccountName,
             storageAccountRegion
@@ -130,16 +141,39 @@ class CreateDotNetFunctionAppTask(
         }
     }
 
+    private fun createDeploymentContainerTask(): AzureTask<String> {
+        val configuration = config.flexConsumptionConfiguration()
+        val deploymentResourceGroup = configuration.deploymentResourceGroup ?: config.resourceGroup()
+        val deploymentAccountName = configuration.deploymentAccount ?: requireNotNull(storageAccount).name
+        val deploymentContainer =
+            configuration.deploymentContainer ?: getDefaultDeploymentContainerName(config.appName())
+
+        return CreateDeploymentContainerTask(
+            config.subscriptionId,
+            deploymentResourceGroup,
+            deploymentAccountName,
+            deploymentContainer
+        )
+    }
+
+    private fun getDefaultDeploymentContainerName(functionAppName: String): String {
+        val context = ResourceManagerUtils.InternalRuntimeContext()
+        return context.randomResourceName(functionAppName.replace(functionAppRegex, ""), 20)
+    }
+
     private fun createFunctionAppTask(draft: DotNetFunctionAppDraft) =
-        AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
+        AzureTask(
+            "Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
                 with(draft) {
                     appServicePlan = this@CreateDotNetFunctionAppTask.appServicePlan
                     dotNetRuntime = getRuntime(config.dotnetRuntime)
                     dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
                     diagnosticConfig = config.diagnosticConfig()
-                    flexConsumptionConfiguration = config.flexConsumptionConfiguration()
                     storageAccount = this@CreateDotNetFunctionAppTask.storageAccount
+                    flexConsumptionConfiguration = config.flexConsumptionConfiguration()
+                    deploymentAccount = this@CreateDotNetFunctionAppTask.storageAccount
+                    deploymentContainerUrl = this@CreateDotNetFunctionAppTask.deploymentContainerUrl
                     appSettings = config.appSettings()
 
                     createIfNotExist()
@@ -147,7 +181,8 @@ class CreateDotNetFunctionAppTask(
             })
 
     private fun createFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
-        AzureTask("Create new slot(${config.deploymentSlotName()}) on function app (${config.appName()})",
+        AzureTask(
+            "Create new slot(${config.deploymentSlotName()}) on function app (${config.appName()})",
             Callable {
                 with(draft) {
                     dotNetRuntime = getRuntime(config.dotnetRuntime)

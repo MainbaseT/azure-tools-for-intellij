@@ -10,6 +10,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.layout.selectedValueMatches
 import com.intellij.util.ui.JBUI
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox
@@ -22,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier.FLEX_CONSUMPTION
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
@@ -68,7 +70,7 @@ open class AppServiceInfoAdvancedPanel<T>(
         addItemListener { onRegionChanged(it) }
         itemsLoader = RegionSupplier()
     }
-    private val selectorServicePlan = ServicePlanComboBox().apply {
+    protected val selectorServicePlan = ServicePlanComboBox().apply {
         isRequired = true
         addItemListener { onServicePlanChanged(it) }
     }
@@ -105,6 +107,7 @@ open class AppServiceInfoAdvancedPanel<T>(
                 operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
+                            .enabledIf(selectorServicePlan.selectedValueMatches { it?.pricingTier != FLEX_CONSUMPTION })
                         windowsRadioButton.component.addItemListener { onOperatingSystemChanged(it) }
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                             .enabled(!targetProjectOnNetFramework)
@@ -222,6 +225,7 @@ open class AppServiceInfoAdvancedPanel<T>(
             val pricingTier = plan.pricingTier
             textSku.text = pricingTier.toString()
             if (pricingTier.isFlexConsumption) {
+                linuxRadioButton.component.isSelected = true
                 selectorRegion.clear()
                 selectorRegion.reloadItems()
             }

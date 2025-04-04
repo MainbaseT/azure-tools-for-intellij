@@ -28,7 +28,7 @@ fun PublishableProjectModel.getStackAndVersion(
     project: Project,
     operatingSystem: OperatingSystem,
     isFunction: Boolean
-): Pair<RuntimeStack?, NetFrameworkVersion?>? {
+): PublishableProjectRuntime? {
     if (operatingSystem == OperatingSystem.DOCKER) return null
 
     if (isDotNetCore) {
@@ -39,13 +39,13 @@ fun PublishableProjectModel.getStackAndVersion(
                 if (dotnetVersion != null) RuntimeStack(stackName, dotnetVersion)
                 else RuntimeStack(stackName, "8.0")
 
-            return stack to null
+            return PublishableProjectRuntime(stack, dotnetVersion, null)
         } else {
             val version =
                 if (dotnetVersion != null) NetFrameworkVersion.fromString("v$dotnetVersion")
                 else NetFrameworkVersion.fromString("v8.0")
 
-            return null to version
+            return PublishableProjectRuntime(null, null, version)
         }
     } else {
         val netFrameworkVersion = getProjectNetFrameworkVersion(project, this)
@@ -57,9 +57,15 @@ fun PublishableProjectModel.getStackAndVersion(
             else
                 NetFrameworkVersion.fromString("v3.5")
 
-        return null to version
+        return PublishableProjectRuntime(null, null, version)
     }
 }
+
+data class PublishableProjectRuntime(
+    val runtimeStack: RuntimeStack?,
+    val dotnetVersion: String?,
+    val frameworkVersion: NetFrameworkVersion?
+)
 
 suspend fun PublishableProjectModel.getFunctionStack(
     project: Project,

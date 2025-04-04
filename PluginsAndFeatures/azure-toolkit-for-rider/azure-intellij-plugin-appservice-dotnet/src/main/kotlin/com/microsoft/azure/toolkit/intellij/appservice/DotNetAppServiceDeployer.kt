@@ -7,6 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.appservice
 
 import com.azure.core.exception.HttpResponseException
+import com.azure.resourcemanager.appservice.models.OperatingSystem
 import com.intellij.execution.ExecutionException
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
@@ -23,11 +24,15 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.zeroturnaround.zip.ZipUtil
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 @Service(Service.Level.PROJECT)
 class DotNetAppServiceDeployer(private val project: Project) {
@@ -49,12 +54,7 @@ class DotNetAppServiceDeployer(private val project: Project) {
 
         val publishProjectResult = ArtifactService
             .getInstance(project)
-            .publishProjectToFolder(
-                publishableProject,
-                configuration,
-                platform,
-                updateStatusText
-            )
+            .publishProjectToFolder(publishableProject, configuration, platform, updateStatusText)
             .onFailure {
                 return Result.failure(it)
             }
@@ -65,11 +65,7 @@ class DotNetAppServiceDeployer(private val project: Project) {
             ?: return Result.failure(ExecutionException("Unable to create zip archive with project artifacts"))
         updateStatusText("Project ZIP is created: ${zipFile.absolutePath}")
 
-        return deploy(
-            target,
-            zipFile,
-            updateStatusText
-        )
+        return deploy(target, zipFile, updateStatusText)
     }
 
     suspend fun deploy(
@@ -85,12 +81,7 @@ class DotNetAppServiceDeployer(private val project: Project) {
 
         val publishProjectResult = ArtifactService
             .getInstance(project)
-            .publishProjectToFolder(
-                publishableProject,
-                configuration,
-                platform,
-                updateStatusText
-            )
+            .publishProjectToFolder(publishableProject, configuration, platform, updateStatusText)
             .onFailure {
                 return Result.failure(it)
             }
@@ -101,18 +92,34 @@ class DotNetAppServiceDeployer(private val project: Project) {
             ?: return Result.failure(ExecutionException("Unable to create zip archive with project artifacts"))
         updateStatusText("Project ZIP is created: ${zipFile.absolutePath}")
 
-        return deploy(
-            target,
-            zipFile,
-            updateStatusText
-        )
+        return if (target.isFlexConsumptionApp) {
+            deployFlexConsumption(target, zipFile, updateStatusText)
+        } else {
+            deploy(target, zipFile, updateStatusText)
+        }
     }
 
     private fun checkIfTargetIsValid(target: AppServiceAppBase<*, *, *>) {
+        if (target !is FunctionAppBase<*, *, *> || target.isFlexConsumptionApp) return
+
         val appSettings = target.appSettings
 
         val websiteRunFromPackage = appSettings?.get("WEBSITE_RUN_FROM_PACKAGE")
-        if (websiteRunFromPackage != null && websiteRunFromPackage.startsWith("http")) {
+        if (websiteRunFromPackage == null && !(target.appServicePlan?.pricingTier?.isConsumption == true && target.remote?.operatingSystem() == OperatingSystem.LINUX)) {
+            Notification(
+                "Azure AppServices",
+                "Invalid application settings",
+                "The WEBSITE_RUN_FROM_PACKAGE environment variable is not set in the application settings. This can prevent successful deployment.",
+                NotificationType.WARNING
+            )
+                .addAction(NotificationAction.createSimple("Open application on the Portal") {
+                    BrowserUtil.open(target.portalUrl)
+                })
+                .notify(project)
+            return
+        }
+
+        if (websiteRunFromPackage?.startsWith("http") == true) {
             Notification(
                 "Azure AppServices",
                 "Invalid application settings",
@@ -177,12 +184,60 @@ class DotNetAppServiceDeployer(private val project: Project) {
 
         FileUtil.delete(zipFile)
 
-        if (!target.formalStatus.isRunning) {
-            updateStatusText("Starting the application after deploying artifacts...")
-            target.start()
-            updateStatusText("Successfully started the application.")
-        }
+        startTargetApp(target, updateStatusText)
 
         return Result.success(Unit)
+    }
+
+    private suspend fun deployFlexConsumption(
+        target: FunctionAppBase<*, *, *>,
+        zipFile: File,
+        updateStatusText: (String) -> Unit
+    ): Result<Unit> {
+        val kuduManager = target.kuduManager
+        if (kuduManager == null) {
+            LOG.warn("Unable to find kudu manager")
+            return Result.failure(ExecutionException("Unable to find kudu manager"))
+        }
+
+        updateStatusText("Starting deployment...")
+        updateStatusText("Trying to deploy artifact to ${target.name}...")
+
+        try {
+            kuduManager.flexZipDeploy(zipFile)
+            kuduManager.checkLatestDeploymentStatus(500.milliseconds.toJavaDuration(), 450)
+
+            updateStatusText("Waiting for sync triggers, it may take some moments...")
+
+            delay(60.seconds)
+
+            val adminClient = target.adminClient
+            if (adminClient != null) {
+                updateStatusText("Checking the health of the function app...")
+                val hostStatus = adminClient.getHostStatus(2.seconds.toJavaDuration(), 15)
+                if (hostStatus != true) {
+                    return Result.failure(ExecutionException("Deployment was successful but the app appears to be unhealthy. Please check the app logs."))
+                }
+            }
+        } catch (e: Exception) {
+            LOG.warn("Unable to deploy artifact to Azure resource", e)
+            return Result.failure(ExecutionException(e.message))
+        }
+
+        updateStatusText("Successfully deployed the artifact to ${target.hostName}")
+
+        FileUtil.delete(zipFile)
+
+        startTargetApp(target, updateStatusText)
+
+        return Result.success(Unit)
+    }
+
+    private fun startTargetApp(target: AppServiceAppBase<*, *, *>, updateStatusText: (String) -> Unit) {
+        if (target.formalStatus.isRunning) return
+
+        updateStatusText("Starting the application after deploying artifacts...")
+        target.start()
+        updateStatusText("Successfully started the application.")
     }
 }
