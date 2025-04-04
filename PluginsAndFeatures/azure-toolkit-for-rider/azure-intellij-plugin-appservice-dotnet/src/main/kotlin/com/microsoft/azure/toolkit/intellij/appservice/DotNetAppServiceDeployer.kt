@@ -7,6 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.appservice
 
 import com.azure.core.exception.HttpResponseException
+import com.azure.resourcemanager.appservice.models.OperatingSystem
 import com.intellij.execution.ExecutionException
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
@@ -99,15 +100,12 @@ class DotNetAppServiceDeployer(private val project: Project) {
     }
 
     private fun checkIfTargetIsValid(target: AppServiceAppBase<*, *, *>) {
-        val isFlexConsumptionApp = target is FunctionAppBase<*, *, *> && target.isFlexConsumptionApp
-        if (isFlexConsumptionApp) {
-            return
-        }
+        if (target !is FunctionAppBase<*, *, *> || target.isFlexConsumptionApp) return
 
         val appSettings = target.appSettings
 
         val websiteRunFromPackage = appSettings?.get("WEBSITE_RUN_FROM_PACKAGE")
-        if (websiteRunFromPackage == null) {
+        if (websiteRunFromPackage == null && !(target.appServicePlan?.pricingTier?.isConsumption == true && target.remote?.operatingSystem() == OperatingSystem.LINUX)) {
             Notification(
                 "Azure AppServices",
                 "Invalid application settings",
@@ -121,7 +119,7 @@ class DotNetAppServiceDeployer(private val project: Project) {
             return
         }
 
-        if ( websiteRunFromPackage.startsWith("http")) {
+        if (websiteRunFromPackage?.startsWith("http") == true) {
             Notification(
                 "Azure AppServices",
                 "Invalid application settings",
