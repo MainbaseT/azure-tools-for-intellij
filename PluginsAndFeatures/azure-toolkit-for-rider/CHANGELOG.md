@@ -8,6 +8,10 @@
 
 - Support for Flex Consumption service plans ([RIDER-117297](https://youtrack.jetbrains.com/issue/RIDER-117297))
 
+### Fixed
+
+- Blocking requests for run configuration validation ([RIDER-124123](https://youtrack.jetbrains.com/issue/RIDER-124123))
+
 ## [4.4.7] - 2025-04-02
 
 ### Fixed

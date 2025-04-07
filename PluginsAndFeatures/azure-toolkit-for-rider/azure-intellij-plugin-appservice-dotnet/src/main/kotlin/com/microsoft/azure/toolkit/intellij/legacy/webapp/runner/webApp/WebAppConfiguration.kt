@@ -14,9 +14,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.intellij.platform.util.coroutines.childScope
 import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
-import com.microsoft.azure.toolkit.intellij.legacy.utils.*
-import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 
 class WebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
@@ -57,27 +55,8 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             if (operatingSystem.isNullOrEmpty()) throw RuntimeConfigurationError("Operating system is not provided")
             if (publishableProjectPath.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project to deploy")
 
-            val webApp = Azure.az(AzureWebApp::class.java)
-                .webApps(requireNotNull(subscriptionId))
-                .get(requireNotNull(webAppName), requireNotNull(resourceGroupName))
-            if (webApp == null) {
-                //Validate names only for the new Web Apps
-                if (!isValidApplicationName(webAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
-                if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
-                if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
-                if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
-            }
-
             if (isDeployToSlot) {
                 if (slotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
-
-                if (webApp != null) {
-                    val slot = webApp.slots().get(requireNotNull(slotName), requireNotNull(resourceGroupName))
-                    if (slot == null) {
-                        //Validate slot name only for the new Deployment Slots
-                        if (!isValidApplicationSlotName(slotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
-                    }
-                }
             }
         }
     }

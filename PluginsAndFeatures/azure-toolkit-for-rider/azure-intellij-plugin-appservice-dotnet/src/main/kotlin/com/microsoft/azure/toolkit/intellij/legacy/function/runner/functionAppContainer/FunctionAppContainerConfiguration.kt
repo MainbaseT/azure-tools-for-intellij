@@ -14,9 +14,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.intellij.platform.util.coroutines.childScope
 import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
-import com.microsoft.azure.toolkit.intellij.legacy.utils.*
-import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
 
 class FunctionAppContainerConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<FunctionAppContainerConfigurationOptions>(project, factory, name) {
@@ -68,17 +66,6 @@ class FunctionAppContainerConfiguration(private val project: Project, factory: C
             if (repositoryParts.last().isEmpty()) throw RuntimeConfigurationError("Image name is not provided")
             repositoryParts.forEach {
                 if (!repoComponentRegex.matches(it)) throw RuntimeConfigurationError("Invalid repository component: $it, should follow: $REPO_COMPONENT_REGEX_PATTERN")
-            }
-
-            val functionApp = Azure.az(AzureFunctions::class.java)
-                .functionApps(requireNotNull(subscriptionId))
-                .get(requireNotNull(functionAppName), requireNotNull(resourceGroupName))
-            if (functionApp == null) {
-                //Validate names only for the new Function Apps
-                if (!isValidApplicationName(functionAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
-                if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
-                if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
-                if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             }
         }
     }

@@ -14,13 +14,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.intellij.platform.util.coroutines.childScope
 import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
-import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_VALIDATION_MESSAGE
-import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATION_MESSAGE
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
-import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
-import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
-import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 
 class WebAppContainerConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<WebAppContainerConfigurationOptions>(project, factory, name) {
@@ -72,17 +66,6 @@ class WebAppContainerConfiguration(private val project: Project, factory: Config
             if (repositoryParts.last().isEmpty()) throw RuntimeConfigurationError("Image name is not provided")
             repositoryParts.forEach {
                 if (!repoComponentRegex.matches(it)) throw RuntimeConfigurationError("Invalid repository component: $it, should follow: $REPO_COMPONENT_REGEX_PATTERN")
-            }
-
-            val webApp = Azure.az(AzureWebApp::class.java)
-                .webApps(requireNotNull(subscriptionId))
-                .get(requireNotNull(webAppName), requireNotNull(resourceGroupName))
-            if (webApp == null) {
-                //Validate names only for the new Web Apps
-                if (!isValidApplicationName(webAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
-                if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
-                if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
-                if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             }
         }
     }
