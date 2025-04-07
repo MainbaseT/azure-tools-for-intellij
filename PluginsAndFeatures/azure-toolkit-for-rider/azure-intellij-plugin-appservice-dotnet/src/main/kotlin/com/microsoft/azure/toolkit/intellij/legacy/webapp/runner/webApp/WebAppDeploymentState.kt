@@ -21,14 +21,24 @@ import com.microsoft.azure.toolkit.intellij.appservice.DotNetAppServiceDeployer
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
+import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_SLOT_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationSlotName
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
+import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WebAppDeploymentState(
     project: Project,
@@ -45,6 +55,8 @@ class WebAppDeploymentState(
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw ExecutionException("Project is not defined")
+
+        validateOptions(options)
 
         checkCanceled()
 
@@ -69,6 +81,36 @@ class WebAppDeploymentState(
             .getOrThrow()
 
         return deployTarget
+    }
+
+    private suspend fun validateOptions(options: WebAppConfigurationOptions) = with(options) {
+        val webApp = withContext(Dispatchers.IO) {
+            Azure.az(AzureWebApp::class.java)
+                .webApps(requireNotNull(subscriptionId))
+                .get(requireNotNull(webAppName), requireNotNull(resourceGroupName))
+        }
+        if (webApp == null) {
+            //Validate names only for the new Web Apps
+            if (!isValidApplicationName(webAppName))
+                throw ExecutionException(APPLICATION_VALIDATION_MESSAGE)
+            if (!isValidResourceGroupName(resourceGroupName))
+                throw ExecutionException(RESOURCE_GROUP_VALIDATION_MESSAGE)
+            if (!isValidApplicationName(appServicePlanName))
+                throw ExecutionException("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(appServicePlanResourceGroupName))
+                throw ExecutionException(RESOURCE_GROUP_VALIDATION_MESSAGE)
+        } else {
+            if (isDeployToSlot) {
+                val slot = withContext(Dispatchers.IO) {
+                    webApp.slots().get(requireNotNull(slotName), requireNotNull(resourceGroupName))
+                }
+                if (slot == null) {
+                    //Validate slot name only for the new Deployment Slots
+                    if (!isValidApplicationSlotName(slotName))
+                        throw ExecutionException(APPLICATION_SLOT_VALIDATION_MESSAGE)
+                }
+            }
+        }
     }
 
     private fun createDotNetAppServiceConfig(

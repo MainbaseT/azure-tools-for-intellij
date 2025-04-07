@@ -6,18 +6,27 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionAppContainer
 
+import com.intellij.execution.ExecutionException
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.appservice.dotnetRuntime.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateDotNetFunctionAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
+import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
+import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class FunctionAppContainerDeploymentState(
     project: Project,
@@ -30,12 +39,33 @@ class FunctionAppContainerDeploymentState(
 
         val options = requireNotNull(functionAppContainerConfiguration.state)
 
+        validateOptions(options)
+
         //push image
 
         //create function app
         val config = createDotNetFunctionAppConfig(options)
         val task = CreateDotNetFunctionAppTask(config, processHandlerMessenger)
         return task.execute()
+    }
+
+    private suspend fun validateOptions(options: FunctionAppContainerConfigurationOptions) = with(options) {
+        val functionApp = withContext(Dispatchers.IO) {
+            Azure.az(AzureFunctions::class.java)
+                .functionApps(requireNotNull(subscriptionId))
+                .get(requireNotNull(functionAppName), requireNotNull(resourceGroupName))
+        }
+        if (functionApp == null) {
+            //Validate names only for the new Function Apps
+            if (!isValidApplicationName(functionAppName))
+                throw ExecutionException(APPLICATION_VALIDATION_MESSAGE)
+            if (!isValidResourceGroupName(resourceGroupName))
+                throw ExecutionException(RESOURCE_GROUP_VALIDATION_MESSAGE)
+            if (!isValidApplicationName(appServicePlanName))
+                throw ExecutionException("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(appServicePlanResourceGroupName))
+                throw ExecutionException(RESOURCE_GROUP_VALIDATION_MESSAGE)
+        }
     }
 
     private fun createDotNetFunctionAppConfig(

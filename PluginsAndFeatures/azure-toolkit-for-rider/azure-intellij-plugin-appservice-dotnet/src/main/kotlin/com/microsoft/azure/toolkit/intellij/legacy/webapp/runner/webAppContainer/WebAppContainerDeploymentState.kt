@@ -4,18 +4,27 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer
 
+import com.intellij.execution.ExecutionException
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.appservice.dotnetRuntime.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
+import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
+import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WebAppContainerDeploymentState(
     project: Project,
@@ -31,6 +40,8 @@ class WebAppContainerDeploymentState(
 
         val options = requireNotNull(webAppContainerConfiguration.state)
 
+        validateOptions(options)
+
         //push image
 
 
@@ -38,6 +49,25 @@ class WebAppContainerDeploymentState(
         val config = createDotNetAppServiceConfig(options)
         val task = CreateDotNetWebAppTask(config, processHandlerMessenger)
         return task.execute()
+    }
+
+    private suspend fun validateOptions(options: WebAppContainerConfigurationOptions) = with(options) {
+        val webApp = withContext(Dispatchers.IO) {
+            Azure.az(AzureWebApp::class.java)
+                .webApps(requireNotNull(subscriptionId))
+                .get(requireNotNull(webAppName), requireNotNull(resourceGroupName))
+        }
+        if (webApp == null) {
+            //Validate names only for the new Web Apps
+            if (!isValidApplicationName(webAppName))
+                throw ExecutionException(APPLICATION_VALIDATION_MESSAGE)
+            if (!isValidResourceGroupName(resourceGroupName))
+                throw ExecutionException(RESOURCE_GROUP_VALIDATION_MESSAGE)
+            if (!isValidApplicationName(appServicePlanName))
+                throw ExecutionException("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(appServicePlanResourceGroupName))
+                throw ExecutionException(RESOURCE_GROUP_VALIDATION_MESSAGE)
+        }
     }
 
     private fun createDotNetAppServiceConfig(
