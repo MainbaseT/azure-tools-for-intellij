@@ -11,6 +11,7 @@
 ### Fixed
 
 - Blocking requests for run configuration validation ([RIDER-124123](https://youtrack.jetbrains.com/issue/RIDER-124123))
+- No TODO window via View | Tool Windows ([RIDER-124351](https://youtrack.jetbrains.com/issue/RIDER-124351))
 
 ## [4.4.7] - 2025-04-02
 
