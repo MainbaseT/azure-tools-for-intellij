@@ -1,6 +1,6 @@
 name: Bug Report
 description: File a bug report
-labels: ["bug"]
+labels: [ "bug" ]
 body:
   - type: markdown
     attributes:
@@ -56,9 +56,9 @@ body:
     attributes:
       label: Operating System
       options:
+        - Windows
         - macOS
         - Linux
-        - Windows
     validations:
       required: true
   - type: input
@@ -70,11 +70,7 @@ body:
     id: additional-context
     attributes:
       label: Additional context
-      description: Add any other context about the problem here.
-  - type: markdown
-    attributes:
-      value: |
-        If applicable, please add screenshots or video to help explain your problem.
+      description: Add any other context about the problem here. If applicable, please add screenshots or video to help explain your problem.
   - type: markdown
     attributes:
       value: |
