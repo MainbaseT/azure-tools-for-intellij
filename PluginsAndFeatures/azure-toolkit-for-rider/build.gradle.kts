@@ -80,6 +80,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-eventhubs"))
     implementation(project(path = ":azure-intellij-plugin-vm"))
     implementation(project(path = ":azure-intellij-plugin-cosmos"))
+    implementation(project(path = ":azure-intellij-plugin-cosmos-dotnet"))
 
     testImplementation(libs.opentest4j)
 

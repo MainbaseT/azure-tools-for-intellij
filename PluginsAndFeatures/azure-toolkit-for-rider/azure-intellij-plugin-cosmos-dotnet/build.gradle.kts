@@ -23,10 +23,10 @@ dependencies {
     }
 
     implementation(project(path = ":azure-intellij-plugin-lib"))
-    implementation(project(path = ":azure-intellij-plugin-database"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))
-    implementation(libs.azureToolkitDatabaseLib)
-    implementation(libs.azureToolkitMysqlLib)
-    implementation(libs.azureToolkitSqlserverLib)
-    implementation(libs.azureToolkitPostgreLib)
+    implementation(project(path = ":azure-intellij-plugin-cosmos"))
+    implementation(libs.azureToolkitCosmosLib)
+    implementation(libs.azureToolkitIdeCosmosLib)
+    implementation(libs.azureToolkitIdentityLib)
+    implementation(libs.azureToolkitIdeCommonLib)
 }
