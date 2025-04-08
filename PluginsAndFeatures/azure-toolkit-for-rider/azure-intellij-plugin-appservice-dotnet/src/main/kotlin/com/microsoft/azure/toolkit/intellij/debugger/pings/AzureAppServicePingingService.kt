@@ -45,7 +45,8 @@ class AzureAppServicePingingService(private val cs: CoroutineScope) {
                 ?.state as? AttachSshDebugProfileStateBase
                 ?: return null
 
-            return (state.attachHost as? AppServiceAttachHost<FunctionApp>)?.appServiceApp
+            val attachHost = state.attachHost as? AppServiceAttachHost<*> ?: return null
+            return attachHost.appServiceApp as? FunctionApp
         } catch (_: UnsupportedOperationException) {
             return null
         }
