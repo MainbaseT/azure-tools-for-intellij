@@ -20,7 +20,7 @@ dependencies {
     intellijPlatform {
         rider(platformVersion, false)
         jetbrainsRuntime()
-        bundledPlugins(listOf("com.intellij.database"))
+        bundledPlugin("com.intellij.database")
     }
 
     implementation(libs.azureToolkitLibs)

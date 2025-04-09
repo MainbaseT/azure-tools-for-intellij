@@ -18,7 +18,8 @@ class IntellijDotnetRedisActionsContributor : IActionsContributor {
     override fun registerHandlers(am: AzureActionManager) {
         am.registerHandler(
             ResourceCommonActionsContributor.CONNECT,
-            { r, _ -> r is RedisCache }) { r, e: AnActionEvent ->
+            { r, _ -> r is RedisCache }
+        ) { r, e: AnActionEvent ->
             AzureTaskManager.getInstance().runLater {
                 val dialog = ConnectorDialog(e.project)
                 dialog.setResource(AzureServiceResource(r as RedisCache, RedisResourceDefinition.INSTANCE))

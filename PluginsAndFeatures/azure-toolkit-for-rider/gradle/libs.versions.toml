@@ -66,6 +66,8 @@ azureToolkitIdeServiceBusLib = { group = "com.microsoft.azure", name = "azure-to
 azureToolkitIdeEventHubsLib = { group = "com.microsoft.azure", name = "azure-toolkit-ide-eventhubs-lib", version.ref = "azureToolkitLibs" }
 azureToolkitIdeVmLib = { group = "com.microsoft.azure", name = "azure-toolkit-ide-vm-lib", version.ref = "azureToolkitLibs" }
 azureToolkitComputeLib = { group = "com.microsoft.azure", name = "azure-toolkit-compute-lib", version.ref = "azureToolkitLibs" }
+azureToolkitCosmosLib = { group = "com.microsoft.azure", name = "azure-toolkit-cosmos-lib", version.ref = "azureToolkitLibs" }
+azureToolkitIdeCosmosLib = { group = "com.microsoft.azure", name = "azure-toolkit-ide-cosmos-lib", version.ref = "azureToolkitLibs" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
