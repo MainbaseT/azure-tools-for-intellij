@@ -25,6 +25,8 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-appservice-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-appservice-dotnet-aspire" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-cosmos" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-cosmos-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-database-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-keyvault-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-dotnet" />
