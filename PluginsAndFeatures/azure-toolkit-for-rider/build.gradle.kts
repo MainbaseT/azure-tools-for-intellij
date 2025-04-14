@@ -81,6 +81,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-vm"))
     implementation(project(path = ":azure-intellij-plugin-cosmos"))
     implementation(project(path = ":azure-intellij-plugin-cosmos-dotnet"))
+    implementation(project(path = ":azure-intellij-plugin-devops"))
 
     testImplementation(libs.opentest4j)
 
