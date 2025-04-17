@@ -107,6 +107,6 @@ public class CSharpTimerTriggerCronArgumentsProvider : CSharpItemsProviderBase<C
 
         var resolveResult = attribute.TypeReference?.Resolve();
         return resolveResult?.DeclaredElement is ITypeElement typeElement &&
-               FunctionAppFinder.IsTimerTriggerAttribute(typeElement);
+               typeElement.IsTimerTriggerAttribute();
     }
 }

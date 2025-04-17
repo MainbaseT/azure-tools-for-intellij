@@ -43,10 +43,10 @@ public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerG
         var functionAppDaemonHost = solution.GetComponent<FunctionAppDaemonHost>();
 
         var methodName = runMarker.Method.ShortName;
-        var functionName = FunctionAppFinder.GetFunctionNameFromMethod(runMarker.Method) ??
+        var functionName = FunctionAppMethod.GetFunctionNameFromMethod(runMarker.Method) ??
                            runMarker.Method.ShortName;
 
-        var httpTriggerAttributeInfo = FunctionAppFinder.GetHttpTriggerAttributeFromMethod(runMarker.Method);
+        var httpTriggerAttributeInfo = FunctionAppMethod.GetHttpTriggerAttributeFromMethod(runMarker.Method);
 
         var projectFilePath =
             runMarker.Project.ProjectFileLocation.NormalizeSeparators(FileSystemPathEx.SeparatorStyle.Unix);

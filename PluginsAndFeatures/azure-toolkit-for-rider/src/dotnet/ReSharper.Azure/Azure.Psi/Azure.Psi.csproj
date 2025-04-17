@@ -5,6 +5,10 @@
         <AssemblyName>JetBrains.ReSharper.Azure.Psi</AssemblyName>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Azure.Project\Azure.Project.csproj" />
+    </ItemGroup>
+
     <Import Project="$(JetBrainsRiderRdBackendCommonReference)" Condition="Exists('$(JetBrainsRiderRdBackendCommonReference)')" />
 
 </Project>
