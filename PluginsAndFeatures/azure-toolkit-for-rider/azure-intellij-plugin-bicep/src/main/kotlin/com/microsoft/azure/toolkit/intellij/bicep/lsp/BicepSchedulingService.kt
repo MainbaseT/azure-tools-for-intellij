@@ -35,7 +35,6 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
 
   fun scheduleLsDownload() {
     cleanTmpDirectorySafe(LsInfrastructure.BicepLS)
-    cleanTmpDirectorySafe(LsInfrastructure.DotnetRuntime)
     scheduleLsInfrastructureSetup(LsSetupMode.DOWNLOAD_AND_VALIDATE)
   }
 

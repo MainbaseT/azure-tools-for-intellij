@@ -36,78 +36,6 @@ internal sealed class LsInfrastructure(protected val urlTemplate: String) {
       get() = findExecutableInPluginTempDirectory()
   }
 
-  data object DotnetRuntime : LsInfrastructure("https://aka.ms/dotnet/LTS/dotnet-sdk-%s-%s.%s") {
-    override val formattedUrl: String?
-      get() {
-        val osClassifier = when {
-          SystemInfo.isWindows -> "win"
-          SystemInfo.isLinux -> "linux"
-          SystemInfo.isMac -> "osx"
-          else -> return null
-        }
-        val architectureClassifier = when (SystemInfo.OS_ARCH) {
-          "x64", "amd64", "ia64", "x86_64" -> "x64"
-          "x86" -> "x86"
-          "arm64", "aarch64" -> "arm64"
-          "arm32" -> "arm32"
-          else -> {
-            thisLogger().warn("Unsupported os arch ${SystemInfo.OS_ARCH} - dotnet runtime could not be installed")
-            return null
-          }
-        }
-        val extension = when {
-          SystemInfo.isWindows -> "zip"
-          else -> "tar.gz"
-        }
-        return urlTemplate.format(osClassifier, architectureClassifier, extension)
-      }
-
-    override val extractedDirectoryName: String
-      get() = "dotnet-sdk"
-
-    override val executableName: String
-      get() = if (SystemInfo.isWindows) "dotnet.exe" else "dotnet"
-
-    override val presentableName: String
-      get() = BicepBundle.message("progress.title.load.dotnet")
-
-    override val localExecutablePath: String
-      get() = findExistingDotnetExecutable() ?: findExecutableInPluginTempDirectory()
-
-    override fun isValid(): Boolean {
-      val executablePath = localExecutablePath.toNioPathOrNull()?.takeIf(Path::exists) ?: return false
-      return isAcceptableDotnetSdkVersion(executablePath.absolutePathString())
-    }
-
-    private fun findExistingDotnetExecutable(): String? {
-      val osSpecificWhich = if (SystemInfo.isWindows) "where" else "which"
-      val existingDotnetSdk = ExecUtil.execAndReadLine(GeneralCommandLine(osSpecificWhich, executableName))?.let(PathUtil::toSystemDependentName)
-
-      return if (!existingDotnetSdk.isNullOrBlank() && isAcceptableDotnetSdkVersion(existingDotnetSdk)) {
-        existingDotnetSdk
-      }
-      else {
-        null
-      }
-    }
-
-    private fun isAcceptableDotnetSdkVersion(executablePath: String): Boolean {
-      val availableRuntimes = ExecUtil.execAndGetOutput(
-        GeneralCommandLine(executablePath, "--list-runtimes")
-      ).stdoutLines
-
-      val isAcceptableSdkVersion = listOf(
-        "Microsoft.NETCore.App 8"
-      ).any { requiredRuntime ->
-        availableRuntimes.any { availableRuntime ->
-          availableRuntime.startsWith(requiredRuntime)
-        }
-      }
-      thisLogger().warn("Available runtimes for Bicep language server: $availableRuntimes. Is acceptable version: $isAcceptableSdkVersion")
-      return isAcceptableSdkVersion
-    }
-  }
-
   abstract val formattedUrl: @NlsSafe String?
   abstract val extractedDirectoryName: @NlsSafe String
   abstract val executableName: @NlsSafe String
@@ -134,6 +62,6 @@ internal sealed class LsInfrastructure(protected val urlTemplate: String) {
   }
 
   companion object {
-    fun allKnown() = sequenceOf(BicepLS, DotnetRuntime)
+    fun allKnown() = sequenceOf(BicepLS)
   }
 }

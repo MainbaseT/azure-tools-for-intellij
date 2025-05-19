@@ -14,6 +14,7 @@ import com.intellij.platform.lsp.api.LspServerSupportProvider
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
 import com.intellij.platform.lsp.api.customization.LspFormattingSupport
 import com.intellij.platform.lsp.api.lsWidget.LspServerWidgetItem
+import com.jetbrains.rider.NetCoreRuntime
 
 class BicepLspSupportProvider : LspServerSupportProvider {
   override fun fileOpened(
@@ -78,7 +79,7 @@ internal fun findAllOpenedBicepFiles(project: Project): Sequence<VirtualFile> {
 
 internal fun prepareBicepServerLaunchCommandLine(): GeneralCommandLine {
   return GeneralCommandLine(
-    LsInfrastructure.DotnetRuntime.localExecutablePath,
+    NetCoreRuntime.cliPath.value,
     LsInfrastructure.BicepLS.localExecutablePath
   )
 }
