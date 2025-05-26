@@ -10,6 +10,7 @@ using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.DotNetCore;
 using JetBrains.ProjectModel.Tasks;
 using JetBrains.ReSharper.Azure.Project.Host;
+using JetBrains.ReSharper.Azure.Project.LocalSettings;
 using JetBrains.ReSharper.Feature.Services.Web.AspRouteTemplates.ApplicationUrls;
 using JetBrains.ReSharper.Psi;
 using JetBrains.Util;
@@ -24,6 +25,7 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
   private readonly ChangeManager _changeManager;
   private readonly DotNetCoreLaunchSettingsJsonProfileProvider _launchSettingsJsonProvider;
   private readonly HostJsonProfileProvider _hostJsonProfileProvider;
+  private readonly LocalSettingsJsonProfileProvider _localSettingsJsonProfileProvider;
   private readonly IPsiServices _psiServices;
   private readonly ConcurrentDictionary<IProject, ApplicationUrls> _cache = new();
 
@@ -33,6 +35,7 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
     ChangeManager changeManager,
     DotNetCoreLaunchSettingsJsonProfileProvider launchSettingsJsonProvider,
     HostJsonProfileProvider hostJsonProfileProvider,
+    LocalSettingsJsonProfileProvider localSettingsJsonProfileProvider,
     IPsiServices psiServices,
     ISolutionLoadTasksScheduler solutionLoadTasksScheduler
   )
@@ -42,11 +45,13 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
     _changeManager = changeManager;
     _launchSettingsJsonProvider = launchSettingsJsonProvider;
     _hostJsonProfileProvider = hostJsonProfileProvider;
+    _localSettingsJsonProfileProvider = localSettingsJsonProfileProvider;
     _psiServices = psiServices;
 
     changeManager.RegisterChangeProvider(lifetime, this);
     changeManager.AddDependency(lifetime, this, launchSettingsJsonProvider);
     changeManager.AddDependency(lifetime, this, hostJsonProfileProvider);
+    changeManager.AddDependency(lifetime, this, localSettingsJsonProfileProvider);
     solutionLoadTasksScheduler.EnqueueTask(new SolutionLoadTask(GetType(), SolutionLoadTaskKinds.AsLateAsPossible,
       InvalidateAll));
     lifetime.OnTermination(() => _cache.Clear());
@@ -56,7 +61,12 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
   {
     var projectsWithLaunchSettingsChanges = changeMap.GetChanges<LaunchSettingsJsonChange>().Select(x => x.Project);
     var projectsWithHostJsonChanges = changeMap.GetChanges<HostJsonChange>().Select(x => x.Project);
-    var allProjects = projectsWithLaunchSettingsChanges.Union(projectsWithHostJsonChanges).Distinct().ToArray();
+    var projectsWithLocalSettingsJsonChanges = changeMap.GetChanges<LocalSettingsJsonChange>().Select(x => x.Project);
+    var allProjects = projectsWithLaunchSettingsChanges
+      .Union(projectsWithHostJsonChanges)
+      .Union(projectsWithLocalSettingsJsonChanges)
+      .Distinct()
+      .ToArray();
 
     foreach (var project in allProjects)
     {
@@ -69,32 +79,30 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
   public ApplicationUrls GetApplicationUrls(IProject project)
   {
     return project.IsAzureFunctionProject() ? 
-      _cache.GetOrAdd(project, BuildRoots(project)) 
+      _cache.GetOrAdd(project, BuildRoots) 
       : new ApplicationUrls([], [], []);
   }
 
   private ApplicationUrls BuildRoots(IProject project)
   {
     var launchSettings = _launchSettingsJsonProvider.TryGetLaunchJsonSettingsProfiles(project);
-    var hostJson = _hostJsonProfileProvider.TryGetHostJson(project);
+    var hostJson = _hostJsonProfileProvider.GetHostJson(project);
+    var localSettings = _localSettingsJsonProfileProvider.GetLocalSettingsJson(project);
 
-    return CreateApplicationUrls(launchSettings.GetAzureFunctionRunProfiles(), hostJson.Extensions?.Http?.RoutePrefix);
+    return CreateApplicationUrls(GetPorts(launchSettings, localSettings), hostJson.Extensions?.Http?.RoutePrefix);
   }
 
   private static ApplicationUrls CreateApplicationUrls(
-    IEnumerable<AzureFunctionRunProfile> runProfiles,
+    IEnumerable<int> ports,
     string? routePrefix)
   {
     var urls = new HashSet<string>();
     var schemes = new HashSet<string>();
     var authorities = new HashSet<string>();
 
-    foreach (var azureFunctionRunProfile in runProfiles)
+    foreach (var port in ports)
     {
-      var port = azureFunctionRunProfile.GetPort();
-      if (port is null) continue;
-
-      var azureFunctionUrl = AzureFunctionUrl.Create(port.Value, routePrefix);
+      var azureFunctionUrl = AzureFunctionUrl.Create(port, routePrefix);
 
       urls.Add(azureFunctionUrl.Url);
       schemes.Add(azureFunctionUrl.Scheme);
@@ -102,6 +110,21 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
     }
     
     return new ApplicationUrls(urls, schemes, authorities);
+  }
+
+  private static IEnumerable<int> GetPorts(LaunchSettingsJson? launchSettings, LocalSettingsJson? localSettings)
+  {
+    var portFromLocalSettings = localSettings?.Host?.LocalHttpPort;
+    if (portFromLocalSettings != null) yield return portFromLocalSettings.Value;
+
+    var runProfiles = launchSettings?.GetAzureFunctionRunProfiles();
+    if (runProfiles == null) yield break;
+    
+    foreach (var azureFunctionRunProfile in runProfiles)
+    {
+      var port = azureFunctionRunProfile.GetPort();
+      if (port != null) yield return port.Value;
+    }
   }
 
   private void InvalidateAll()

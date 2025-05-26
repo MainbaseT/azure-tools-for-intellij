@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Metadata.Reader.API;
 using JetBrains.Metadata.Reader.Impl;
 using JetBrains.ReSharper.Psi;
 using JetBrains.Util;
@@ -18,7 +17,7 @@ public class HttpTriggerAttribute(IAttributeInstance attributeInstance)
 
     public static IEnumerable<string> Names { get; } = [DefaultWorkerName.FullName, IsolatedWorkerName.FullName];
     
-    public static HttpTriggerAttribute? TryGet(IParameter parameter)
+    public static HttpTriggerAttribute? Get(IParameter parameter)
     {
         var httpTriggerAttributes = parameter.GetAttributeInstances(DefaultWorkerName, false)
             .Union(parameter.GetAttributeInstances(IsolatedWorkerName, false))

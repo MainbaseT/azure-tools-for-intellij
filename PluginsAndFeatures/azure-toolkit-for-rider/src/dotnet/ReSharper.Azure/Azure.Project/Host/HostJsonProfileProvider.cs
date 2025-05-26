@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using JetBrains.Application.changes;
+using JetBrains.Application.FileSystemTracker;
 using JetBrains.Application.Parts;
 using JetBrains.Application.Progress;
 using JetBrains.Lifetimes;
@@ -16,26 +17,43 @@ namespace JetBrains.ReSharper.Azure.Project.Host;
 public class HostJsonProfileProvider : IChangeProvider
 {
     private readonly IHostJsonDataCache _cache;
+    private readonly ChangeManager _changeManager;
     private readonly HostJsonDataProvider _hostJsonDataProvider;
 
     public HostJsonProfileProvider(
-        Lifetime lifetime, 
+        Lifetime lifetime,
         IHostJsonDataCache cache,
         ChangeManager changeManager,
-        ISolution solution
-    )
+        IFileSystemTracker fileSystemTracker,
+        IViewableProjectsCollection viewableProjectsCollection,
+        ISolution solution)
     {
         _cache = cache;
+        _changeManager = changeManager;
         changeManager.RegisterChangeProvider(lifetime, this);
         _hostJsonDataProvider = new HostJsonDataProvider(this, changeManager, solution);
         _cache.RegisterCache(lifetime, _hostJsonDataProvider);
+
+        viewableProjectsCollection.Projects.View(lifetime, (projectLifetime, project) =>
+        {
+            fileSystemTracker.AdviseFileChanges(
+                projectLifetime,
+                HostJsonFile.GetPath(project),
+                _ => Refresh(project));
+        });
     }
 
     public bool HasHostJson(IProject project) => HostJsonFile.GetPath(project).ExistsFile;
 
-    public HostJson TryGetHostJson(IProject project)
+    public HostJson GetHostJson(IProject project)
     {
         return _cache.GetData(_hostJsonDataProvider, HostJsonFile.GetPath(project), HostJson.Empty);
+    }
+    
+    private void Refresh(IProject project)
+    {
+        var change = new HostJsonChange(project);
+        _changeManager.OnProviderChanged(this, change, SimpleTaskExecutor.Instance);
     }
 
     private class HostJsonDataProvider(
@@ -59,14 +77,14 @@ public class HostJsonProfileProvider : IChangeProvider
             if (hasExtensions)
             {
                 HostJson.ExtensionsContent.HttpContent? httpContent = null;
-                
+
                 var hasHttpExtension = reader.ReadBoolean();
                 if (hasHttpExtension)
                 {
                     var routePrefix = reader.ReadString();
                     httpContent = new HostJson.ExtensionsContent.HttpContent(routePrefix);
                 }
-                
+
                 extensionsContent = new HostJson.ExtensionsContent(httpContent);
             }
 
@@ -84,7 +102,7 @@ public class HostJsonProfileProvider : IChangeProvider
                 writer.Write(false);
                 return;
             }
-            
+
             if (data.Extensions.Http != null)
             {
                 writer.Write(true);
@@ -106,9 +124,8 @@ public class HostJsonProfileProvider : IChangeProvider
             var projectItem = solution.FindProjectItemsByLocation(projectFileLocation).FirstOrDefault();
             var project = projectItem?.GetProject();
             if (project == null) return null;
-            
-            var change = new HostJsonChange(project);
-            return () => changeManager.OnProviderChanged(provider, change, SimpleTaskExecutor.Instance);
+
+            return () => provider.Refresh(project);
         }
     }
 

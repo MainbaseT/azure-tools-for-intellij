@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Metadata.Reader.API;
 using JetBrains.Metadata.Reader.Impl;
 using JetBrains.ReSharper.Psi;
 using JetBrains.Util;
@@ -17,7 +16,7 @@ public class FunctionNameAttribute(IAttributeInstance functionAttribute)
 
     public static IEnumerable<string> Names { get; } = [DefaultWorkerName.FullName, IsolatedWorkerName.FullName];
     
-    public static FunctionNameAttribute? TryGetFromMethod(IMethod method)
+    public static FunctionNameAttribute? GetFromMethod(IMethod method)
     {
         var functionAttributes = method.GetAttributeInstances(DefaultWorkerName, false)
             .Union(method.GetAttributeInstances(IsolatedWorkerName, false))

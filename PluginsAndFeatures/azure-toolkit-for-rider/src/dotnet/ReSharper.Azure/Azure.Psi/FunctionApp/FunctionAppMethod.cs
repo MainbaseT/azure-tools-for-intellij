@@ -20,7 +20,7 @@ public static class FunctionAppMethod
     {
         return method != null &&
                method.GetAccessRights() == AccessRights.PUBLIC &&
-               FunctionNameAttribute.TryGetFromMethod(method) != null;
+               FunctionNameAttribute.GetFromMethod(method) != null;
     }
     
     /// <summary>
@@ -32,7 +32,7 @@ public static class FunctionAppMethod
     {
         if (method == null) return null;
 
-        var functionAttribute = FunctionNameAttribute.TryGetFromMethod(method);
+        var functionAttribute = FunctionNameAttribute.GetFromMethod(method);
         return functionAttribute?.GetName();
     }
 
@@ -44,9 +44,9 @@ public static class FunctionAppMethod
     public static HttpTriggerAttributeProperties? GetHttpTriggerAttributeFromMethod(IMethod? method)
     {
         if (method == null) return null;
-        if (FunctionNameAttribute.TryGetFromMethod(method) == null) return null;
+        if (FunctionNameAttribute.GetFromMethod(method) == null) return null;
 
-        return method.Parameters.SelectNotNull(HttpTriggerAttribute.TryGet)
+        return method.Parameters.SelectNotNull(HttpTriggerAttribute.Get)
             .Select(httpTriggerAttribute => httpTriggerAttribute.RetrieveProperties())
             .FirstOrDefault();
     }

@@ -6,7 +6,7 @@ using JetBrains.ReSharper.Feature.Services.Web.Endpoints.Occurrences.AspNet;
 using JetBrains.ReSharper.Psi;
 using JetBrains.UI.RichText;
 
-namespace JetBrains.ReSharper.Azure.Psi.Endpoints.Functions.Occurences;
+namespace JetBrains.ReSharper.Azure.Psi.Endpoints.Functions.Occurrences;
 
 public class AzureFunctionHttpEndpointChainedOccurrence(
   IParametersOwner action,

@@ -9,7 +9,7 @@ using JetBrains.ReSharper.Feature.Services.Web.Endpoints.Occurrences.AspNet;
 using JetBrains.UI.Icons;
 using JetBrains.UI.ThemedIcons;
 
-namespace JetBrains.ReSharper.Azure.Psi.Endpoints.Functions.Occurences;
+namespace JetBrains.ReSharper.Azure.Psi.Endpoints.Functions.Occurrences;
 
 [SolutionComponent(Instantiation.DemandAnyThreadSafe)]
 public class AzureFunctionHttpEndpointOccurrencesHelper : IEndpointOccurrencesHelper
