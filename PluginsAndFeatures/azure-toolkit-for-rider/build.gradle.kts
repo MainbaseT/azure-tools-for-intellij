@@ -2,7 +2,6 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-import com.jetbrains.plugin.structure.base.utils.isFile
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.Constants
@@ -11,6 +10,7 @@ import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.io.path.absolute
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -22,6 +22,7 @@ plugins {
 
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
+val dotnetBuildConfiguration = providers.gradleProperty("dotnetBuildConfiguration").get()
 
 val platformVersion by extra { providers.gradleProperty("platformVersion").get() }
 
@@ -110,6 +111,7 @@ configurations {
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {
+        name = providers.gradleProperty("pluginName")
         version = providers.gradleProperty("pluginVersion")
 
         val changelog = project.changelog // local variable for configuration cache compatibility
@@ -127,7 +129,6 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            untilBuild = providers.gradleProperty("pluginUntilBuild")
         }
     }
 
@@ -276,8 +277,8 @@ val riderModel: Configuration by configurations.creating {
 artifacts {
     add(riderModel.name, provider {
         intellijPlatform.platformPath.resolve("lib/rd/rider-model.jar").also {
-            check(it.isFile) {
-                "rider-model.jar is not found at $riderModel"
+            check(it.isRegularFile()) {
+                "rider-model.jar is not found at \"$it\"."
             }
         }
     }) {
