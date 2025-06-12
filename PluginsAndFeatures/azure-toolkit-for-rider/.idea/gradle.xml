@@ -28,7 +28,6 @@
             <option value="$PROJECT_DIR$/azure-intellij-plugin-cosmos" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-cosmos-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-database-dotnet" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-devops" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-keyvault-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-redis-dotnet" />
