@@ -8,7 +8,7 @@
     <Import Project="$(JetBrainsRiderBackendReference)" Condition="Exists('$(JetBrainsRiderBackendReference)')" />
 
     <ItemGroup>
-        <PackageReference Include="CronExpressionDescriptor" Version="2.36.0" />
+        <PackageReference Include="CronExpressionDescriptor" Version="2.41.0" />
         <PackageReference Include="NCrontab.Signed" Version="3.3.3" />
     </ItemGroup>
 

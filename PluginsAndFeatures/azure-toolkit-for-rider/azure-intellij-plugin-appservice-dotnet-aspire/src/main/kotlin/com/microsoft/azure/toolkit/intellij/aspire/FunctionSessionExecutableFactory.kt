@@ -40,7 +40,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getAp
 import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionCoreToolsExecutableService
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
@@ -218,8 +217,8 @@ class FunctionSessionExecutableFactory(private val project: Project) {
         targetFramework: RdTargetFrameworkId?
     ): ExecutableParameterProcessingResult {
         val processOptions = ProjectProcessOptions(
-            sessionProjectPath.toFile(),
-            File(workingDirectory)
+            sessionProjectPath,
+            Path(workingDirectory)
         )
         val runParameters = ExecutableRunParameters(
             coreToolsExecutablePath,
