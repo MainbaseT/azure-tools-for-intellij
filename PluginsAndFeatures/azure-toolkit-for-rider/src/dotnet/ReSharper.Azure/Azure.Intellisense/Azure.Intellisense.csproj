@@ -8,7 +8,7 @@
     <Import Project="$(JetBrainsRiderRdBackendCommonReference)" Condition="Exists('$(JetBrainsRiderRdBackendCommonReference)')" />
 
     <ItemGroup>
-        <PackageReference Include="CitizenMatt.ReSharper.LiveTemplateCompiler" Version="3.6.0">
+        <PackageReference Include="CitizenMatt.ReSharper.LiveTemplateCompiler" Version="3.7.0">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

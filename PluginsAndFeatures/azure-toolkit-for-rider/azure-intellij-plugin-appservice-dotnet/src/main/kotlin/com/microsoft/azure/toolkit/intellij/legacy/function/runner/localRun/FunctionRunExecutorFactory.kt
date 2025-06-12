@@ -34,7 +34,6 @@ import com.jetbrains.rider.runtime.msNet.MsNetRuntime
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
@@ -128,8 +127,8 @@ class FunctionRunExecutorFactory(
             else parameters.startBrowserParameters.startAfterLaunch
 
         val projectProcessOptions = ProjectProcessOptions(
-            File(runnableProject.projectFilePath),
-            File(effectiveWorkingDirectory)
+            Path(runnableProject.projectFilePath),
+            Path(effectiveWorkingDirectory)
         )
 
         val runParameters = ExecutableRunParameters(
