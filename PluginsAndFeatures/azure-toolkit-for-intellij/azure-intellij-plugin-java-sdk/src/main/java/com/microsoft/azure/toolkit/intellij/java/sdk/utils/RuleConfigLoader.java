@@ -1,0 +1,129 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+package com.microsoft.azure.toolkit.intellij.java.sdk.utils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.ProjectActivity;
+import com.microsoft.azure.toolkit.intellij.java.sdk.models.RuleConfig;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class RuleConfigLoader implements ProjectActivity {
+    private static final String CONFIG_FILE_PATH = "./ruleConfigs.json";
+    private static RuleConfigLoader INSTANCE;
+    private Map<String, RuleConfig> ruleConfigs;
+
+    private RuleConfigLoader() {
+        this.ruleConfigs = new HashMap<>();
+    }
+
+    /**
+     * Gets the singleton instance of RuleConfigLoader.
+     *
+     * @return The singleton instance of RuleConfigLoader.
+     */
+    public static RuleConfigLoader getInstance() {
+        return INSTANCE;
+    }
+
+    @Nullable
+    @Override
+    public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
+        initialize();
+        return null;
+    }
+
+    /**
+     * Get the rule configurations.
+     *
+     * @return the rule configurations
+     */
+    public Map<String, RuleConfig> getRuleConfigs() {
+        return Collections.unmodifiableMap(ruleConfigs);
+    }
+
+    private void initialize(){
+        try {
+            this.ruleConfigs.putAll(this.loadRuleConfigurations());
+            INSTANCE = this;
+        } catch (IOException e) {
+            log.warn("Failed to initialize RuleConfigLoader: " + e.getMessage(), e);
+        }
+    }
+
+    private Map<String, RuleConfig> loadRuleConfigurations() throws IOException {
+        InputStream configStream = getClass().getClassLoader().getResourceAsStream(RuleConfigLoader.CONFIG_FILE_PATH);
+        if (configStream == null) {
+            log.info("Rule configuration file not found: " + RuleConfigLoader.CONFIG_FILE_PATH);
+            return new HashMap<>();
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(configStream);
+        Map<String, RuleConfig> configs = new HashMap<>();
+
+        rootNode.fields().forEachRemaining(entry -> {
+            String ruleName = entry.getKey();
+            JsonNode ruleNode = entry.getValue();
+
+            if (ruleNode.path("hasDerivedRules").asBoolean(false)) {
+                // Parse derived rules
+                ruleNode.fields().forEachRemaining(derivedEntry -> {
+                    if (!derivedEntry.getKey().equals("hasDerivedRules")) {
+                        String derivedRuleName = derivedEntry.getKey();
+                        JsonNode derivedRuleNode = derivedEntry.getValue();
+                        RuleConfig derivedRuleConfig = parseRuleConfig(derivedRuleNode);
+                        configs.put(derivedRuleName, derivedRuleConfig);
+                    }
+                });
+            } else {
+                RuleConfig ruleConfig = parseRuleConfig(ruleNode);
+                configs.put(ruleName, ruleConfig);
+            }
+        });
+
+        return configs;
+    }
+
+    private RuleConfig parseRuleConfig(JsonNode ruleNode) {
+        List<String> usages = parseStringOrArray(ruleNode.path("usages"));
+        List<String> scope = parseStringOrArray(ruleNode.path("scope"));
+        String antiPatternMessage = ruleNode.path("antiPatternMessage").asText(null);
+        Map<String, String> regexPatterns = parseRegexPatterns(ruleNode.path("regexPatterns"));
+        boolean skipRuleCheck = ruleNode.path("skip").asBoolean(false);
+
+        return new RuleConfig(usages, scope, antiPatternMessage, regexPatterns, skipRuleCheck);
+    }
+
+    private List<String> parseStringOrArray(JsonNode node) {
+        List<String> values = new ArrayList<>();
+        if (node.isTextual()) {
+            values.add(node.asText());
+        } else if (node.isArray()) {
+            node.forEach(element -> values.add(element.asText()));
+        }
+        return values;
+    }
+
+    private Map<String, String> parseRegexPatterns(JsonNode regexPatternsNode) {
+        Map<String, String> regexPatterns = new HashMap<>();
+        if (regexPatternsNode != null && regexPatternsNode.isObject()) {
+            regexPatternsNode.fields().forEachRemaining(entry -> regexPatterns.put(entry.getKey(), entry.getValue().asText()));
+        }
+        return regexPatterns;
+    }
+}

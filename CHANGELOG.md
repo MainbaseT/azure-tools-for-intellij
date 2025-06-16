@@ -3,6 +3,8 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.95.0](#3950)
+  - [3.94.0](#3940)
   - [3.93.0](#3930)
   - [3.92.0](#3920)
   - [3.91.0](#3910)
@@ -114,6 +116,10 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.95.0
+- Update function cdn uri
+- Integrate rule sets for flagging and making better Azure SDK usage
 
 ## 3.94.0
 - Fix some known issues.

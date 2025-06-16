@@ -2,7 +2,7 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.94.0</version>
+  <version>3.95.0</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
@@ -27,9 +27,10 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h2 id="3-94-0">3.94.0</h2>
+      <h2 id="3-95-0">3.95.0</h2>
       <ul>
-      <li>Fix some known issues.</li>
+      <li>Update function cdn uri</li>
+      <li>Integrate rule sets for flagging and making better Azure SDK usage</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
