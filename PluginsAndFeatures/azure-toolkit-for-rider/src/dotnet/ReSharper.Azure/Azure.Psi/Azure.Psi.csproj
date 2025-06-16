@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>JetBrains.ReSharper.Azure.Psi</RootNamespace>
+        <AssemblyName>JetBrains.ReSharper.Azure.Psi</AssemblyName>
+    </PropertyGroup>
+
+    <Import Project="$(JetBrainsRiderRdBackendCommonReference)" Condition="Exists('$(JetBrainsRiderRdBackendCommonReference)')" />
+
+</Project>

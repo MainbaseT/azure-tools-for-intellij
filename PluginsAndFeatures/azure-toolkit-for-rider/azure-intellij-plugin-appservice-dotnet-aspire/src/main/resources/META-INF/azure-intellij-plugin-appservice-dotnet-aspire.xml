@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+  -->
+
+<idea-plugin>
+    <depends>me.rafaelldi.aspire</depends>
+
+    <extensions defaultExtensionNs="com.jetbrains.rider.aspire">
+        <sessionProcessLauncherExtension
+                implementation="com.microsoft.azure.toolkit.intellij.aspire.FunctionProjectSessionProcessLauncher"/>
+    </extensions>
+</idea-plugin>

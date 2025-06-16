@@ -4,9 +4,6 @@
         <actions implementation="com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor"/>
         <actions implementation="com.microsoft.azure.toolkit.intellij.storage.IntellijStorageActionsContributor"/>
     </extensions>
-    <extensions defaultExtensionNs="com.intellij">
-        <stepsBeforeRunProvider id="AzuriteTaskProviderId" implementation="com.microsoft.azure.toolkit.intellij.storage.azurite.AzuriteTaskProvider"/>
-    </extensions>
     <projectListeners>
         <listener class="com.microsoft.azure.toolkit.intellij.storage.azurite.AzuriteTaskAdder"
                   topic="com.intellij.execution.RunManagerListener" />
