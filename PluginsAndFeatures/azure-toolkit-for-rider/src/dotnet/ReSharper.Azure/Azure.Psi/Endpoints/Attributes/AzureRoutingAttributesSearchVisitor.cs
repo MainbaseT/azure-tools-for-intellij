@@ -29,7 +29,7 @@ internal class AzureRoutingAttributesSearchVisitor(
     return _result.AsEnumerable().ToArray();
   }
 
-  protected override bool ProcessProjectFile(IPsiSourceFile sourceFile)
+  protected override bool ProcessSourceFile(IPsiSourceFile sourceFile)
   {
     var file = (ICSharpFile?)sourceFile.GetDominantPsiFile<CSharpLanguage>();
     if (file is not null)
