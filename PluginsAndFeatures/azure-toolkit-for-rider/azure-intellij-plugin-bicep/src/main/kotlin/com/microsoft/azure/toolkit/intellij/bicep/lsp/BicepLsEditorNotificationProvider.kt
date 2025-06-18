@@ -20,7 +20,7 @@ import javax.swing.JComponent
 internal class BicepLsEditorNotificationProvider : EditorNotificationProvider {
   override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
     if (file.extension != BicepBundle.BICEP_EXTENSION
-        || BicepSchedulingService.Companion.getInstance(project).isLsSetupInProgress.value
+        || BicepSchedulingService.getInstance(project).isLsSetupInProgress.value
         || BicepSettings.getInstance(project).shouldIgnoreLsDownloadSuggestion()) {
       return null
     }
@@ -48,7 +48,7 @@ internal class BicepLsEditorNotificationProvider : EditorNotificationProvider {
   }
 
   private fun scheduleReloadEditorNotifications(project: Project) {
-    BicepSchedulingService.Companion.getInstance(project).coroutineScope.launch {
+    BicepSchedulingService.getInstance(project).coroutineScope.launch {
       reloadEditorNotifications(project)
     }
   }

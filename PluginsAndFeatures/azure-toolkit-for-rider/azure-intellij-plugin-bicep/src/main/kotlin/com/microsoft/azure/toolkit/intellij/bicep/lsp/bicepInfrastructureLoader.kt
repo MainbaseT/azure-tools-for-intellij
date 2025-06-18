@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.bicep.lsp
 
 import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
@@ -54,7 +56,7 @@ internal suspend fun downloadLsInfrastructure(project: Project): Boolean {
         }
       }
 
-      LOG.warn("Loaded ${downloadedResources.size} of " +
+      LOG.info("Loaded ${downloadedResources.size} of " +
                "${allNecessaryResources.size} necessary resources: " +
                downloadedResources.joinToString(separator = ";"))
 
@@ -68,7 +70,7 @@ internal suspend fun downloadLsInfrastructure(project: Project): Boolean {
         }
       }
 
-      LOG.warn("Unpacked ${unpackedResources.size} of ${downloadedResources.size} loaded resources: " +
+      LOG.info("Unpacked ${unpackedResources.size} of ${downloadedResources.size} loaded resources: " +
                unpackedResources.joinToString(separator = ";"))
 
       allNecessaryResources.all(LsInfrastructure::isPresent)

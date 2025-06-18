@@ -4,7 +4,7 @@ import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
 
 @Service(Service.Level.PROJECT)
-@State(name = "BicepSettings", storages = [Storage(StoragePathMacros.WORKSPACE_FILE)])
+@State(name = "AzureBicepSettings", storages = [Storage(StoragePathMacros.WORKSPACE_FILE)])
 internal class BicepSettings : SimplePersistentStateComponent<BicepSettingsState>(BicepSettingsState()) {
   companion object {
     fun getInstance(project: Project) = project.service<BicepSettings>()
@@ -19,6 +19,3 @@ internal class BicepSettings : SimplePersistentStateComponent<BicepSettingsState
   }
 }
 
-internal class BicepSettingsState : BaseState() {
-  var ignoreLsDownloadSuggestion: Boolean by property(false)
-}

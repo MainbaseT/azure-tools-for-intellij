@@ -78,8 +78,5 @@ internal fun findAllOpenedBicepFiles(project: Project): Sequence<VirtualFile> {
 }
 
 internal fun prepareBicepServerLaunchCommandLine(): GeneralCommandLine {
-  return GeneralCommandLine(
-    NetCoreRuntime.cliPath.value,
-    LsInfrastructure.BicepLS.localExecutablePath
-  )
+  return GeneralCommandLine(NetCoreRuntime.cliPath.value, BicepLS.localExecutablePath)
 }
