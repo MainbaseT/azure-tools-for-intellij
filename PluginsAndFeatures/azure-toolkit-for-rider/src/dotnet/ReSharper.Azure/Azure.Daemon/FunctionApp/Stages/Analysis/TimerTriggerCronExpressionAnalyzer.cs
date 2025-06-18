@@ -51,7 +51,7 @@ public class TimerTriggerCronExpressionAnalyzer : ElementProblemAnalyzer<IAttrib
         var typeElement = resolveResult?.DeclaredElement as ITypeElement;
         if (typeElement == null) return;
 
-        if (!FunctionAppFinder.IsTimerTriggerAttribute(typeElement)) return;
+        if (!typeElement.IsTimerTriggerAttribute()) return;
 
         var expressionArgument = element.Arguments.FirstOrDefault()?.Value;
         if (expressionArgument is null || !expressionArgument.Type().IsString()) return;

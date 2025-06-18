@@ -31,7 +31,7 @@ public class FunctionAppRunMarkerProvider : IRunMarkerProvider
         foreach (var declaration in CachedDeclarationsCollector.Run<IMethodDeclaration>(csharpFile))
         {
             if (declaration.DeclaredElement is not { } method) continue;
-            if (!FunctionAppFinder.IsSuitableFunctionAppMethod(method)) continue;
+            if (!FunctionAppMethod.IsSuitableFunctionAppMethod(method)) continue;
 
             var range = declaration.GetNameDocumentRange();
 
