@@ -6,6 +6,14 @@
 
 ### Changed
 
+- Support for Rider 2025.2 EAP 6
+- Add Bicep support
+- Show Azure Functions in the Endpoints tool window ([#515](https://github.com/JetBrains/azure-tools-for-intellij/issues/515))
+
+## [4.5.0] - 2025-06-12
+
+### Changed
+
 - Support for Rider 2025.2 EAP 4
 
 ## [4.4.8] - 2025-04-16
@@ -326,7 +334,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.8...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.0...HEAD
+[4.5.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.8...v4.5.0
 [4.4.8]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.7...v4.4.8
 [4.4.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.6...v4.4.7
 [4.4.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.5...v4.4.6
