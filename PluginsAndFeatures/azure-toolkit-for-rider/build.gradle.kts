@@ -203,12 +203,11 @@ tasks {
         dependsOn(rdGen, generateDotNetSdkProperties, generateNuGetConfig)
     }
 
-    val dotnetBuildConfiguration = providers.gradleProperty("dotnetBuildConfiguration").get()
     val compileDotNet by registering(Exec::class) {
         dependsOn(prepareDotNetPart)
         inputs.property("dotnetBuildConfiguration", dotnetBuildConfiguration)
 
-        executable("dotnet")
+        executable("./dotnet.cmd")
         args("build", "-consoleLoggerParameters:ErrorsOnly", "-c", dotnetBuildConfiguration, "ReSharper.Azure.sln")
     }
 
