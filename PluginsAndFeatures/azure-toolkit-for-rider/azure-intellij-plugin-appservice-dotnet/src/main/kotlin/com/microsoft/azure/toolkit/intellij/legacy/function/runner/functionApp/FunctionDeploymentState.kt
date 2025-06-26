@@ -178,7 +178,7 @@ class FunctionDeploymentState(
         pricingTier: PricingTier,
         runtime: RuntimeConfig,
         dotnetRuntime: DotNetRuntimeConfig
-    ) = buildMap<String, String> {
+    ) = buildMap {
         //Controls remote build behavior during deployment.
         //see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#scm_do_build_during_deployment
         if (pricingTier == PricingTier.CONSUMPTION && runtime.os == OperatingSystem.LINUX) {

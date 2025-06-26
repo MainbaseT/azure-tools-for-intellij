@@ -21,7 +21,7 @@ class FunctionAppContainerConfiguration(private val project: Project, factory: C
 
     companion object {
         private const val REPO_COMPONENT_REGEX_PATTERN = "[a-z0-9]+(?:[._-][a-z0-9]+)*"
-        private const val TAG_REGEX_PATTERN = "^\\w+[\\w.-]*\$"
+        private const val TAG_REGEX_PATTERN = "^\\w+[\\w.-]*$"
     }
 
     private val repoComponentRegex = Regex(REPO_COMPONENT_REGEX_PATTERN)

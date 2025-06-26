@@ -43,7 +43,7 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
   }
 
   private fun scheduleLsInfrastructureSetup(setupMode: LsSetupMode) {
-    if (!setupInProgress.compareAndSet(false, true)) return
+    if (!setupInProgress.compareAndSet(expect = false, update = true)) return
 
     lsVerified.set(LsValidity.YET_UNKNOWN)
     coroutineScope.launch(Dispatchers.Default + ModalityState.any().asContextElement()) {
@@ -56,7 +56,7 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
         displayAvailabilityHint(infrastructureValidity, setupMode)
       }
       finally {
-        setupInProgress.compareAndSet(true, false)
+        setupInProgress.compareAndSet(expect = true, update = false)
         reloadEditorNotifications(project)
       }
     }
@@ -81,7 +81,7 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
   }
 
   private fun isInfrastructureValid(): Boolean {
-    return LsInfrastructure.Companion.allKnown().all(LsInfrastructure::isValid)
+    return LsInfrastructure.allKnown().all(LsInfrastructure::isValid)
   }
 
   private suspend fun tryRunServerAndCheckNoErrorsInOutput(): Boolean {

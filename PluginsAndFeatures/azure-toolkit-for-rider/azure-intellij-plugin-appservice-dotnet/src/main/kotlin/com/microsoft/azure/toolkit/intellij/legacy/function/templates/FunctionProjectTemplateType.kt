@@ -12,12 +12,13 @@ import com.jetbrains.rider.projectView.projectTemplates.generators.TypeBasedProj
 import com.jetbrains.rider.projectView.projectTemplates.templateTypes.PredefinedProjectTemplateType
 import com.jetbrains.rider.projectView.projectTemplates.utils.hasClassification
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import javax.swing.Icon
 
 class FunctionProjectTemplateType : PredefinedProjectTemplateType() {
     override val uniqueId = "function.templates"
     override val group = "Other"
     override val name = "Azure Functions"
-    override val icon = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
+    override val icon: Icon? = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
     override val order = 90
     override val shouldHide: Boolean
         get() = !FunctionTemplateManager.getInstance().areAzureFunctionTemplatesInstalled()

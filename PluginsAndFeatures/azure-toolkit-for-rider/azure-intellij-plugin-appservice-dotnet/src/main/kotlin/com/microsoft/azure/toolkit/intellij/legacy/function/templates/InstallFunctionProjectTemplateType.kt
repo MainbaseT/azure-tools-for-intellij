@@ -17,13 +17,14 @@ import com.jetbrains.rider.projectView.projectTemplates.SharedData
 import com.jetbrains.rider.projectView.projectTemplates.generators.ProjectTemplateGenerator
 import com.jetbrains.rider.projectView.projectTemplates.templateTypes.ProjectTemplateType
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import javax.swing.Icon
 import javax.swing.JComponent
 
 class InstallFunctionProjectTemplateType : ProjectTemplateType {
     override val uniqueId = "function.templates.install"
     override val group = "Other"
     override val name = "Azure Functions"
-    override val icon = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
+    override val icon: Icon? = IntelliJAzureIcons.getIcon("/icons/FunctionApp/TemplateAzureFunc.svg")
     override val order = 90
 
     override fun getKeywords() = setOf(name)

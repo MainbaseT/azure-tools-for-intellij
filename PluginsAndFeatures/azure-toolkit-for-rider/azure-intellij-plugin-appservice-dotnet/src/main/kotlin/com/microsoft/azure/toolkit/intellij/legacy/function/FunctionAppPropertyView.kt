@@ -47,7 +47,7 @@ class FunctionAppPropertyView(virtualFile: VirtualFile) : WebAppBasePropertyView
             ) {
                 val functionApp = getWebAppBase(sid, appId, name)
                 val draft = functionApp?.update() as? FunctionAppDraft
-                draft?.setAppSettings(toUpdate)
+                draft?.appSettings = toUpdate
                 toRemove.forEach { key -> draft?.removeAppSetting(key) }
                 draft?.updateIfExist()
             }

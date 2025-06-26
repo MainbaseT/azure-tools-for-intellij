@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.utils
 
 //See: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb
-private val applicationNameRegex = Regex("^[a-zA-Z\\d-]*\$")
+private val applicationNameRegex = Regex("^[a-zA-Z\\d-]*$")
 internal const val APPLICATION_VALIDATION_MESSAGE = "App names only allow alphanumeric, hyphen characters, cannot start or end in a hyphen, and must be less than 60 chars"
 private val invalidCharRegex = Regex("[^a-zA-Z\\d-]")
 
@@ -20,7 +20,7 @@ internal fun removeInvalidCharacters(name: String): String {
 }
 
 //See: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb
-private val applicationSlotNameRegex = Regex("^[a-zA-Z\\d-]*\$")
+private val applicationSlotNameRegex = Regex("^[a-zA-Z\\d-]*$")
 internal const val APPLICATION_SLOT_VALIDATION_MESSAGE = "App slot names only allow alphanumeric, hyphen characters, cannot start or end in a hyphen, and must be less than 59 chars"
 
 internal fun isValidApplicationSlotName(name: String?): Boolean {
@@ -30,7 +30,7 @@ internal fun isValidApplicationSlotName(name: String?): Boolean {
 }
 
 //See: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources
-private val resourceGroupNameRegex = Regex("^[a-zA-Z\\d_.\\-()]*\$")
+private val resourceGroupNameRegex = Regex("^[a-zA-Z\\d_.\\-()]*$")
 internal const val RESOURCE_GROUP_VALIDATION_MESSAGE = "Resource group names only allow alphanumeric, underscore, hyphen, period (except at end), parentheses characters, and must be less than 90 chars"
 
 internal fun isValidResourceGroupName(name: String?): Boolean {

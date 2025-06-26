@@ -48,7 +48,7 @@ class FunctionAppDeploymentSlotPropertyView(virtualFile: VirtualFile) : WebAppBa
             ) {
                 val functionApp = getWebAppBase(sid, appId, name)
                 val draft = functionApp?.update() as? FunctionAppDeploymentSlotDraft
-                draft?.setAppSettings(toUpdate)
+                draft?.appSettings = toUpdate
                 toRemove.forEach { key -> draft?.removeAppSetting(key) }
                 draft?.updateIfExist()
             }

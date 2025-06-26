@@ -28,7 +28,7 @@ import kotlin.io.path.absolutePathString
 
 class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azurite") {
     companion object {
-        private const val IP_ADDRESS_PATTERN = "^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\$"
+        private const val IP_ADDRESS_PATTERN = "^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$"
     }
 
     private val ipAddressRegex = Regex(IP_ADDRESS_PATTERN)
