@@ -5,6 +5,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.Constants
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -152,7 +153,7 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            recommended()
+            ide(IntelliJPlatformType.Rider, providers.gradleProperty("pluginVerificationIdeVersion").get(), false)
         }
     }
 }
