@@ -12,3 +12,4 @@ exclude:
       - protocol
       - azure-intellij-plugin-resharper-host
       - azure-intellij-plugin-cosmos
+      - ../azure-toolkit-for-intellij
