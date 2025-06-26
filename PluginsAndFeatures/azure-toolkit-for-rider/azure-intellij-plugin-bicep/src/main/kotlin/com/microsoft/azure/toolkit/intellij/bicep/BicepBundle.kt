@@ -19,6 +19,7 @@ object BicepBundle : DynamicBundle(PATH_TO_BUNDLE) {
   @JvmStatic
   fun message(@PropertyKey(resourceBundle = PATH_TO_BUNDLE) key: String, vararg params: Any): String = getMessage(key, *params)
 
+  @Suppress("unused")
   @JvmStatic
   fun messagePointer(@PropertyKey(resourceBundle = PATH_TO_BUNDLE) key: String, vararg params: Any): Supplier<@Nls String> {
     return getLazyMessage(key, *params)
