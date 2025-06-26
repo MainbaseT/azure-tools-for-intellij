@@ -2,6 +2,4 @@ using JetBrains.ReSharper.Feature.Services.Web.AspRouteTemplates.EndpointsProvid
 
 namespace JetBrains.ReSharper.Azure.Psi.Endpoints.Attributes;
 
-public interface IAzureRoutingAttribute : ISourceRoutingAttribute
-{
-}
+public interface IAzureRoutingAttribute : ISourceRoutingAttribute;

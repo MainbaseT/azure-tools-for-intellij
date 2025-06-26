@@ -8,7 +8,6 @@ using JetBrains.Application.Progress;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.Caches;
-using JetBrains.ProjectModel.ProjectsHost;
 using JetBrains.Util;
 using Newtonsoft.Json.Linq;
 

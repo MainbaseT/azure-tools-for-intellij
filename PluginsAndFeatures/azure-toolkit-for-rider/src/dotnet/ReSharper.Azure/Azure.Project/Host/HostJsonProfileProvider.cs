@@ -31,7 +31,7 @@ public class HostJsonProfileProvider : IChangeProvider
         _cache = cache;
         _changeManager = changeManager;
         changeManager.RegisterChangeProvider(lifetime, this);
-        _hostJsonDataProvider = new HostJsonDataProvider(this, changeManager, solution);
+        _hostJsonDataProvider = new HostJsonDataProvider(this, solution);
         _cache.RegisterCache(lifetime, _hostJsonDataProvider);
 
         viewableProjectsCollection.Projects.View(lifetime, (projectLifetime, project) =>
@@ -49,17 +49,14 @@ public class HostJsonProfileProvider : IChangeProvider
     {
         return _cache.GetData(_hostJsonDataProvider, HostJsonFile.GetPath(project), HostJson.Empty);
     }
-    
+
     private void Refresh(IProject project)
     {
         var change = new HostJsonChange(project);
         _changeManager.OnProviderChanged(this, change, SimpleTaskExecutor.Instance);
     }
 
-    private class HostJsonDataProvider(
-        HostJsonProfileProvider provider,
-        ChangeManager changeManager,
-        ISolution solution)
+    private class HostJsonDataProvider(HostJsonProfileProvider provider, ISolution solution)
         : IProjectJsonDataProvider<HostJson>
     {
         public int Version => 1;

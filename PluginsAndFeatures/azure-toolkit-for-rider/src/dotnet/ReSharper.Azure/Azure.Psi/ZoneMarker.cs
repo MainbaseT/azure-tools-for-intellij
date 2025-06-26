@@ -1,13 +1,10 @@
 // Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using JetBrains.Application.BuildScript.Application.Zones;
-using JetBrains.ProjectModel.ProjectsHost.SolutionHost;
 using JetBrains.ReSharper.Features.Running;
-using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Asp.Mvc;
 using JetBrains.ReSharper.Psi.AspRouteTemplates;
 using JetBrains.ReSharper.Psi.CSharp;
-using JetBrains.ReSharper.Resources.Shell;
 
 namespace JetBrains.ReSharper.Azure.Psi;
 

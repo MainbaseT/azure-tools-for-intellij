@@ -105,7 +105,7 @@ public class AzureFunctionsHttpRootsProvider : IApplicationUrlsProvider
       var azureFunctionUrl = AzureFunctionUrl.Create(port, routePrefix);
 
       urls.Add(azureFunctionUrl.Url);
-      schemes.Add(azureFunctionUrl.Scheme);
+      schemes.Add(AzureFunctionUrl.Scheme);
       authorities.Add(azureFunctionUrl.Authority);
     }
     

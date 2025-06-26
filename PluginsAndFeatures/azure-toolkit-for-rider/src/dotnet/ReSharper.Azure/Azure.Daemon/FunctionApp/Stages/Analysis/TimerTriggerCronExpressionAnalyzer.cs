@@ -36,11 +36,11 @@ namespace JetBrains.ReSharper.Azure.Daemon.FunctionApp.Stages.Analysis;
 /// Note that NCRONTAB uses 6 fields, but Azure Functions also supports 5 fields.
 /// https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp#ncrontab-expressions
 /// </summary>
-[ElementProblemAnalyzer(typeof(IAttribute), HighlightingTypes = new[]
-{
+[ElementProblemAnalyzer(typeof(IAttribute), HighlightingTypes =
+[
     typeof(TimerTriggerCronExpressionError),
     typeof(TimerTriggerCronExpressionHint)
-})]
+])]
 public class TimerTriggerCronExpressionAnalyzer : ElementProblemAnalyzer<IAttribute>
 {
     protected override void Run(IAttribute element, ElementProblemAnalyzerData data, IHighlightingConsumer consumer)

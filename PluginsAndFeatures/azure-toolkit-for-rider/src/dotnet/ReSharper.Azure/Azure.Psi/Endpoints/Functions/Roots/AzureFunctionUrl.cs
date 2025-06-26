@@ -6,7 +6,7 @@ public class AzureFunctionUrl(string authority)
   private const string DefaultRoutePrefix = "api";
 
   public string Url { get; } = HttpScheme + authority;
-  public string Scheme => HttpScheme;
+  public static string Scheme => HttpScheme;
   public string Authority { get; } = authority;
 
   public static AzureFunctionUrl Create(int port, string? routePrefix)

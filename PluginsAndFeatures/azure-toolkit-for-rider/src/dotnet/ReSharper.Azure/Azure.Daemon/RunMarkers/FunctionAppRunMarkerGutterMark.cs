@@ -38,7 +38,7 @@ public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerG
         }
     }
 
-    private IEnumerable<BulbMenuItem> GetRunMethodItems(ISolution solution, RunMarkerHighlighting runMarker)
+    private static IEnumerable<BulbMenuItem> GetRunMethodItems(ISolution solution, RunMarkerHighlighting runMarker)
     {
         var functionAppDaemonHost = solution.GetComponent<FunctionAppDaemonHost>();
 

@@ -3,7 +3,4 @@ using Newtonsoft.Json.Linq;
 
 namespace JetBrains.ReSharper.Azure.Project.LocalSettings;
 
-public interface ILocalSettingsJsonDataCache : IProjectFileDataProviderCache<JObject>
-{
-    
-}
+public interface ILocalSettingsJsonDataCache : IProjectFileDataProviderCache<JObject>;
