@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Endless loading in the Web App and Function App publish dialogs ([#1066](https://github.com/JetBrains/azure-tools-for-intellij/issues/1066))
+
 ## [4.5.1] - 2025-06-23
 
 ### Changed
