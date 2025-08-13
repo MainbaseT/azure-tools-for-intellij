@@ -90,7 +90,7 @@ dependencies {
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        rider(platformVersion, false)
+        rider(platformVersion) { useInstaller = false }
         jetbrainsRuntime()
         bundledPlugins(listOf("com.jetbrains.restClient"))
         testFramework(TestFrameworkType.Bundled)
@@ -153,7 +153,10 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            ide(IntelliJPlatformType.Rider, providers.gradleProperty("pluginVerificationIdeVersion").get(), false)
+            create(
+                IntelliJPlatformType.Rider,
+                providers.gradleProperty("pluginVerificationIdeVersion").get()
+            ) { useInstaller = false }
         }
     }
 }

@@ -18,7 +18,7 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion, false)
+        rider(platformVersion) { useInstaller = false }
         jetbrainsRuntime()
         bundledPlugins(listOf("com.intellij.properties", "org.jetbrains.plugins.yaml"))
     }
