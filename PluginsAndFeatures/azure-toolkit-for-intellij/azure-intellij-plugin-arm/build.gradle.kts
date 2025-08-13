@@ -1,7 +1,6 @@
 plugins {
     id("java")
     id("org.jetbrains.intellij.platform.module")
-
     alias(libs.plugins.aspectj)
 }
 
@@ -19,7 +18,7 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion, false)
+        rider(platformVersion) { useInstaller = false }
         jetbrainsRuntime()
         bundledPlugins("com.intellij.modules.json")
     }

@@ -18,7 +18,7 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion, false)
+        rider(platformVersion) { useInstaller = false }
         jetbrainsRuntime()
         bundledModules("intellij.libraries.microba")
         bundledPlugins(listOf("com.intellij.properties", "com.intellij.modules.json"))
