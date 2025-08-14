@@ -6,6 +6,12 @@
 
 ### Fixed
 
+- Unable to start SSH session to Azure Virtual Machine ([RIDER-127487](https://youtrack.jetbrains.com/issue/RIDER-127487))
+
+## [4.5.2] - 2025-07-10
+
+### Fixed
+
 - Endless loading in the Web App and Function App publish dialogs ([#1066](https://github.com/JetBrains/azure-tools-for-intellij/issues/1066))
 
 ## [4.5.1] - 2025-06-23
@@ -340,7 +346,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.2...HEAD
+[4.5.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.1...v4.5.2
 [4.5.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.0...v4.5.1
 [4.5.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.8...v4.5.0
 [4.4.8]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.7...v4.4.8
