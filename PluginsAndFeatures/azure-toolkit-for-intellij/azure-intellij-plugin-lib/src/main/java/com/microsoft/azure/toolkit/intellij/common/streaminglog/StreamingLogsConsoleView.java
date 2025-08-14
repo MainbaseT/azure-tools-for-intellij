@@ -43,10 +43,6 @@ public class StreamingLogsConsoleView extends ConsoleViewImpl {
         return subscription != null && !subscription.isDisposed();
     }
 
-    public boolean isDisposed() {
-        return this.isDisposed;
-    }
-
     private void printlnToConsole(String message, ConsoleViewContentType consoleViewContentType) {
         this.print(message + SEPARATOR, consoleViewContentType);
     }
