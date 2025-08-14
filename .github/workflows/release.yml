@@ -124,6 +124,7 @@ jobs:
       # Update the Unreleased section with the current release note
       - name: Patch Changelog
         if: ${{ github.event.release.body != '' }}
+        working-directory: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider
         env:
           CHANGELOG: ${{ github.event.release.body }}
         run: |
