@@ -11,7 +11,6 @@ jobs:
 
   # Prepare the environment and build the plugin
   build-dependencies:
-    if: ${{ startsWith(github.event.release.tag_name, '4') }}
     name: Build Dependencies
     runs-on: ubuntu-latest
     steps:
@@ -62,7 +61,6 @@ jobs:
 
   # Prepare and publish the plugin to JetBrains Marketplace repository
   release:
-    if: ${{ startsWith(github.event.release.tag_name, 'v4') }}
     needs: [ build-dependencies ]
     name: Publish Plugin
     runs-on: ubuntu-latest
