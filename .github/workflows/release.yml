@@ -11,7 +11,7 @@ jobs:
 
   # Prepare the environment and build the plugin
   build-dependencies:
-    if: ${{ startsWith(github.event.release.tag_name, 'v4') }}
+    if: ${{ startsWith(github.event.release.tag_name, '4') }}
     name: Build Dependencies
     runs-on: ubuntu-latest
     steps:
