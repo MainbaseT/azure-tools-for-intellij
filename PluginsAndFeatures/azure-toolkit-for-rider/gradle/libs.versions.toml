@@ -15,7 +15,7 @@ plexusArchiver = "4.2.7"
 jedis = "3.6.3"
 
 # plugins
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 changelog = "2.4.0"
 intelliJPlatform = "2.7.1"
 qodana = "2025.1.1"
