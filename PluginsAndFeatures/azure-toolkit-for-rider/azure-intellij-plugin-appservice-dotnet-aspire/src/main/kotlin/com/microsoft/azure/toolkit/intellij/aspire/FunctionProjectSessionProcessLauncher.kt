@@ -13,8 +13,8 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.aspire.generated.CreateSessionRequest
 import com.jetbrains.rider.aspire.run.AspireHostConfiguration
-import com.jetbrains.rider.aspire.sessionHost.findBySessionProject
-import com.jetbrains.rider.aspire.sessionHost.projectLaunchers.DotNetExecutableSessionProcessLauncher
+import com.jetbrains.rider.aspire.sessions.findBySessionProject
+import com.jetbrains.rider.aspire.sessions.projectLaunchers.DotNetExecutableSessionProcessLauncher
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.runtime.DotNetExecutable

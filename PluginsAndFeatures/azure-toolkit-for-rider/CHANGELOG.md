@@ -6,6 +6,12 @@
 
 ### Fixed
 
+- Fix .NET Aspire integration
+
+## [4.5.2] - 2025-08-14
+
+### Fixed
+
 - Unable to start SSH session to Azure Virtual Machine ([RIDER-127487](https://youtrack.jetbrains.com/issue/RIDER-127487))
 
 ## [4.5.2] - 2025-07-10
@@ -346,7 +352,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.2...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.3...HEAD
+[4.5.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.2...v4.5.3
 [4.5.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.1...v4.5.2
 [4.5.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.0...v4.5.1
 [4.5.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.4.8...v4.5.0
