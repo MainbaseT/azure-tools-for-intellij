@@ -16,10 +16,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.io.systemIndependentPath
 import com.jetbrains.rider.aspire.generated.CreateSessionRequest
 import com.jetbrains.rider.aspire.run.AspireHostConfiguration
-import com.jetbrains.rider.aspire.sessionHost.findBySessionProject
-import com.jetbrains.rider.aspire.sessionHost.getLaunchProfile
-import com.jetbrains.rider.aspire.sessionHost.mergeArguments
-import com.jetbrains.rider.aspire.sessionHost.mergeEnvironmentVariables
+import com.jetbrains.rider.aspire.sessions.findBySessionProject
+import com.jetbrains.rider.aspire.sessions.getLaunchProfile
+import com.jetbrains.rider.aspire.sessions.mergeArguments
+import com.jetbrains.rider.aspire.sessions.mergeEnvironmentVariables
 import com.jetbrains.rider.aspire.settings.AspireSettings
 import com.jetbrains.rider.aspire.util.MSBuildPropertyService
 import com.jetbrains.rider.aspire.util.MSBuildPropertyService.ProjectRunProperties
