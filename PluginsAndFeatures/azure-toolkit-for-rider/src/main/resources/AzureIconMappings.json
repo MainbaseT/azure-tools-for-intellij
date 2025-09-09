@@ -6,7 +6,7 @@
         "Run.svg": "icons/FunctionApp/Run.svg",
         "TemplateAzureFunc.svg": "icons/FunctionApp/TemplateAzureFunc.svg"
       },
-      "Rider": {
+      "Toolwindows": {
         "AzureToolWindow.svg": "icons/Common/AzureToolWindow.svg"
       },
       "WebApp": {
