@@ -122,6 +122,8 @@ class FunctionCoreToolsExecutableService(private val project: Project) {
     }
 
     private fun showNotificationAboutDefaultRuntime(projectPath: Path) {
+        LOG.trace { "Showing notification about unknown worker runtime for project path: $projectPath" }
+
         val settingsFilePath = FunctionLocalSettingsService.getInstance(project).getLocalSettingFilePath(projectPath)
 
         Notification(
