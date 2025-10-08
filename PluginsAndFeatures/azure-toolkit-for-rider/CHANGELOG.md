@@ -6,9 +6,16 @@
 
 ### Fixed
 
+- Problems with launching and debugging function app ([#1116](https://github.com/JetBrains/azure-tools-for-intellij/issues/1116))
+- Failed to start .net 8 isolated Azure Functions App ([RIDER-126110](https://youtrack.jetbrains.com/issue/RIDER-126110))
+
+## [4.5.4] - 2025-08-21
+
+### Fixed
+
 - Fix .NET Aspire integration
 
-## [4.5.2] - 2025-08-14
+## [4.5.3] - 2025-08-14
 
 ### Fixed
 
@@ -352,7 +359,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.3...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.4...HEAD
+[4.5.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.3...4.5.4
 [4.5.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.2...v4.5.3
 [4.5.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.1...v4.5.2
 [4.5.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.0...v4.5.1
