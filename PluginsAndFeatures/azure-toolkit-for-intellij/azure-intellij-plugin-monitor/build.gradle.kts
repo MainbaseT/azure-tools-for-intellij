@@ -18,10 +18,13 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion) { useInstaller = false }
+        rider(platformVersion) {
+            useInstaller = false
+            useCache = true
+        }
         jetbrainsRuntime()
         bundledModules("intellij.libraries.microba")
-        bundledPlugins(listOf("com.intellij.properties", "com.intellij.modules.json"))
+        bundledPlugins("com.intellij.properties", "com.intellij.modules.json")
     }
 
     implementation(libs.azureToolkitLibs)

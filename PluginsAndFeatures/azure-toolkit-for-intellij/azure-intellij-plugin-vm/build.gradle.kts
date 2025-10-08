@@ -18,9 +18,11 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion) { useInstaller = false }
+        rider(platformVersion) {
+            useInstaller = false
+        }
         jetbrainsRuntime()
-        bundledPlugins(listOf("org.jetbrains.plugins.remote-run", "com.jetbrains.plugins.webDeployment" ,"org.jetbrains.plugins.terminal"))
+        bundledPlugins("org.jetbrains.plugins.remote-run", "com.jetbrains.plugins.webDeployment" ,"org.jetbrains.plugins.terminal")
     }
 
     implementation(libs.azureToolkitLibs)

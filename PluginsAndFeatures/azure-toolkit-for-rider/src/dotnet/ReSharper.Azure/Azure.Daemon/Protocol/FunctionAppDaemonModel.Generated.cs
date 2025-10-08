@@ -36,7 +36,7 @@ namespace JetBrains.Rider.Azure.Model
   
   
   /// <summary>
-  /// <p>Generated from: FunctionAppDaemonModel.kt:14</p>
+  /// <p>Generated from: FunctionAppDaemonModel.kt:13</p>
   /// </summary>
   public class FunctionAppDaemonModel : RdExtBase
   {

@@ -91,7 +91,10 @@ dependencies {
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        rider(platformVersion) { useInstaller = false }
+        rider(platformVersion) {
+            useInstaller = false
+            useCache = true
+        }
         jetbrainsRuntime()
         bundledPlugins(listOf("com.jetbrains.restClient"))
         testFramework(TestFrameworkType.Bundled)
