@@ -102,10 +102,14 @@ class FunctionCoreToolsExecutableService(private val project: Project) {
     }
 
     private suspend fun getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath: Path): FunctionWorkerRuntime {
+        LOG.info("Getting function worker runtime from backend")
+
         val functionWorkerModel = project.solution
             .functionAppDaemonModel
             .getAzureFunctionWorkerModel
             .startSuspending(AzureFunctionWorkerModelRequest(projectFilePath.absolutePathString()))
+
+        LOG.trace { "Received Azure function worker runtime from backend: $functionWorkerModel" }
 
         return when (functionWorkerModel) {
             AzureFunctionWorkerModel.Default -> FunctionWorkerRuntime.DOTNET
