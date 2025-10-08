@@ -5,6 +5,7 @@ using JetBrains.Application.Threading;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.Assemblies.Interfaces;
 using JetBrains.ProjectModel.MSBuild;
+using JetBrains.ProjectModel.NuGet.Packaging;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.ProjectModel.Properties.Managed;
 using JetBrains.ReSharper.Features.Running;
@@ -20,23 +21,29 @@ public static class FunctionAppProjectDetector
     {
         private static readonly NugetId ExpectedFunctionsNuGetPackageId = new("Microsoft.NET.Sdk.Functions");
 
-        internal static bool HasFunctionsPackageReference(IProject project, TargetFrameworkId? targetFrameworkId) =>
-            project.GetPackagesReference(ExpectedFunctionsNuGetPackageId, targetFrameworkId) != null;
+        internal static bool HasFunctionsPackageReference(IProject project)
+        {
+            var checker = project.GetComponent<NuGetInstalledPackageChecker>();
+            return checker.IsPackageInstalled(project, ExpectedFunctionsNuGetPackageId.ID);
+        }
     }
 
-    public static bool HasDefaultWorkerPackageReference(this IProject project, TargetFrameworkId? targetFrameworkId) =>
-        DefaultWorker.HasFunctionsPackageReference(project, targetFrameworkId);
+    public static bool HasDefaultWorkerPackageReference(this IProject project) =>
+        DefaultWorker.HasFunctionsPackageReference(project);
 
     private static class IsolatedWorker
     {
         private static readonly NugetId ExpectedFunctionsNuGetPackageId = new("Microsoft.Azure.Functions.Worker");
 
-        internal static bool HasFunctionsPackageReference(IProject project, TargetFrameworkId? targetFrameworkId) =>
-            project.GetPackagesReference(ExpectedFunctionsNuGetPackageId, targetFrameworkId) != null;
+        internal static bool HasFunctionsPackageReference(IProject project)
+        {
+            var checker = project.GetComponent<NuGetInstalledPackageChecker>();
+            return checker.IsPackageInstalled(project, ExpectedFunctionsNuGetPackageId.ID);
+        }
     }
 
-    public static bool HasIsolatedWorkerPackageReference(this IProject project, TargetFrameworkId? targetFrameworkId) =>
-        IsolatedWorker.HasFunctionsPackageReference(project, targetFrameworkId);
+    public static bool HasIsolatedWorkerPackageReference(this IProject project) =>
+        IsolatedWorker.HasFunctionsPackageReference(project);
 
     internal static List<ProjectOutput> GetAzureFunctionsCompatibleProjectOutputs(
         this IProject project,
@@ -135,8 +142,8 @@ public static class FunctionAppProjectDetector
         //    the isolated worker runs your application in a separate process that is spawned by
         //    the Azure Functions host.
         var hasExpectedPackageReference =
-            DefaultWorker.HasFunctionsPackageReference(project, targetFrameworkId) ||
-            IsolatedWorker.HasFunctionsPackageReference(project, targetFrameworkId);
+            IsolatedWorker.HasFunctionsPackageReference(project) ||
+            DefaultWorker.HasFunctionsPackageReference(project);
 
         // 3) Check the existence of host.json in the project
         bool hasHostJsonFile;
@@ -157,14 +164,11 @@ public static class FunctionAppProjectDetector
 
     public static FunctionProjectWorkerModel GetFunctionProjectWorkerModel(this IProject project)
     {
-        foreach (var tfm in project.TargetFrameworkIds)
-        {
-            if (DefaultWorker.HasFunctionsPackageReference(project, tfm))
-                return FunctionProjectWorkerModel.Default;
-            if (IsolatedWorker.HasFunctionsPackageReference(project, tfm))
-                return FunctionProjectWorkerModel.Isolated;
-        }
-
-        return FunctionProjectWorkerModel.Unknown;
+        if (IsolatedWorker.HasFunctionsPackageReference(project))
+            return FunctionProjectWorkerModel.Isolated;
+        else if (DefaultWorker.HasFunctionsPackageReference(project))
+            return FunctionProjectWorkerModel.Default;
+        else
+            return FunctionProjectWorkerModel.Unknown;
     }
 }
