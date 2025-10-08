@@ -33,7 +33,7 @@ public static class FunctionAppProjectDetector
 
     private static class IsolatedWorker
     {
-        private static readonly NugetId ExpectedFunctionsNuGetPackageId = new("Microsoft.Azure.Functions.Worker");
+        private static readonly NugetId ExpectedFunctionsNuGetPackageId = new("Microsoft.Azure.Functions.Worker.Sdk");
 
         internal static bool HasFunctionsPackageReference(IProject project)
         {
