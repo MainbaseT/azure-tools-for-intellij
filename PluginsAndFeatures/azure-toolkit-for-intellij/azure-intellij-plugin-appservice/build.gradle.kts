@@ -18,9 +18,12 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion) { useInstaller = false }
+        rider(platformVersion) {
+            useInstaller = false
+            useCache = true
+        }
         jetbrainsRuntime()
-        bundledPlugins(listOf("com.intellij.properties", "org.jetbrains.plugins.terminal"))
+        bundledPlugins("com.intellij.properties", "org.jetbrains.plugins.terminal")
     }
 
     implementation(libs.azureToolkitLibs)
