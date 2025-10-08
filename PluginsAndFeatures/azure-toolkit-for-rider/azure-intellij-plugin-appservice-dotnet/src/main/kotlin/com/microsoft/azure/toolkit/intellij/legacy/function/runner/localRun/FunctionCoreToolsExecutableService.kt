@@ -68,8 +68,7 @@ class FunctionCoreToolsExecutableService(private val project: Project) {
                 .getFunctionLocalSettings(projectFilePath)
         }
 
-        val workerRuntime = functionLocalSettings?.getWorkerRuntime()
-            ?: getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath)
+        val workerRuntime = getFunctionWorkerRuntime(functionLocalSettings, projectFilePath)
         LOG.debug { "Worker runtime: $workerRuntime" }
 
         val functionsRuntimeVersion = calculateFunctionsRuntimeVersion(msBuildVersionProperty, workerRuntime)
@@ -101,9 +100,19 @@ class FunctionCoreToolsExecutableService(private val project: Project) {
         )
     }
 
-    private suspend fun getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath: Path): FunctionWorkerRuntime {
-        LOG.info("Getting function worker runtime from backend")
+    private suspend fun getFunctionWorkerRuntime(
+        functionLocalSettings: FunctionLocalSettings?,
+        projectFilePath: Path
+    ): FunctionWorkerRuntime {
+        val workerRuntimeFromSettings = functionLocalSettings?.getWorkerRuntime()
+        if (workerRuntimeFromSettings != null) {
+            LOG.trace { "Worker runtime from settings: $workerRuntimeFromSettings" }
+            return workerRuntimeFromSettings
+        }
 
+        LOG.info("Unable to determine function worker runtime from settings, getting it from backend")
+
+        // If we can't get the function runtime from the settings, we can try to guess it by the installed nuget packages
         val functionWorkerModel = project.solution
             .functionAppDaemonModel
             .getAzureFunctionWorkerModel
