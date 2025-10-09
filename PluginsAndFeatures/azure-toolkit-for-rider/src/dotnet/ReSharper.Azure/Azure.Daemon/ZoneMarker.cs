@@ -7,4 +7,5 @@ using JetBrains.ReSharper.Psi.CSharp;
 namespace JetBrains.ReSharper.Azure.Daemon;
 
 [ZoneMarker]
-public class ZoneMarker : IRequire<ILanguageCSharpZone>, IRequire<ICodeEditingZone>;
+public class ZoneMarker : IRequire<ILanguageCSharpZone>,
+    IRequire<ICodeEditingZone>;
