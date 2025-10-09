@@ -18,7 +18,6 @@ plugins {
     alias(libs.plugins.intelliJPlatform)
     alias(libs.plugins.serialization)
     alias(libs.plugins.changelog)
-    alias(libs.plugins.qodana)
 }
 
 group = providers.gradleProperty("pluginGroup").get()
