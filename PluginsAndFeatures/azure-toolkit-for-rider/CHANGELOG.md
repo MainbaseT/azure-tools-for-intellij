@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.5.5] - 2025-10-09
+
 ### Fixed
 
 - Problems with launching and debugging function app ([#1116](https://github.com/JetBrains/azure-tools-for-intellij/issues/1116))
@@ -359,7 +361,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.4...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.5...HEAD
+[4.5.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.4...4.5.5
 [4.5.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.3...4.5.4
 [4.5.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.2...v4.5.3
 [4.5.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.5.1...v4.5.2
