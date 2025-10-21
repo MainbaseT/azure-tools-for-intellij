@@ -69,7 +69,7 @@ internal fun forceRunLanguageServer(project: Project) {
 
 internal fun findActiveBicepFileEditor(project: Project): Editor? {
   return FileEditorManager.getInstance(project).selectedTextEditor
-    ?.takeIf { it.virtualFile.extension == BICEP_EXTENSION }
+    ?.takeIf { it.virtualFile?.extension == BICEP_EXTENSION }
 }
 
 internal fun findAllOpenedBicepFiles(project: Project): Sequence<VirtualFile> {

@@ -109,6 +109,16 @@ configurations {
     implementation { exclude(module = "jna") }
     implementation { exclude(module = "xpp3") }
     implementation { exclude(module = "pull-parser") }
+
+    // Force a Lombok version compatible with JDK 21 across all configurations (including annotationProcessor)
+    all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.projectlombok" && requested.name == "lombok") {
+                useVersion("1.18.36")
+                because("Lombok versions prior to 1.18.30 use removed javac internals (JCImport.qualid) and fail on Java 21")
+            }
+        }
+    }
     implementation { exclude(module = "xsdlib") }
 }
 

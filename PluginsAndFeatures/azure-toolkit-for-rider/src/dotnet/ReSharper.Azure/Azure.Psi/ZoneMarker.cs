@@ -1,6 +1,7 @@
 // Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using JetBrains.Application.BuildScript.Application.Zones;
+using JetBrains.ProjectModel.NuGet;
 using JetBrains.ReSharper.Features.Running;
 using JetBrains.ReSharper.Psi.Asp.Mvc;
 using JetBrains.ReSharper.Psi.AspRouteTemplates;
@@ -12,4 +13,5 @@ namespace JetBrains.ReSharper.Azure.Psi;
 public class ZoneMarker : IRequire<ILanguageCSharpZone>,
     IRequire<ILanguageRouteTemplateZone>,
     IRequire<IAspMvcZone>,
-    IRequire<RunnableProjectsZone>;
+    IRequire<RunnableProjectsZone>,
+    IRequire<INuGetZone>;
