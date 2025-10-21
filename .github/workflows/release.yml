@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
       # Build Utils library
       - name: Build Utils
@@ -102,24 +102,24 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
 
-      # Set up the Java environment for the next steps
+      # Set up the Java environment
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
-      # Setup Gradle
+      # Set up Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
 
-      # Set up the .NET environment for the next steps
+      # Set up the .NET environment
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '9.x'
 
       # Update the Unreleased section with the current release note
       - name: Patch Changelog

@@ -45,12 +45,12 @@ jobs:
         with:
           path: azure-tools-for-intellij
 
-      # Setup Java environment
+      # Set up the Java environment
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
       - name: Cache Azure libraries
         id: cache-azure-libraries
@@ -130,24 +130,24 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v5
 
-      # Setup Java environment
+      # Set up the Java environment
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
-      # Setup Gradle
+      # Set up Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
 
-      # Setup .NET 8 environment
+      # Set up the .NET environment
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '9.x'
 
       # Build plugin
       - name: Build plugin
@@ -205,22 +205,22 @@ jobs:
   #      - name: Fetch Sources
   #        uses: actions/checkout@v5
   #
-  #      # Set up Java environment for the next steps
+  #      # Set up the Java environment
   #      - name: Setup Java
   #        uses: actions/setup-java@v4
   #        with:
   #          distribution: zulu
-  #          java-version: 17
+  #          java-version: 21
   #
-  #      # Setup Gradle
+  #      # Set up Gradle
   #      - name: Setup Gradle
   #        uses: gradle/actions/setup-gradle@v4
   #
-  #      # Setup .NET 8 environment
+  #      # Set up the .NET environment
   #      - name: Setup .NET
   #        uses: actions/setup-dotnet@v4
   #        with:
-  #          dotnet-version: '8.x'
+  #          dotnet-version: '9.x'
   #
   #      # Run tests
   #      - name: Run Tests
@@ -273,24 +273,24 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v5
 
-      # Set up the Java environment for the next steps
+      # Set up the Java environment
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
-      # Setup Gradle
+      # Set up Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
 
-      # Set up the .NET environment for the next steps
+      # Set up the .NET environment
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '9.x'
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks

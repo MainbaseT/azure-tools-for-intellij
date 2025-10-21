@@ -8,7 +8,7 @@ using JetBrains.ProjectModel;
 namespace JetBrains.ReSharper.Azure.Project.FunctionApp;
 
 [SolutionComponent(Instantiation.DemandAnyThreadSafe)]
-public class FunctionAppProjectTechnologyProvider : IProjectTechnologyProvider
+public class FunctionAppProjectTechnologyProvider : IProjectTechnologyAnalyticsProvider
 {
     public IEnumerable<string> GetProjectTechnology(IProject project)
     {

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,21 +22,26 @@ using JetBrains.ReSharper.Feature.Services.Web.AspRouteTemplates.EndpointsProvid
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.Util;
-using JetBrains.Util.DataFlow;
 using JetBrains.Util.Logging;
 
 namespace JetBrains.ReSharper.Azure.Psi.Endpoints.Functions;
 
 [SolutionComponent(InstantiationEx.LegacyDefault)]
-public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
+public class AzureFunctionsHttpEndpointsProvider : EndpointsConveyorPartBase, IHttpEndpointsProvider
 {
+    private const string ProviderName = "AzureFunctions";
+
     private readonly Lifetime _lifetime;
     private readonly ChangeManager _changeManager;
     private readonly AzureFunctionsEndpointsCollector _functionsEndpointsCollector;
     private readonly IPsiServices _psiServices;
     private readonly AsyncItemsProcessor<InvalidationScope> _asyncItemsProcessor;
     private readonly ILogger _logger;
-    private readonly ConcurrentDictionary<IPsiModule, AzureFunctionsHttpEndpointsRepository> _endpointsPerModuleRepositories;
+
+    private readonly ConcurrentDictionary<IPsiModule, AzureFunctionsHttpEndpointsRepository>
+        _endpointsPerModuleRepositories = new();
+
+    public sealed override IProperty<bool> IsUpToDate { get; }
 
     public AzureFunctionsHttpEndpointsProvider(
         Lifetime lifetime,
@@ -49,35 +53,43 @@ public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
         SynchronizationPoints synchronizationPoints,
         AsyncCommitService asyncCommitService,
         IPsiModules psiModules,
-        SuspendHardOperationsManager suspendHardOperationsManager)
+        SuspendHardOperationsManager suspendHardOperationsManager
+    ) : base(ProviderName)
     {
         _lifetime = lifetime;
         _changeManager = changeManager;
         _functionsEndpointsCollector = functionsEndpointsCollector;
         _psiServices = psiServices;
+        _logger = Logger.GetLogger<AspNetHttpEndpointsProvider>();
+
         changeManager.RegisterChangeProvider(lifetime, this);
         changeManager.AddDependency(lifetime, this, psiModules);
         changeManager.AddDependency(lifetime, this, azureRoutingAttributesProvider);
-        _logger = Logger.GetLogger<AspNetHttpEndpointsProvider>();
-        _endpointsPerModuleRepositories = new ConcurrentDictionary<IPsiModule, AzureFunctionsHttpEndpointsRepository>();
 
         var solutionLifetime = solution.GetSolutionLifetimes().UntilSolutionCloseLifetime;
         _asyncItemsProcessor = AsyncItemsProcessorUtil.CreateWithProcessingOnCommittedPsi<InvalidationScope>(
                 GetType().Name,
-                solutionLifetime, _logger, psiServices, asyncCommitService, synchronizationPoints,
-                ProcessScope, InvalidateScope
+                solutionLifetime,
+                _logger,
+                psiServices,
+                asyncCommitService,
+                synchronizationPoints,
+                ProcessScope,
+                InvalidateScope
             )
             .PauseWhenCachesAreNotReady(solutionLifetime, psiServices)
             .PauseOnSuspendHardOperations(suspendHardOperationsManager)
             .PauseWhenNotUpToDate(solutionLifetime, azureRoutingAttributesProvider);
-        var reasons = new Reasons<string>($"{nameof(AzureFunctionsHttpEndpointsProvider)}::IsUpToDateReasons", _logger)
+
+        var loggingName = $"{GetType().Name}.{nameof(IsUpToDate)}";
+        var syncPoint = synchronizationPoints.GetOrCreateSyncPoint(loggingName)
             .AddWhenNotUpToDate(solutionLifetime, azureRoutingAttributesProvider)
-            .AddWhenFalse(solutionLifetime, _asyncItemsProcessor.ItemsToProcess.IsEmptyNotificationMode,
-                () => $"OwnProcessor::IsUpToDate::{Guid.NewGuid()}");
-        IsUpToDate = reasons.AreEmpty;
-        IsUpToDate.LogChanges(solutionLifetime, _logger, $"{nameof(AzureFunctionsHttpEndpointsProvider)}.IsUpToDate");
-        var syncPoint = synchronizationPoints.GetOrCreateSyncPoint($"{GetType().Name}::IsUpToDate");
-        IsUpToDate.WhenFalse(solutionLifetime, lt => syncPoint.AddReason(lt, Guid.NewGuid().ToString()));
+            .AddOnBusyProcessor(solutionLifetime, _asyncItemsProcessor.ItemsToProcess.IsEmptyNotificationMode);
+
+        TrackLastBusyReason(solutionLifetime, syncPoint);
+        IsUpToDate = syncPoint.AreEmpty;
+        IsUpToDate.LogChanges(solutionLifetime, _logger, loggingName);
+
         solutionLifetime.OnTermination(() => _endpointsPerModuleRepositories.Clear());
     }
 
@@ -142,11 +154,12 @@ public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
             }
         }
 
-        foreach (var attributeRoutingAttributesChange in changeMap.GetChanges<AttributeRoutingAttributesChange<IAzureRoutingAttribute>>())
+        foreach (var attributeRoutingAttributesChange in changeMap
+                     .GetChanges<AttributeRoutingAttributesChange<IAzureRoutingAttribute>>())
         {
             var added = attributeRoutingAttributesChange.Added.OfType<IAzureFunctionRoutingAttribute>();
             var removed = attributeRoutingAttributesChange.Removed.OfType<IAzureFunctionRoutingAttribute>();
-            
+
             methodsToInvalidatePerModule.AddRange(
                 attributeRoutingAttributesChange.PsiModule,
                 added.Select(x => x.FunctionMethod)
@@ -158,7 +171,7 @@ public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
         }
 
         if (methodsToInvalidatePerModule.Count <= 0 && modulesToRemove.Count <= 0) return null;
-        
+
         _changeManager.ExecuteAfterChange(() =>
         {
             foreach (var (psiModule, functions) in methodsToInvalidatePerModule)
@@ -185,8 +198,6 @@ public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
             x => new AzureFunctionsHttpEndpointsRepository(_lifetime.CreateNested().Lifetime, x));
     }
 
-    public string Name => "AzureFunctions";
-
     IEndpointsTreeNode IEndpointsProvider.GetEndpointsTreeRoot(IPsiModule psiModule)
     {
         return GetEndpointsTreeRoot(psiModule);
@@ -206,7 +217,7 @@ public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
     {
         return GetEndpointsTreeRoot(psiModule);
     }
-    
+
     public IReadOnlyCollection<IEndpointsTreeNode> GetEndpointsTreeRoots()
     {
         var psiModules = Enumerable.ToArray(_endpointsPerModuleRepositories.Keys);
@@ -214,18 +225,17 @@ public class AzureFunctionsHttpEndpointsProvider : IHttpEndpointsProvider
             .Select(x => _endpointsPerModuleRepositories[x])
             .Select(x => x.GetEndpointsTreeRoot()).ToArray();
     }
-    
+
     public IReadOnlyCollection<AzureFunctionHttpEndpoint> FindEndpoints(IPsiModule psiModule, IMethod method)
     {
         return GetOrCreateEndpointsPerModuleRepository(psiModule).FindEndpoints(method);
     }
-    
-    public IReadOnlyCollection<AzureFunctionHttpEndpoint> FindEndpoints(IPsiModule psiModule, IRouteTemplateProvider templateProvider)
-    {
-      return GetOrCreateEndpointsPerModuleRepository(psiModule).FindEndpoints(templateProvider);
-    }
 
-    public IProperty<bool> IsUpToDate { get; }
+    public IReadOnlyCollection<AzureFunctionHttpEndpoint> FindEndpoints(IPsiModule psiModule,
+        IRouteTemplateProvider templateProvider)
+    {
+        return GetOrCreateEndpointsPerModuleRepository(psiModule).FindEndpoints(templateProvider);
+    }
 
     private class InvalidationScope(IPsiModule psiModule, IMethod function)
     {
