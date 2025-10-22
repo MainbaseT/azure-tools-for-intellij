@@ -62,11 +62,6 @@ public class AzureFunctionsRunnableProjectProvider(ILogger logger) : IRunnablePr
             projectOutputs.Add(projectOutput);
         }
 
-        if (!HasHostJsonFile(project))
-        {
-            problems = "Consider adding missing host.json file required by Azure Functions runtime to your project.";
-        }
-
         return new Rider.Model.RunnableProject(
             name,
             fullName,
@@ -77,16 +72,6 @@ public class AzureFunctionsRunnableProjectProvider(ILogger logger) : IRunnablePr
             problems,
             []
         );
-    }
-
-    private static bool HasHostJsonFile(IProject project)
-    {
-        using (project.Locks.UsingReadLock())
-        {
-            return project
-                .GetSubItems("host.json")
-                .Any();
-        }
     }
 
     public IEnumerable<RunnableProjectKind> HiddenRunnableProjectKinds => EmptyList<RunnableProjectKind>.Instance;
