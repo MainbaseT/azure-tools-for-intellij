@@ -2,8 +2,10 @@
 
 using System.Collections.Generic;
 using JetBrains.Application.Parts;
+using JetBrains.Application.Threading;
 using JetBrains.ProjectModel;
-using JetBrains.ReSharper.Azure.Project.FunctionApp;
+using JetBrains.ProjectModel.Properties;
+using JetBrains.ProjectModel.Properties.Managed;
 using JetBrains.ReSharper.Features.Running;
 using JetBrains.Rider.Model;
 using JetBrains.Util;
@@ -22,15 +24,48 @@ public class AzureFunctionsRunnableProjectProvider(ILogger logger) : IRunnablePr
             return null;
         }
 
-        var projectOutputs = project.GetAzureFunctionsCompatibleProjectOutputs(out var problems, logger);
-
-        if (projectOutputs.IsEmpty())
+        if (!project.IsAzureFunctionProject())
         {
-            logger.Trace("No project output was found, return null");
+            logger.Trace("Project is not an Azure Function project, return null");
             return null;
         }
 
-        logger.Trace($"AzureFunctionsRunnableProjectProvider returned RunnableProject {fullName}");
+        var projectOutputs = new List<ProjectOutput>();
+        string? problems = null;
+
+        foreach (var tfm in project.TargetFrameworkIds)
+        {
+            var configuration = project.ProjectProperties.TryGetConfiguration<IManagedProjectConfiguration>(tfm);
+            if (configuration == null || (configuration.OutputType != ProjectOutputType.LIBRARY &&
+                                          configuration.OutputType != ProjectOutputType.CONSOLE_EXE))
+            {
+                logger.Trace($"Project OutputType = {configuration?.OutputType}, skip configuration");
+                continue;
+            }
+
+            var projectOutputPath = project.GetOutputFilePath(tfm);
+            // Azure Functions host needs the tfm folder, not the bin folder
+            var workingDirectoryPath = projectOutputPath.Directory
+                .NormalizeSeparators(FileSystemPathEx.SeparatorStyle.Unix)
+                .TrimFromEnd("/bin");
+
+            var projectOutput = new ProjectOutput(
+                tfm.ToRdTargetFrameworkInfo(),
+                projectOutputPath.NormalizeSeparators(FileSystemPathEx.SeparatorStyle.Unix),
+                ["host", "start", "--pause-on-error"],
+                workingDirectoryPath,
+                string.Empty,
+                null,
+                []
+            );
+
+            projectOutputs.Add(projectOutput);
+        }
+
+        if (!HasHostJsonFile(project))
+        {
+            problems = "Consider adding missing host.json file required by Azure Functions runtime to your project.";
+        }
 
         return new Rider.Model.RunnableProject(
             name,
@@ -42,6 +77,16 @@ public class AzureFunctionsRunnableProjectProvider(ILogger logger) : IRunnablePr
             problems,
             []
         );
+    }
+
+    private static bool HasHostJsonFile(IProject project)
+    {
+        using (project.Locks.UsingReadLock())
+        {
+            return project
+                .GetSubItems("host.json")
+                .Any();
+        }
     }
 
     public IEnumerable<RunnableProjectKind> HiddenRunnableProjectKinds => EmptyList<RunnableProjectKind>.Instance;

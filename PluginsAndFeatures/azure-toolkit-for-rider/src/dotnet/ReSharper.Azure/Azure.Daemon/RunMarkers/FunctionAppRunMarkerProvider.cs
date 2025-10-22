@@ -1,7 +1,7 @@
 // Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using JetBrains.Application.Settings;
-using JetBrains.ReSharper.Azure.Project.FunctionApp;
+using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Azure.Psi.FunctionApp;
 using JetBrains.ReSharper.Feature.Services.Daemon;
 using JetBrains.ReSharper.Psi;
@@ -26,7 +26,7 @@ public class FunctionAppRunMarkerProvider : IRunMarkerProvider
 
         var project = file.GetProject();
         if (project == null || !project.IsValid()) return;
-        if (!project.IsAzureFunctionsProject()) return;
+        if (!project.IsAzureFunctionProject()) return;
 
         foreach (var declaration in CachedDeclarationsCollector.Run<IMethodDeclaration>(csharpFile))
         {

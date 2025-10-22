@@ -19,7 +19,7 @@ public class AzureFunctionsProjectDockerfileContentGenerator(ILogger logger) : I
 {
     public int Priority => 10;
 
-    public bool IsApplicable(IProject project) => project.IsAzureFunctionsProject();
+    public bool IsApplicable(IProject project) => project.IsAzureFunctionProject();
 
     public string Generate(
         IProject project,
