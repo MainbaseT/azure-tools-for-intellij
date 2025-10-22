@@ -39,7 +39,7 @@ public class AzureProjectScopeProvider : ScopeProvider
     public override IEnumerable<ITemplateScopePoint> ProvideScopePoints(TemplateAcceptanceContext context)
     {
         var project = context.GetProject();
-        if (project == null || !project.IsAzureFunctionsProject()) yield break;
+        if (project == null || !project.IsAzureFunctionProject()) yield break;
 
         yield return new InAzureFunctionsProject();
 
