@@ -6,6 +6,12 @@
 
 ### Changed
 
+- Support for Rider 2025.3 EAP 8
+
+## [4.6.1] - 2025-10-22
+
+### Changed
+
 - Unify logic to detect Azure Function projects by using `AzureFunctionsVersion` MSBuild property ([RIDER-131333](https://youtrack.jetbrains.com/issue/RIDER-131333))
 
 ## [4.6.0] - 2025-10-21
@@ -371,7 +377,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.0...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.1...HEAD
+[4.6.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.5...4.6.0
 [4.5.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.4...4.5.5
 [4.5.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.3...4.5.4
