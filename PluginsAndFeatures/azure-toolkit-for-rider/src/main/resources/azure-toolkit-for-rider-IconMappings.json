@@ -16,7 +16,7 @@
         "TemplateAzureFunc.svg": "icons/FunctionApp/TemplateAzureFunc.svg"
       },
       "Toolwindows": {
-        "AzureToolWindow.svg": "icons/Common/AzureToolWindow.svg"
+        "AzureToolWindow.svg": "icons/Toolwindows/AzureToolWindow.svg"
       },
       "WebApp": {
         "Deploy.svg": "icons/WebApp/Deploy.svg"
