@@ -2,7 +2,6 @@
 
 package com.microsoft.azure.toolkit.intellij.bicep.lsp
 
-import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -10,10 +9,11 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.platform.util.coroutines.mapConcurrent
-import com.intellij.platform.util.progress.reportProgress
+import com.intellij.platform.util.progress.reportProgressScope
 import com.intellij.platform.util.progress.reportSequentialProgress
 import com.intellij.util.io.Decompressor
 import com.intellij.util.io.HttpRequests
+import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
@@ -45,7 +45,7 @@ internal suspend fun downloadLsInfrastructure(project: Project): Boolean {
         .toList()
 
       val downloadedResources = reporter.nextStep(endFraction = 80) {
-        reportProgress(allNecessaryResources.size) { innerReporter ->
+        reportProgressScope(allNecessaryResources.size) { innerReporter ->
           allNecessaryResources
             .mapConcurrent { infrastructurePiece ->
               innerReporter.itemStep(BicepBundle.message("progress.title.load", infrastructurePiece.presentableName)) {
@@ -61,7 +61,7 @@ internal suspend fun downloadLsInfrastructure(project: Project): Boolean {
                downloadedResources.joinToString(separator = ";"))
 
       val unpackedResources = reporter.nextStep(100) {
-        reportProgress(downloadedResources.size) { innerReporter ->
+        reportProgressScope(downloadedResources.size) { innerReporter ->
           downloadedResources.mapConcurrent { (lsInfrastructure, path) ->
             innerReporter.itemStep(BicepBundle.message("progress.title.unpack", lsInfrastructure.presentableName)) {
               unzipResourceSafe(path, lsInfrastructure)
