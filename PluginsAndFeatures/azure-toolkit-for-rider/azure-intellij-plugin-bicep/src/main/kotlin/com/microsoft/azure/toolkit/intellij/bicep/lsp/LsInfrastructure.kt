@@ -3,10 +3,10 @@
 package com.microsoft.azure.toolkit.intellij.bicep.lsp
 
 import com.intellij.openapi.util.NlsSafe
-import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLockAbsence
 import org.jetbrains.annotations.Nls
+import java.nio.file.Path
 import kotlin.io.path.exists
 
 internal interface LsInfrastructure {
@@ -14,18 +14,27 @@ internal interface LsInfrastructure {
     val extractedDirectoryName: @NlsSafe String
     val executableName: @NlsSafe String
     val presentableName: @Nls String
-    val localExecutablePath: @NlsSafe String
 
     @RequiresBackgroundThread
     @RequiresReadLockAbsence
     fun isPresent(): Boolean {
-        return localExecutablePath.toNioPathOrNull()?.exists() ?: false
+        val executablePath = findExecutablePath()
+        return executablePath.exists()
     }
 
     @RequiresBackgroundThread
     @RequiresReadLockAbsence
     fun isValid(): Boolean {
         return isPresent()
+    }
+
+    @RequiresBackgroundThread
+    @RequiresReadLockAbsence
+    fun findExecutablePath(): Path
+
+    @RequiresBackgroundThread
+    @RequiresReadLockAbsence
+    fun patchInfrastructureFiles() {
     }
 
     companion object {
