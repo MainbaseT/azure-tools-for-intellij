@@ -12,7 +12,11 @@ import com.intellij.platform.lsp.api.LspServer
 import com.intellij.platform.lsp.api.LspServerManager
 import com.intellij.platform.lsp.api.LspServerSupportProvider
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
+import com.intellij.platform.lsp.api.customization.LspCustomization
+import com.intellij.platform.lsp.api.customization.LspFormattingCustomizer
 import com.intellij.platform.lsp.api.customization.LspFormattingSupport
+import com.intellij.platform.lsp.api.customization.LspInlayHintCustomizer
+import com.intellij.platform.lsp.api.customization.LspInlayHintDisabled
 import com.intellij.platform.lsp.api.lsWidget.LspServerWidgetItem
 import com.jetbrains.rider.NetCoreRuntime
 
@@ -40,11 +44,14 @@ class BicepLspDescriptor(project: Project) : ProjectWideLspServerDescriptor(proj
     return prepareBicepServerLaunchCommandLine()
   }
 
-  override val lspFormattingSupport: LspFormattingSupport = object : LspFormattingSupport() {
-    override fun shouldFormatThisFileExclusivelyByServer(file: VirtualFile,
-                                                         ideCanFormatThisFileItself: Boolean,
-                                                         serverExplicitlyWantsToFormatThisFile: Boolean): Boolean {
-      return file.extension == BICEP_EXTENSION
+  override val lspCustomization: LspCustomization = object : LspCustomization() {
+    override val inlayHintCustomizer: LspInlayHintCustomizer = LspInlayHintDisabled
+    override val formattingCustomizer: LspFormattingCustomizer = object : LspFormattingSupport() {
+      override fun shouldFormatThisFileExclusivelyByServer(file: VirtualFile,
+                                                           ideCanFormatThisFileItself: Boolean,
+                                                           serverExplicitlyWantsToFormatThisFile: Boolean): Boolean {
+        return file.extension == BICEP_EXTENSION
+      }
     }
   }
 }

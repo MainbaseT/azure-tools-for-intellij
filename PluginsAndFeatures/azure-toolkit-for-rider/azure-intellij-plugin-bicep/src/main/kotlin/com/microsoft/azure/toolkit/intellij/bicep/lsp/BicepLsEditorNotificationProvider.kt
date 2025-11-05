@@ -37,7 +37,7 @@ internal class BicepLsEditorNotificationProvider : EditorNotificationProvider {
     return EditorNotificationPanel().text(BicepBundle.message("editor.notification.install.ls.title"))
       .apply {
         createActionLabel(BicepBundle.message("editor.notification.answer.yes")) {
-          BicepSchedulingService.Companion.getInstance(project).scheduleLsDownload()
+          BicepSchedulingService.getInstance(project).scheduleLsDownload()
           scheduleReloadEditorNotifications(project)
         }
         createActionLabel(BicepBundle.message("editor.notification.answer.no")) {

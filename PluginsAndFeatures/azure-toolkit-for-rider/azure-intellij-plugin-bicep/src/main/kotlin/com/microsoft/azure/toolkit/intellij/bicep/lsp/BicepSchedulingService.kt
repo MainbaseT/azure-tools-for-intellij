@@ -19,9 +19,7 @@ import java.util.concurrent.atomic.AtomicReference
 @Service(Service.Level.PROJECT)
 internal class BicepSchedulingService(private val project: Project, val coroutineScope: CoroutineScope) {
   companion object {
-    fun getInstance(project: Project): BicepSchedulingService {
-      return project.service<BicepSchedulingService>()
-    }
+    fun getInstance(project: Project): BicepSchedulingService = project.service<BicepSchedulingService>()
   }
 
   private val setupInProgress = MutableStateFlow(false)
@@ -102,15 +100,15 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
   }
 
   private suspend fun displayAvailabilityHint(lsValidity: LsValidity, setupMode: LsSetupMode) {
-    when {
-      lsValidity == LsValidity.VALID -> {
-        displayPopupWithServerInfo(project, BicepBundle.message("hint.ls.features.available"))
+      when (lsValidity) {
+          LsValidity.VALID -> {
+              displayPopupWithServerInfo(project, BicepBundle.message("hint.ls.features.available"))
+          }
+          LsValidity.INVALID if setupMode == LsSetupMode.DOWNLOAD_AND_VALIDATE -> {
+              displayPopupWithServerInfo(project, BicepBundle.message("hint.ls.installation.error"))
+          }
+          else -> {}
       }
-      lsValidity == LsValidity.INVALID && setupMode == LsSetupMode.DOWNLOAD_AND_VALIDATE -> {
-        displayPopupWithServerInfo(project, BicepBundle.message("hint.ls.installation.error"))
-      }
-      else -> {}
-    }
   }
 }
 
