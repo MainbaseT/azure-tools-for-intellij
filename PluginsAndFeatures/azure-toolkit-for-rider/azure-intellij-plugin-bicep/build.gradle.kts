@@ -24,4 +24,6 @@ dependencies {
         jetbrainsRuntime()
         bundledPlugin("org.jetbrains.plugins.textmate")
     }
+
+    implementation(libs.serializationJson)
 }
