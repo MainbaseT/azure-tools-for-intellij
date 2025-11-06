@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Unable to install Bicep LSP ([RIDER-131961](https://youtrack.jetbrains.com/issue/RIDER-131961/Unable-to-install-Bicep-LSP))
+
+## [4.6.2] - 2025-11-03
+
 ### Changed
 
 - Support for Rider 2025.3 EAP 8
@@ -377,7 +383,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.2...HEAD
+[4.6.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.1...4.6.2
 [4.6.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.5...4.6.0
 [4.5.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.4...4.5.5
