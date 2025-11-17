@@ -1,0 +1,12 @@
+{
+  "icons": {
+    "expui": {
+      "Microsoft.Web": {
+        "functions.svg": "icons/Microsoft.Web/functions.svg",
+        "webapps.svg": "icons/Microsoft.Web/webapps.svg"
+      },
+      "function-trigger.svg": "icons/function-trigger.png"
+    }
+  }
+}
+
