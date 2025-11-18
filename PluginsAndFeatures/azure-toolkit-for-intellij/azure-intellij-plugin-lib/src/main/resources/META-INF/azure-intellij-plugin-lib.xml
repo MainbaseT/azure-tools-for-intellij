@@ -27,7 +27,7 @@
         <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.common.feedback.RateManager$WhenToPopup"/>
         <registryKey key="azure.toolkit.test.mode.enabled" description="Test mode" restartRequired="true" defaultValue="false"/>
         <registryKey key="azure.toolkit.feedback.score.threshold" description="Score threshold to popup for rating" restartRequired="false" defaultValue="20"/>
-        <iconMapper mappingFile="AzureIconMappings.json"/>
+        <iconMapper mappingFile="azure-intellij-plugin-lib-IconMappings.json"/>
     </extensions>
     <actions>
         <action id="AzureToolkit.AzureSignIn" class="com.microsoft.azure.toolkit.intellij.common.auth.SignInAction" text="Azure Sign In..." />

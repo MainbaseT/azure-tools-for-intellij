@@ -4,6 +4,9 @@
         <actions implementation="com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor"/>
         <actions implementation="com.microsoft.azure.toolkit.intellij.storage.IntellijStorageActionsContributor"/>
     </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <iconMapper mappingFile="azure-intellij-plugin-storage-IconMappings.json"/>
+    </extensions>
     <projectListeners>
         <listener class="com.microsoft.azure.toolkit.intellij.storage.azurite.AzuriteTaskAdder"
                   topic="com.intellij.execution.RunManagerListener" />

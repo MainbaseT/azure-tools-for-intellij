@@ -18,5 +18,6 @@
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.database.postgre.property.PostgreSqlPropertiesEditorProvider"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.database.mysql.property.MySqlPropertiesEditorProvider"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.database.sqlserver.property.SqlServerPropertiesEditorProvider"/>
+        <iconMapper mappingFile="azure-intellij-plugin-database-IconMappings.json"/>
     </extensions>
 </idea-plugin>
