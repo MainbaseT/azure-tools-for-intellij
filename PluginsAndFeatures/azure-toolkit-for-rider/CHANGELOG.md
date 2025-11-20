@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.6.4] - 2025-11-20
+
 ### Changed
 
 - Select the first tfm or launch profile when the specified value is missing or invalid ([RIDER-132763](https://youtrack.jetbrains.com/issue/RIDER-132763))
@@ -393,7 +395,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.3...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.4...HEAD
+[4.6.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.3...4.6.4
 [4.6.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.2...4.6.3
 [4.6.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.1...4.6.2
 [4.6.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.0...4.6.1
