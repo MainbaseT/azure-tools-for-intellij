@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Select the first tfm or launch profile when the specified value is missing or invalid ([RIDER-132763](https://youtrack.jetbrains.com/issue/RIDER-132763))
+
+### Fixed
+
+- Attach to Process → All Processes list has an empty value ([RIDER-131554](https://youtrack.jetbrains.com/issue/RIDER-131554))
+
+## [4.6.3] - 2025-11-06
+
 ### Fixed
 
 - Unable to install Bicep LSP ([RIDER-131961](https://youtrack.jetbrains.com/issue/RIDER-131961/Unable-to-install-Bicep-LSP))
@@ -383,7 +393,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.2...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.3...HEAD
+[4.6.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.2...4.6.3
 [4.6.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.1...4.6.2
 [4.6.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.5.5...4.6.0

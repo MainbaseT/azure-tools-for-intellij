@@ -101,6 +101,7 @@ class FunctionRunExecutorFactory(
         val projectOutput = runnableProject
             .projectOutputs
             .singleOrNull { it.tfm?.presentableName == parameters.projectTfm }
+            ?: runnableProject.projectOutputs.firstOrNull()
 
         val launchProfile = LaunchSettingsJsonService
             .getInstance(project)
