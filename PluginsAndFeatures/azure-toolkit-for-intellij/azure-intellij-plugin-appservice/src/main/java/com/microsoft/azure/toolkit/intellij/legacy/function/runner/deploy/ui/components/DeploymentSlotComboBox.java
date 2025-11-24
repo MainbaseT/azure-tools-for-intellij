@@ -89,6 +89,9 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
         if (module == null) {
             return this.draftItems;
         }
+
+        module.refresh();
+
         final List<DeploymentSlotConfig> result = module.list().stream().map(slot ->
             DeploymentSlotConfig.builder().name(slot.getName()).build()).collect(Collectors.toList());
         final DeploymentSlotConfig current = getValue();
