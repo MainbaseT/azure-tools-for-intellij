@@ -70,7 +70,7 @@ jobs:
 
       # Upload azure artifacts
       - name: Upload azure artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: azure-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azure/
@@ -78,7 +78,7 @@ jobs:
 
       # Upload hdinsight artifacts
       - name: Upload hdinsight artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hdinsight-artifacts
           path: /home/runner/.m2/repository/com/microsoft/hdinsight/
@@ -86,7 +86,7 @@ jobs:
 
       # Upload azuretools artifacts
       - name: Upload azuretools artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: azuretools-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azuretools/
@@ -168,7 +168,7 @@ jobs:
 
       # Store an already-built plugin as an artifact for downloading
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.artifact.outputs.filename }}
           path: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider/build/distributions/content/*/*
@@ -230,7 +230,7 @@ jobs:
   #      # Collect Tests Result of failed tests
   #      - name: Collect Tests Result
   #        if: ${{ failure() }}
-  #        uses: actions/upload-artifact@v4
+  #        uses: actions/upload-artifact@v5
   #        with:
   #          name: tests-result
   #          path: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider/build/reports/tests
@@ -300,7 +300,7 @@ jobs:
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pluginVerifier-result
           path: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider/build/reports/pluginVerifier
