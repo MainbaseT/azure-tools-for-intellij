@@ -102,6 +102,18 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
     }
 
     @Override
+    protected void refreshItems() {
+        final AbstractAzResource<?, ?, ?> resource = StringUtils.isEmpty(appServiceId) ? null : Azure.az().getById(appServiceId);
+        final IDeploymentSlotModule<?, ?, ?> module = (IDeploymentSlotModule<?, ?, ?>) Optional.ofNullable(resource)
+                .flatMap(r -> r.getSubModules().stream().filter(m -> m instanceof IDeploymentSlotModule).findFirst())
+                .orElse(null);
+        if (module != null) {
+            module.refresh();
+        }
+        super.refreshItems();
+    }
+
+    @Override
     protected String getItemText(final Object item) {
         if (item instanceof DeploymentSlotConfig) {
             final DeploymentSlotConfig selectedItem = (DeploymentSlotConfig) item;
