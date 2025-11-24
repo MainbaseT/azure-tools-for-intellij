@@ -21,14 +21,18 @@ class LoadAppServicesActivity : ProjectActivity {
     }
 
     override suspend fun execute(project: Project) {
-        val account = Azure.az(AzureAccount::class.java).account()
-        if (!account.isLoggedIn) return
+        try {
+            val account = Azure.az(AzureAccount::class.java).account()
+            if (!account.isLoggedIn) return
 
-        LOG.trace("Loading Azure App Services")
-        coroutineScope {
-            launch { loadAppServicePlans() }
-            launch { loadWebApps() }
-            launch { loadFunctionApps() }
+            LOG.trace("Loading Azure App Services")
+            coroutineScope {
+                launch { loadAppServicePlans() }
+                launch { loadWebApps() }
+                launch { loadFunctionApps() }
+            }
+        } catch (e: Exception) {
+            //User isn't logged in, do nothing
         }
     }
 
