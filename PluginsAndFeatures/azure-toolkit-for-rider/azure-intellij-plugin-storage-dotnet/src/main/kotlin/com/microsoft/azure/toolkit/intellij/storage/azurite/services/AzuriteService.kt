@@ -173,6 +173,10 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
             commandLine.addParameter("--loose")
         }
 
+        if (settings.skipApiVersionCheck) {
+            commandLine.addParameter("--skipApiVersionCheck")
+        }
+
         if (settings.basicOAuth) {
             commandLine.addParameters("--oauth", "basic")
         }

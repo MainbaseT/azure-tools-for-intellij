@@ -11,6 +11,7 @@ class AzuriteSettingsState : BaseState() {
     var locationMode by enum<AzuriteLocationMode>(AzuriteLocationMode.Managed)
     var workspacePath by string("")
     var looseMode by property(false)
+    var skipApiVersionCheck by property(false)
     var showAzuriteService by property(true)
     var checkAzuriteExecutable by property(true)
     var blobHost by string("127.0.0.1")
