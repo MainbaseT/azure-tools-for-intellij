@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Rider fails to find a proper deployment slot ([RIDER-131444](https://youtrack.jetbrains.com/issue/RIDER-131444))
+
 ## [4.6.4] - 2025-11-20
 
 ### Changed
