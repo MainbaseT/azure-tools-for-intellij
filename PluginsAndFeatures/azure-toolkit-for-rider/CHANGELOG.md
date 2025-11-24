@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Setting to specify `--skipApiVersionCheck` option for Azurite executable ([RIDER-129584](https://youtrack.jetbrains.com/issue/RIDER-129584))
+
 ### Fixed
 
 - Rider fails to find a proper deployment slot ([RIDER-131444](https://youtrack.jetbrains.com/issue/RIDER-131444))
