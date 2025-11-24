@@ -102,15 +102,16 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
         val isDraftResource = resource == null || !resource.exists()
 
         deployToSlotCheckBox.enabled(!isDraftResource)
+        if (!isDraftResource) {
+            deploymentSlotComboBox.component.setAppService(resource.id)
+        }
 
         if (isDraftResource) {
             deployToSlotCheckBox.component.isSelected = false
         } else if (resource is WebApp) {
-            val hasDeploymentSlots = resource.slots().list().isNotEmpty()
+            val hasDeploymentSlots = runCatching { resource.slots().list().isNotEmpty() }.getOrElse { false }
             deployToSlotCheckBox.component.isSelected = hasDeploymentSlots
         }
-
-        deploymentSlotComboBox.component.setAppService(resource?.id)
     }
 
     private fun onSlotCheckBoxChanged(event: ItemEvent) {
