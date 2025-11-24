@@ -53,6 +53,12 @@ class AzuriteSettings(private val project: Project) : SimplePersistentStateCompo
             state.looseMode = value
         }
 
+    var skipApiVersionCheck
+        get() = state.skipApiVersionCheck
+        set(value) {
+            state.skipApiVersionCheck = value
+        }
+
     var showAzuriteService
         get() = state.showAzuriteService
         set(value) {

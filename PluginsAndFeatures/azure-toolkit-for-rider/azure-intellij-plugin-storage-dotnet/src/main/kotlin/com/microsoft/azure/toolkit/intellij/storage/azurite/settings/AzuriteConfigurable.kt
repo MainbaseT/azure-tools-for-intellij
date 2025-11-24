@@ -74,6 +74,10 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
                     .bindSelected(settings::looseMode)
             }
             row {
+                checkBox("Skip the API version check")
+                    .bindSelected(settings::skipApiVersionCheck)
+            }
+            row {
                 basicOAuthCheckBox = checkBox("Enable basic OAuth authentication for Azurite")
                     .comment("OAuth requires an HTTPS endpoint.")
                     .bindSelected(settings::basicOAuth)
