@@ -37,7 +37,7 @@ jobs:
 
       # Upload azure artifacts
       - name: Upload azure artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: azure-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azure/
@@ -45,7 +45,7 @@ jobs:
 
       # Upload hdinsight artifacts
       - name: Upload hdinsight artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hdinsight-artifacts
           path: /home/runner/.m2/repository/com/microsoft/hdinsight/
@@ -53,7 +53,7 @@ jobs:
 
       # Upload azuretools artifacts
       - name: Upload azuretools artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: azuretools-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azuretools/
