@@ -73,7 +73,7 @@
         <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Web" displayName="Azure Toolkit"/>
         <dependencySupport kind="executable" coordinate="az"/>
 
-        <iconMapper mappingFile="AzureIconMappings.json"/>
+        <iconMapper mappingFile="azure-toolkit-for-rider-IconMappings.json"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">

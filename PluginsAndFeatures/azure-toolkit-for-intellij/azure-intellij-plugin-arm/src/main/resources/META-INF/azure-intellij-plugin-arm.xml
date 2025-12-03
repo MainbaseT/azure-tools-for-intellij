@@ -19,5 +19,6 @@
                                implementationClass="com.microsoft.azure.toolkit.intellij.arm.language.ARMTemplateParserDefinition"/>
         <completion.contributor language="JSON" order="first"
                                 implementationClass="com.microsoft.azure.toolkit.intellij.arm.language.ARMTemplateCompletionContributor"/>
+        <iconMapper mappingFile="azure-intellij-plugin-arm-IconMappings.json"/>
     </extensions>
 </idea-plugin>
