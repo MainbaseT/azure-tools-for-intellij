@@ -13,7 +13,7 @@ import com.intellij.execution.runners.ProgramRunner
 import com.jetbrains.rider.run.ConsoleKind
 import com.jetbrains.rider.run.TerminalProcessHandler
 import com.jetbrains.rider.run.createConsole
-import com.jetbrains.rider.run.createRunCommandLine
+import com.jetbrains.rider.run.createRunCommandLineBlocking
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
 import kotlin.io.path.Path
@@ -26,7 +26,7 @@ class FunctionRunProfileState(
     override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult {
         dotNetExecutable.validate()
 
-        val commandLine = dotNetExecutable.createRunCommandLine(dotNetRuntime)
+        val commandLine = dotNetExecutable.createRunCommandLineBlocking(dotNetRuntime)
         val originalExecutable = Path(commandLine.exePath)
         val processHandler = TerminalProcessHandler(
             environment.project,

@@ -1,13 +1,13 @@
 package com.microsoft.azure.toolkit.intellij.bicep.lsp
 
-import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle.BICEP_EXTENSION
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspServerManager
-import com.jetbrains.rider.NetCoreRuntime
+import com.jetbrains.rider.environment.RiderEnvironment
+import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle.BICEP_EXTENSION
 import kotlin.io.path.absolutePathString
 
 internal fun isLsAvailableFor(file: VirtualFile, project: Project): Boolean {
@@ -38,7 +38,10 @@ internal fun findAllOpenedBicepFiles(project: Project): Sequence<VirtualFile> {
         .filter { file -> file.extension == BICEP_EXTENSION }
 }
 
-internal fun prepareBicepServerLaunchCommandLine(): GeneralCommandLine {
+internal fun prepareBicepServerLaunchCommandLine(riderEnvironment: RiderEnvironment): GeneralCommandLine {
     val bicepExecutablePath = BicepLS.findExecutablePath().absolutePathString()
-    return GeneralCommandLine(NetCoreRuntime.cliPath.value, bicepExecutablePath)
+    return GeneralCommandLine(
+        riderEnvironment.getRuntime().cliPath().absolutePathString(),
+        bicepExecutablePath
+    )
 }

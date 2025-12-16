@@ -32,7 +32,8 @@ internal class BicepLspDescriptor : ProjectWideLspServerDescriptor {
     }
 
     override fun createCommandLine(): GeneralCommandLine {
-        return prepareBicepServerLaunchCommandLine()
+        TODO("Fix before 261 Release")
+        //return prepareBicepServerLaunchCommandLine(project.getEnvironment())
     }
 
     override val lspCustomization: LspCustomization

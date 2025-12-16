@@ -35,6 +35,7 @@ class FunctionProjectSessionDebugProfile(
         sessionId,
         dotnetExecutable,
         dotnetRuntime,
+        environment,
         sessionProcessEventListener,
         sessionProcessLifetime
     )

@@ -19,8 +19,9 @@ import com.jetbrains.rider.runtime.DotNetRuntime
 class FunctionIsolatedDebugProfileState(
     private val dotNetExecutable: DotNetExecutable,
     dotNetRuntime: DotNetRuntime,
+    executionEnvironment: ExecutionEnvironment,
     private val lifetime: Lifetime,
-) : FunctionIsolatedBaseDebugProfileState(dotNetExecutable, dotNetRuntime) {
+) : FunctionIsolatedBaseDebugProfileState(dotNetExecutable, dotNetRuntime, executionEnvironment) {
 
     override suspend fun checkBeforeExecution() {
         dotNetExecutable.validate()

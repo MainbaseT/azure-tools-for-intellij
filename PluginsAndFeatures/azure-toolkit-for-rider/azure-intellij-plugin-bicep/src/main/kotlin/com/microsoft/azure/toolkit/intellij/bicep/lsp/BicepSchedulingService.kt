@@ -1,6 +1,5 @@
 package com.microsoft.azure.toolkit.intellij.bicep.lsp
 
-import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
@@ -8,6 +7,8 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.jetbrains.rider.environment.getEnvironment
+import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,7 +83,8 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
     }
 
     private suspend fun tryRunServerAndCheckNoErrorsInOutput(): Boolean {
-        val testCommandLine = prepareBicepServerLaunchCommandLine()
+        val environment = project.getEnvironment()
+        val testCommandLine = prepareBicepServerLaunchCommandLine(environment)
         val testOutput = withContext(Dispatchers.IO) {
             CapturingProcessHandler.Silent(testCommandLine).runProcess(1000, true)
         }

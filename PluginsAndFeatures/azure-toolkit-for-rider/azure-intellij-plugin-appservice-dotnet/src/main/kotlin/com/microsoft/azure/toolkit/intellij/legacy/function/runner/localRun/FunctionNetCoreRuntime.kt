@@ -54,6 +54,7 @@ class FunctionNetCoreRuntime(
 
         FunctionWorkerRuntime.DOTNET_ISOLATED -> createDebugStateForIsolatedFunctionRuntime(
             dotNetExecutable,
+            executionEnvironment,
         )
     }
 
@@ -75,10 +76,13 @@ class FunctionNetCoreRuntime(
         )
     }
 
-    private fun createDebugStateForIsolatedFunctionRuntime(dotNetExecutable: DotNetExecutable) =
-        FunctionIsolatedDebugProfileState(
-            dotNetExecutable,
-            this,
-            lifetime
-        )
+    private fun createDebugStateForIsolatedFunctionRuntime(
+        dotNetExecutable: DotNetExecutable,
+        executionEnvironment: ExecutionEnvironment
+    ) = FunctionIsolatedDebugProfileState(
+        dotNetExecutable,
+        this,
+        executionEnvironment,
+        lifetime
+    )
 }
