@@ -2,6 +2,8 @@
  * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.profileStates
 
 import com.intellij.execution.ExecutionResult
@@ -16,6 +18,8 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.platform.eel.EelDescriptor
+import com.intellij.platform.eel.provider.getEelDescriptor
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.util.system.CpuArch
 import com.jetbrains.rd.util.lifetime.Lifetime
@@ -36,10 +40,14 @@ import kotlinx.coroutines.withContext
 abstract class FunctionIsolatedBaseDebugProfileState(
     private val dotNetExecutable: DotNetExecutable,
     private val dotNetRuntime: DotNetRuntime,
+    private val executionEnvironment: ExecutionEnvironment
 ) : IDotNetDebugProfileState, RequiresPreparationRunProfileState {
     companion object {
         private val LOG = logger<FunctionIsolatedBaseDebugProfileState>()
     }
+
+    override val eelDescriptor: EelDescriptor
+        get() = executionEnvironment.project.getEelDescriptor()
 
     protected lateinit var functionHostExecutionResult: ExecutionResult
     protected lateinit var wrappedState: AttachDebugProcessAwareProfileStateBase

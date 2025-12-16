@@ -27,9 +27,10 @@ class IsolatedFunctionProjectSessionDebugProfileState(
     private val sessionId: String,
     private val dotnetExecutable: DotNetExecutable,
     dotnetRuntime: DotNetCoreRuntime,
+    executionEnvironment: ExecutionEnvironment,
     private val sessionProcessEventListener: ProcessListener,
     private val sessionProcessLifetime: Lifetime
-) : FunctionIsolatedBaseDebugProfileState(dotnetExecutable, dotnetRuntime) {
+) : FunctionIsolatedBaseDebugProfileState(dotnetExecutable, dotnetRuntime, executionEnvironment) {
     companion object {
         private val LOG = logger<IsolatedFunctionProjectSessionDebugProfileState>()
     }
