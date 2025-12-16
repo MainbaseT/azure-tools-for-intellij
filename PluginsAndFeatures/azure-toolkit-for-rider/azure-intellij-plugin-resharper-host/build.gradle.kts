@@ -9,6 +9,7 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
+        nightly()
     }
 }
 
