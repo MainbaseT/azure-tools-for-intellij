@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.intellij.aspire
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.jetbrains.aspire.rider.sessions.projectLaunchers.DotNetSessionProfile
+import com.jetbrains.aspire.rider.sessions.projectLaunchers.DotNetSessionRunProfileState
 import com.jetbrains.rd.util.lifetime.Lifetime
-import com.jetbrains.rider.aspire.sessions.projectLaunchers.DotNetExecutableSessionRunProfileState
-import com.jetbrains.rider.aspire.sessions.projectLaunchers.ProjectSessionProfile
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntime
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
@@ -25,14 +25,14 @@ class FunctionProjectSessionRunProfile(
     private val sessionProcessEventListener: ProcessListener,
     private val sessionProcessLifetime: Lifetime,
     aspireHostProjectPath: Path?
-) : ProjectSessionProfile(sessionId, projectPath, dotnetExecutable, aspireHostProjectPath, false) {
+) : DotNetSessionProfile(sessionId, projectPath, dotnetExecutable, aspireHostProjectPath, false) {
 
     override fun getIcon(): Icon = IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.RUN)
 
     override fun getState(
         executor: Executor,
         environment: ExecutionEnvironment
-    ) = DotNetExecutableSessionRunProfileState(
+    ) = DotNetSessionRunProfileState(
         sessionId,
         dotnetExecutable,
         dotnetRuntime,

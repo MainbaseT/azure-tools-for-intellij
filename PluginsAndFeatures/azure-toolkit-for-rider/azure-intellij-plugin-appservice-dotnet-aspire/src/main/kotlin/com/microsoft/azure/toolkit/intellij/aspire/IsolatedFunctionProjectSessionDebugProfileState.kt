@@ -11,6 +11,7 @@ import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerHelperHost
 import com.jetbrains.rider.run.ConsoleKind
 import com.jetbrains.rider.run.DebugProfileStateBase
+import com.jetbrains.rider.run.configurations.shouldUsePty
 import com.jetbrains.rider.run.dotNetCore.DotNetCoreAttachProfileState
 import com.jetbrains.rider.run.kill
 import com.jetbrains.rider.runtime.DotNetExecutable
@@ -73,6 +74,6 @@ class IsolatedFunctionProjectSessionDebugProfileState(
         port,
         getLauncherInfo(lifetime, helper),
         dotnetExecutable.executableType,
-        dotnetExecutable.usePty
+        dotnetExecutable.terminalMode.shouldUsePty() != false
     )
 }
