@@ -33,3 +33,7 @@ dependencies {
     implementation(libs.azureToolkitSqlserverLib)
     implementation(libs.azureToolkitPostgreLib)
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

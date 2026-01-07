@@ -27,3 +27,7 @@ dependencies {
 
     implementation(libs.serializationJson)
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

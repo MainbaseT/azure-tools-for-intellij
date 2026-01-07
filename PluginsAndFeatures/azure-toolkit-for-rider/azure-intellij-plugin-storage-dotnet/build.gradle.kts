@@ -31,3 +31,7 @@ dependencies {
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdeStorageLib)
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

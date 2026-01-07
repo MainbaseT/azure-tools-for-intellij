@@ -29,3 +29,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-appservice-dotnet"))
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

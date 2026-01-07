@@ -63,3 +63,7 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.WARN
     }
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

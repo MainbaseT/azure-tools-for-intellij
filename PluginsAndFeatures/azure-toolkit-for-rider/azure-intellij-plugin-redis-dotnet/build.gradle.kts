@@ -31,3 +31,7 @@ dependencies {
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdeRedisLib)
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

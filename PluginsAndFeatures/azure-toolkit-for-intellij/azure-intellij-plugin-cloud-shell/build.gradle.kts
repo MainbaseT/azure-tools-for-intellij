@@ -63,3 +63,7 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
     }
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

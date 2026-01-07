@@ -2,13 +2,17 @@
  * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.bicep.lsp
 
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
 import com.intellij.platform.lsp.api.customization.*
+import com.jetbrains.rider.environment.getEnvironment
 import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
 
 internal class BicepLspDescriptor : ProjectWideLspServerDescriptor {
@@ -32,7 +36,9 @@ internal class BicepLspDescriptor : ProjectWideLspServerDescriptor {
     }
 
     override fun createCommandLine(): GeneralCommandLine {
-        return prepareBicepServerLaunchCommandLine()
+        return runBlockingMaybeCancellable {
+            prepareBicepServerLaunchCommandLine(project.getEnvironment())
+        }
     }
 
     override val lspCustomization: LspCustomization

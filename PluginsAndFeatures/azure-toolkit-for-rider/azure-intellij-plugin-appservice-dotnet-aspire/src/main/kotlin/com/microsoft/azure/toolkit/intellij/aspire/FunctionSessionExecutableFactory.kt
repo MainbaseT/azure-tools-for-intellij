@@ -13,17 +13,16 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
-import com.intellij.util.io.systemIndependentPath
-import com.jetbrains.rider.aspire.generated.CreateSessionRequest
-import com.jetbrains.rider.aspire.run.AspireHostConfiguration
-import com.jetbrains.rider.aspire.sessions.findBySessionProject
-import com.jetbrains.rider.aspire.sessions.getLaunchProfile
-import com.jetbrains.rider.aspire.sessions.mergeArguments
-import com.jetbrains.rider.aspire.sessions.mergeEnvironmentVariables
-import com.jetbrains.rider.aspire.settings.AspireSettings
-import com.jetbrains.rider.aspire.util.MSBuildPropertyService
-import com.jetbrains.rider.aspire.util.MSBuildPropertyService.ProjectRunProperties
-import com.jetbrains.rider.aspire.util.getStartBrowserAction
+import com.jetbrains.aspire.rider.launchProfiles.getWorkingDirectory
+import com.jetbrains.aspire.rider.run.host.AspireHostConfiguration
+import com.jetbrains.aspire.rider.sessions.findBySessionProject
+import com.jetbrains.aspire.rider.sessions.getLaunchProfile
+import com.jetbrains.aspire.rider.sessions.mergeArguments
+import com.jetbrains.aspire.rider.sessions.mergeEnvironmentVariables
+import com.jetbrains.aspire.sessions.DotNetSessionLaunchConfiguration
+import com.jetbrains.aspire.settings.AspireSettings
+import com.jetbrains.aspire.util.MSBuildPropertyService
+import com.jetbrains.aspire.util.getStartBrowserAction
 import com.jetbrains.rider.model.RdTargetFrameworkId
 import com.jetbrains.rider.model.RunnableProject
 import com.jetbrains.rider.model.runnableProjectsModel
@@ -37,7 +36,6 @@ import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntimeType
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
-import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionCoreToolsExecutableService
 import java.nio.file.Path
@@ -55,10 +53,10 @@ class FunctionSessionExecutableFactory(private val project: Project) {
     }
 
     suspend fun createExecutable(
-        sessionModel: CreateSessionRequest,
+        launchConfiguration: DotNetSessionLaunchConfiguration,
         hostRunConfiguration: AspireHostConfiguration?
     ): DotNetExecutable? {
-        val sessionProjectPath = Path(sessionModel.projectPath)
+        val sessionProjectPath = launchConfiguration.projectPath
         val runnableProject = project.solution.runnableProjectsModel.findBySessionProject(sessionProjectPath) {
             it.kind == AzureRunnableProjectKinds.AzureFunctions
         }
@@ -66,13 +64,13 @@ class FunctionSessionExecutableFactory(private val project: Project) {
             getExecutableForRunnableProject(
                 sessionProjectPath,
                 runnableProject,
-                sessionModel,
+                launchConfiguration,
                 hostRunConfiguration
             )
         } else {
             getExecutableForExternalProject(
                 sessionProjectPath,
-                sessionModel,
+                launchConfiguration,
                 hostRunConfiguration
             )
         }
@@ -81,7 +79,7 @@ class FunctionSessionExecutableFactory(private val project: Project) {
     private suspend fun getExecutableForRunnableProject(
         sessionProjectPath: Path,
         runnableProject: RunnableProject,
-        sessionModel: CreateSessionRequest,
+        launchConfiguration: DotNetSessionLaunchConfiguration,
         hostRunConfiguration: AspireHostConfiguration?
     ): DotNetExecutable? {
         val output = runnableProject.projectOutputs.firstOrNull()
@@ -97,11 +95,11 @@ class FunctionSessionExecutableFactory(private val project: Project) {
             return null
         }
 
-        val launchProfile = getLaunchProfile(sessionModel, runnableProject, project)
+        val launchProfile = getLaunchProfile(launchConfiguration, runnableProject, project)
         val coreToolsExecutablePath = coreToolsExecutable.executablePath.absolutePathString()
         val workingDirectory = getWorkingDirectory(launchProfile, output)
-        val arguments = mergeArguments(sessionModel.args, output.defaultArguments, launchProfile?.commandLineArgs)
-        val envs = mergeEnvironmentVariables(sessionModel.envs, launchProfile?.environmentVariables)
+        val arguments = mergeArguments(launchConfiguration.args, output.defaultArguments, launchProfile?.commandLineArgs)
+        val envs = mergeEnvironmentVariables(launchConfiguration.envs, launchProfile?.environmentVariables)
 
         val executableParams = getExecutableParams(
             sessionProjectPath,
@@ -142,7 +140,7 @@ class FunctionSessionExecutableFactory(private val project: Project) {
 
     private suspend fun getExecutableForExternalProject(
         sessionProjectPath: Path,
-        sessionModel: CreateSessionRequest,
+        launchConfiguration: DotNetSessionLaunchConfiguration,
         hostRunConfiguration: AspireHostConfiguration?
     ): DotNetExecutable? {
         val propertyService = MSBuildPropertyService.getInstance(project)
@@ -159,11 +157,11 @@ class FunctionSessionExecutableFactory(private val project: Project) {
             return null
         }
 
-        val launchProfile = getLaunchProfile(sessionModel, sessionProjectPath, project)
+        val launchProfile = getLaunchProfile(launchConfiguration, sessionProjectPath, project)
         val coreToolsExecutablePath = coreToolsExecutable.executablePath.absolutePathString()
         val workingDirectory = getWorkingDirectory(launchProfile, properties)
-        val arguments = mergeArguments(sessionModel.args, properties.arguments, launchProfile?.commandLineArgs)
-        val envs = mergeEnvironmentVariables(sessionModel.envs, launchProfile?.environmentVariables)
+        val arguments = mergeArguments(launchConfiguration.args, properties.arguments, launchProfile?.commandLineArgs)
+        val envs = mergeEnvironmentVariables(launchConfiguration.envs, launchProfile?.environmentVariables)
 
         val executableParams = getExecutableParams(
             sessionProjectPath,
@@ -199,13 +197,6 @@ class FunctionSessionExecutableFactory(private val project: Project) {
             true,
             DotNetCoreRuntimeType
         )
-    }
-
-    private fun getWorkingDirectory(
-        profile: LaunchSettingsJson.Profile?,
-        projectProperties: ProjectRunProperties?
-    ): String {
-        return profile?.workingDirectory ?: projectProperties?.workingDirectory?.systemIndependentPath ?: ""
     }
 
     private suspend fun getExecutableParams(

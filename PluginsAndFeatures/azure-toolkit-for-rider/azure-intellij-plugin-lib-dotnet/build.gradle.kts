@@ -29,3 +29,7 @@ dependencies {
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(project(path = ":azure-intellij-plugin-lib"))
 }
+
+intellijPlatform {
+    instrumentCode = false
+}

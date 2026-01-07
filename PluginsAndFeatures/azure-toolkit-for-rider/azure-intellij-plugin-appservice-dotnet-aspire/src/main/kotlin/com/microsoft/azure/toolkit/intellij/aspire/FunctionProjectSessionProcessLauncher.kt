@@ -10,23 +10,22 @@ import com.intellij.execution.process.ProcessListener
 import com.intellij.ide.browsers.StartBrowserSettings
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.jetbrains.aspire.rider.run.host.AspireHostConfiguration
+import com.jetbrains.aspire.rider.sessions.findBySessionProject
+import com.jetbrains.aspire.rider.sessions.projectLaunchers.DotNetSessionProcessLauncher
+import com.jetbrains.aspire.sessions.DotNetSessionLaunchConfiguration
 import com.jetbrains.rd.util.lifetime.Lifetime
-import com.jetbrains.rider.aspire.generated.CreateSessionRequest
-import com.jetbrains.rider.aspire.run.AspireHostConfiguration
-import com.jetbrains.rider.aspire.sessions.findBySessionProject
-import com.jetbrains.rider.aspire.sessions.projectLaunchers.DotNetExecutableSessionProcessLauncher
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntime
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import java.nio.file.Path
-import kotlin.io.path.Path
 
 /**
  * Launches an Azure Function .NET project from an Aspire session request.
  */
-class FunctionProjectSessionProcessLauncher : DotNetExecutableSessionProcessLauncher() {
+class FunctionProjectSessionProcessLauncher : DotNetSessionProcessLauncher() {
     companion object {
         private val LOG = logger<FunctionProjectSessionProcessLauncher>()
     }
@@ -34,11 +33,10 @@ class FunctionProjectSessionProcessLauncher : DotNetExecutableSessionProcessLaun
     override val priority = 3
 
     override suspend fun isApplicable(
-        projectPath: String,
+        projectPath: Path,
         project: Project
     ): Boolean {
-        val path = Path(projectPath)
-        val runnableProject = project.solution.runnableProjectsModel.findBySessionProject(path) {
+        val runnableProject = project.solution.runnableProjectsModel.findBySessionProject(projectPath) {
             it.kind == AzureRunnableProjectKinds.AzureFunctions
         }
 
@@ -46,15 +44,15 @@ class FunctionProjectSessionProcessLauncher : DotNetExecutableSessionProcessLaun
     }
 
     override suspend fun getDotNetExecutable(
-        sessionModel: CreateSessionRequest,
+        launchConfiguration: DotNetSessionLaunchConfiguration,
         isDebugSession: Boolean,
         hostRunConfiguration: AspireHostConfiguration?,
         project: Project
     ): Pair<DotNetExecutable, StartBrowserSettings?>? {
         val factory = FunctionSessionExecutableFactory.getInstance(project)
-        val executable = factory.createExecutable(sessionModel, hostRunConfiguration)
+        val executable = factory.createExecutable(launchConfiguration, hostRunConfiguration)
         if (executable == null) {
-            LOG.warn("Unable to create executable for project: ${sessionModel.projectPath}")
+            LOG.warn("Unable to create executable for project: ${launchConfiguration.projectPath}")
             return null
         }
 

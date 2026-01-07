@@ -32,3 +32,7 @@ dependencies {
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdeKeyvaultLib)
 }
+
+intellijPlatform {
+    instrumentCode = false
+}
