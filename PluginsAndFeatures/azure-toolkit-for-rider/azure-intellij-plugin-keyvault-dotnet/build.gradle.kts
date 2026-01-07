@@ -10,7 +10,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -32,4 +31,8 @@ dependencies {
     implementation(libs.azureToolkitKeyvaultLib)
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdeKeyvaultLib)
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

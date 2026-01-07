@@ -12,7 +12,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -49,4 +48,8 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-jdk8")
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json")
     }
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

@@ -10,7 +10,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -31,4 +30,8 @@ dependencies {
     implementation(libs.azureToolkitStorageLib)
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdeStorageLib)
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

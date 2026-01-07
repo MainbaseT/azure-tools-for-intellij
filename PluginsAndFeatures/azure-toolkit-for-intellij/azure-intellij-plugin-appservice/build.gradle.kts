@@ -11,7 +11,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -72,4 +71,8 @@ tasks {
     processResources {
         duplicatesStrategy = DuplicatesStrategy.WARN
     }
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

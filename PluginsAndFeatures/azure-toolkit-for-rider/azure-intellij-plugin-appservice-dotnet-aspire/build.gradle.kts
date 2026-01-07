@@ -10,7 +10,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -29,4 +28,8 @@ dependencies {
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-appservice-dotnet"))
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

@@ -10,7 +10,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -27,4 +26,8 @@ dependencies {
     }
 
     implementation(libs.serializationJson)
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

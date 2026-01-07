@@ -11,7 +11,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -63,4 +62,8 @@ dependencies {
     implementation(libs.coroutinesReactor) {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
     }
+}
+
+intellijPlatform {
+    instrumentCode = false
 }

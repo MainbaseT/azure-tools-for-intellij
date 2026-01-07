@@ -10,7 +10,6 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
-        nightly()
     }
 }
 
@@ -33,4 +32,8 @@ dependencies {
     implementation(libs.azureToolkitMysqlLib)
     implementation(libs.azureToolkitSqlserverLib)
     implementation(libs.azureToolkitPostgreLib)
+}
+
+intellijPlatform {
+    instrumentCode = false
 }
