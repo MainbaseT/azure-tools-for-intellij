@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Support for Rider 2026.1
+
+## [4.6.5] - 2025-11-24
+
 ### Added
 
 - Setting to specify `--skipApiVersionCheck` option for Azurite executable ([RIDER-129584](https://youtrack.jetbrains.com/issue/RIDER-129584))
@@ -403,7 +409,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.4...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.5...HEAD
+[4.6.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.4...4.6.5
 [4.6.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.3...4.6.4
 [4.6.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.2...4.6.3
 [4.6.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.1...4.6.2
