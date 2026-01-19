@@ -33,7 +33,3 @@ dependencies {
     implementation(libs.azureToolkitIdentityLib)
     implementation(libs.azureToolkitIdeCommonLib)
 }
-
-intellijPlatform {
-    instrumentCode = false
-}

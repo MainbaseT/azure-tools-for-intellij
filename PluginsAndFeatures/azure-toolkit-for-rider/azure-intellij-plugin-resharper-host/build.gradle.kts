@@ -23,7 +23,3 @@ dependencies {
         jetbrainsRuntime()
     }
 }
-
-intellijPlatform {
-    instrumentCode = false
-}

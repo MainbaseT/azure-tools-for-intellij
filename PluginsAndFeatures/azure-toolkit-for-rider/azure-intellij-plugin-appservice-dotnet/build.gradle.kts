@@ -49,7 +49,3 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json")
     }
 }
-
-intellijPlatform {
-    instrumentCode = false
-}
