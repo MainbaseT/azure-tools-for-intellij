@@ -6,6 +6,12 @@
 
 ### Changed
 
+- Internal changes
+
+## [4.7.0] - 2026-01-08
+
+### Changed
+
 - Support for Rider 2026.1
 
 ## [4.6.5] - 2025-11-24
@@ -409,7 +415,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.5...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.0...HEAD
+[4.7.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.5...4.7.0
 [4.6.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.4...4.6.5
 [4.6.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.3...4.6.4
 [4.6.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.2...4.6.3
