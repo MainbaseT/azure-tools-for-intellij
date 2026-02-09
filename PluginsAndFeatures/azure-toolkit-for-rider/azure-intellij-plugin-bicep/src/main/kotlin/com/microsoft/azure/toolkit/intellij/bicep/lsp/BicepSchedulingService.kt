@@ -7,7 +7,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.jetbrains.rider.environment.getEnvironment
+import com.jetbrains.rider.environment.initializeAndGetEnvironment
 import com.microsoft.azure.toolkit.intellij.bicep.BicepBundle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -83,7 +83,7 @@ internal class BicepSchedulingService(private val project: Project, val coroutin
     }
 
     private suspend fun tryRunServerAndCheckNoErrorsInOutput(): Boolean {
-        val environment = project.getEnvironment()
+        val environment = project.initializeAndGetEnvironment()
         val testCommandLine = prepareBicepServerLaunchCommandLine(environment)
         val testOutput = withContext(Dispatchers.IO) {
             CapturingProcessHandler.Silent(testCommandLine).runProcess(1000, true)

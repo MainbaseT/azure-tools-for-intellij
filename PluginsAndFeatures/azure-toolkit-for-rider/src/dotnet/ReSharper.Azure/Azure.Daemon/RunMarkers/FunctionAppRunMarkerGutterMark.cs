@@ -7,7 +7,6 @@ using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Azure.Daemon.FunctionApp;
 using JetBrains.ReSharper.Azure.Psi.FunctionApp;
 using JetBrains.ReSharper.Azure.Psi.FunctionApp.Routing;
-using JetBrains.ReSharper.Resources.Shell;
 using JetBrains.Rider.Azure.Model;
 using JetBrains.Rider.Backend.Features.RunMarkers;
 using JetBrains.TextControl.DocumentMarkup;
@@ -18,17 +17,14 @@ using JetBrains.Util;
 
 namespace JetBrains.ReSharper.Azure.Daemon.RunMarkers;
 
-public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerGutterMark(iconId)
+public abstract class FunctionAppRunMarkerGutterMark(IconId iconId)
+    : RunMarkerGutterMarkBase<RunMarkerHighlighting>(iconId)
 {
     public override IAnchor Priority => BulbMenuAnchors.PermanentBackgroundItems;
 
-    public override IEnumerable<BulbMenuItem> GetBulbMenuItems(IHighlighter highlighter)
+    protected override IEnumerable<BulbMenuItem> GetBulbMenuItems(ISolution solution, RunMarkerHighlighting runMarker,
+        IHighlighter highlighter)
     {
-        if (highlighter.UserData is not RunMarkerHighlighting runMarker) yield break;
-
-        var solution = Shell.Instance.GetComponent<SolutionsManager>().Solution;
-        if (solution == null) yield break;
-
         if (runMarker.AttributeId != FunctionAppRunMarkerAttributeIds.FunctionAppRunMethodMarkerId)
             yield break;
 
@@ -96,7 +92,8 @@ public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerG
                         methods: httpTriggerAttributeInfo.Methods?.ToList(it => it) ?? [],
                         route: httpTriggerAttributeInfo.Route,
                         routeForHttpClient: httpTriggerAttributeInfo.GetRouteForHttpClient());
-                functionAppDaemonHost.TriggerFunctionApp(projectFilePath, methodName, functionName, type, attributeInfo);
+                functionAppDaemonHost.TriggerFunctionApp(projectFilePath, methodName, functionName, type,
+                    attributeInfo);
             }),
             new RichText($"Trigger '{functionName}'..."),
             FunctionAppRunMarkersThemedIcons.Trigger.Id,
