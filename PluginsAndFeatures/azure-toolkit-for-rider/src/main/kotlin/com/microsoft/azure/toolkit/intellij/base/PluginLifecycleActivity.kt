@@ -35,7 +35,7 @@ class PluginLifecycleActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
         try {
-            AzureRxTaskManager.register()
+            registerRxTaskManager()
             val azureJson = Path(CommonConst.PLUGIN_PATH).resolve("azure.json").absolutePathString()
             AzureStoreManager.register(
                 DefaultMachineStore(azureJson),
@@ -47,6 +47,14 @@ class PluginLifecycleActivity : ProjectActivity {
             IdeAzureAccount.getInstance().restoreSignin()
         } catch (t: Throwable) {
             LOG.error(t)
+        }
+    }
+
+    private fun registerRxTaskManager() {
+        try {
+            AzureRxTaskManager.register()
+        } catch (e: IllegalStateException) {
+            LOG.warn("An exception during Rx task manager registration. Probably it is already registered", e)
         }
     }
 
