@@ -68,7 +68,6 @@ import com.microsoft.azuretools.core.ui.views.Messages;
 import com.microsoft.azuretools.core.utils.PluginUtil;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.components.PluginComponent;
-import com.microsoft.tooling.msservices.components.PluginSettings;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -94,7 +93,6 @@ public class Activator extends AbstractUIPlugin implements PluginComponent {
     // save temporary value of telemetry preference in case of preference page navigation
     public static String prefState = "";
 
-    private PluginSettings settings;
     public static final String CONSOLE_NAME = Messages.consoleName;
 
     private static final EventListenerList DEPLOYMENT_EVENT_LISTENERS = new EventListenerList();
@@ -133,13 +131,6 @@ public class Activator extends AbstractUIPlugin implements PluginComponent {
         AzureConfigInitializer.initialize(InstallationIdUtils.getHashMac(), "Azure Toolkit for Eclipse", Activator.getDefault().getBundle().getVersion().toString());
         initAzureToolsCoreLibsSettings();
         EclipseAzureActionManager.register();
-
-        // load up the plugin settings
-        try {
-            loadPluginSettings();
-        } catch (IOException e) {
-            showException("Azure Core Plugin", "An error occurred while attempting to load settings for the Azure Core plugin.", e);
-        }
         findObsoletePackages(context);
 
         super.start(context);
@@ -266,32 +257,6 @@ public class Activator extends AbstractUIPlugin implements PluginComponent {
         return imageDescriptorFromPlugin(PLUGIN_ID, path);
     }
 
-    private void loadPluginSettings() throws IOException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(getResourceAsFile("/resources/settings.json")));
-//            reader = new BufferedReader(
-//                    new InputStreamReader(
-//                            MSOpenTechToolsApplication.class.getResourceAsStream("/resources/settings.json")));
-            StringBuilder sb = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            Gson gson = new Gson();
-            settings = gson.fromJson(sb.toString(), PluginSettings.class);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
-    }
-
     public static File getResourceAsFile(String fileEntry) {
         File file = null;
         try {
@@ -328,13 +293,13 @@ public class Activator extends AbstractUIPlugin implements PluginComponent {
     }
 
     @Override
-    public PluginSettings getSettings() {
-        return settings;
+    public String getPluginId() {
+        return PLUGIN_ID;
     }
 
     @Override
-    public String getPluginId() {
-        return PLUGIN_ID;
+    public String getPluginVersion() {
+        return "0.1.145";
     }
 
     public static void removeUnNecessaryListener() {

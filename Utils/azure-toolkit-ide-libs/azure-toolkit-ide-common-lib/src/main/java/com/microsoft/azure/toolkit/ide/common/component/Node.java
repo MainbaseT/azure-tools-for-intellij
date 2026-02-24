@@ -169,6 +169,14 @@ public class Node<D> {
         return this;
     }
 
+    public void clearClickHandlers() {
+        this.clickHandlers.clear();
+    }
+
+    public void clearDoubleClickHandlers() {
+        this.doubleClickHandlers.clear();
+    }
+
     public void click(final Object event) {
         if (!this.clickHandlers.isEmpty()) {
             this.clickHandlers.forEach(h -> h.accept(this.value, event));

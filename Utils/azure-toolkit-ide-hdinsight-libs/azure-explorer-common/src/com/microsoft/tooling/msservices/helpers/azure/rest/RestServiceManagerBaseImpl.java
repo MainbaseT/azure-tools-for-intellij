@@ -136,7 +136,7 @@ public class RestServiceManagerBaseImpl implements RestServiceManager {
 
     @NotNull
     private static String getPlatformUserAgent() {
-        String version = DefaultLoader.getPluginComponent().getSettings().getPluginVersion();
+        String version = DefaultLoader.getPluginComponent().getPluginVersion();
         return String.format(
                 "%s/%s (lang=%s; os=%s; version=%s)",
                 DefaultLoader.getPluginComponent().getPluginId(),

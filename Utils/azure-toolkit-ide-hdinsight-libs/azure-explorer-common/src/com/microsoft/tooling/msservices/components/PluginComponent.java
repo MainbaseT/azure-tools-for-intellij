@@ -6,7 +6,6 @@
 package com.microsoft.tooling.msservices.components;
 
 public interface PluginComponent {
-    public PluginSettings getSettings();
-
     public String getPluginId();
+    public String getPluginVersion();
 }

@@ -3,6 +3,8 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.96.2](#3962)
+  - [3.96.1](#3961)
   - [3.95.0](#3950)
   - [3.94.0](#3940)
   - [3.93.0](#3930)
@@ -116,6 +118,18 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.96.3
+- Support IntelliJ 2025.3 EAP
+- Update the Azure MCP server name from releases list
+
+## 3.96.2
+- Configure GitHub Copilot with trimmed Azure MCP server for faster startup and a smaller footprint.
+
+## 3.96.1
+- Configure Azure MCP server for GitHub Copilot
+- Integrate azd to Azure Explorer 
+- Fix some known issues
 
 ## 3.95.0
 - Update function cdn uri

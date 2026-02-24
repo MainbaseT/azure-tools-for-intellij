@@ -2,12 +2,13 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.95.0</version>
+  <version>3.96.3</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
       <html>
         <p>The plugin allows Java developers to easily develop, configure, test, and deploy highly available and scalable Java applications to Azure. The plugin supports Azure App Service, Azure Functions, Azure Spring Apps, Azure Kubernetes, Azure Container Apps, Virtual Machines, Azure Database for MySQL, Azure Cosmos DB, SQL Server, Azure Storage, and Application Insights. It also supports Azure Synapse data engineers, Azure HDInsight developers and Apache Spark on SQL Server users to create, test and submit Apache Spark/Hadoop jobs to Azure from IntelliJ on all supported platforms.</p>
+        <p>This plugin also includes Azure MCP Server that adds smart, context-aware AI tools right inside GitHub Copilot for IntelliJ IDEA to help you work more efficiently with Azure resources. The Azure MCP Server supercharges your agents with Azure context across all the popular Azure services. For more details, please refer to <a href="https://learn.microsoft.com/azure/developer/azure-mcp-server/">Azure MCP Server documentation.</a></p>
         <ul>
           <li><a href="https://learn.microsoft.com/en-us/azure/developer/java/toolkit-for-intellij/create-hello-world-web-app">Azure Web App Workflow:</a> Run your web applications on Azure Web App and view logs.</li>
           <li><a href="https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-maven-intellij?toc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Ftoc.json&bc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Fbreadcrumb%2Ftoc.json">Azure Functions Workflow:</a> Scaffold, run, debug your Functions App locally and deploy it on Azure.</li>
@@ -27,10 +28,10 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h2 id="3-95-0">3.95.0</h2>
+      <h2 id="3-96-3">3.96.3</h2>
       <ul>
-      <li>Update function cdn uri</li>
-      <li>Integrate rule sets for flagging and making better Azure SDK usage</li>
+      <li>Support IntelliJ 2025.3 EAP.</li>
+      <li>Update the Azure MCP server name from releases list.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
@@ -82,6 +83,7 @@
   <xi:include href="/META-INF/azure-intellij-plugin-integration-services.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-java-sdk.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-cloud-shell.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-azuremcp.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
   <!-- uncomment to enable plugin in all products

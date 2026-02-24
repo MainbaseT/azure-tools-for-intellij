@@ -49,6 +49,16 @@ public class TerminalUtils {
         }, AzureTask.Modality.ANY);
     }
 
+    public static void executeInTerminal(TerminalWidget terminalWidget, String command) {
+        AzureTaskManager.getInstance().runLater(() -> {
+            AzureTaskManager.getInstance().runInBackground(OperationBundle.description("boundary/common.execute_in_terminal.command", command), () -> {
+                terminalWidget.getTtyConnectorAccessor().executeWithTtyConnector((connector) -> {
+                    terminalWidget.sendCommandToExecute(command);
+                });
+            });
+        }, AzureTask.Modality.ANY);
+    }
+
     @Nonnull
     public static TerminalWidget createTerminalWidget(@Nonnull Project project, @Nullable Path workingDir, String terminalTabTitle) {
         final TerminalToolWindowManager manager = TerminalToolWindowManager.getInstance(project);
@@ -57,7 +67,7 @@ public class TerminalUtils {
     }
 
     @Nonnull
-    private static TerminalWidget getOrCreateTerminalWidget(@Nonnull Project project, @Nullable Path workingDir, String terminalTabTitle) {
+    public static TerminalWidget getOrCreateTerminalWidget(@Nonnull Project project, @Nullable Path workingDir, String terminalTabTitle) {
         final TerminalToolWindowManager manager = TerminalToolWindowManager.getInstance(project);
         final String workingDirectory = Optional.ofNullable(workingDir).map(Path::toString).orElse(null);
         return manager.getTerminalWidgets().stream()
@@ -67,6 +77,22 @@ public class TerminalUtils {
             .findFirst()
             .orElseGet(() -> manager.createShellWidget(workingDirectory, terminalTabTitle, true, true));
     }
+
+    @Nonnull
+    public static synchronized TerminalWidget getTerminalWidget(@Nonnull Project project, @Nullable Path workingDir, String terminalTabTitle) {
+        final TerminalToolWindowManager manager = TerminalToolWindowManager.getInstance(project);
+        final String workingDirectory = Optional.ofNullable(workingDir).map(Path::toString).orElse(null);
+        if (manager.getToolWindow() != null) {
+            manager.getToolWindow().show();
+        }
+        return manager.getTerminalWidgets().stream()
+                .filter(widget -> StringUtils.isBlank(terminalTabTitle) ||
+                        StringUtils.equals(widget.getTerminalTitle().buildTitle(), terminalTabTitle))
+                .findFirst()
+                .orElseGet(() -> manager.createShellWidget(workingDirectory, terminalTabTitle, true, true));
+    }
+
+
 
     public static boolean hasRunningCommands(TerminalWidget widget) throws IllegalStateException {
         final TtyConnector connector = widget.getTtyConnector();

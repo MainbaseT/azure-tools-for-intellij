@@ -13,4 +13,8 @@
         <action class="com.microsoft.azure.toolkit.intellij.explorer.action.AzureExplorerOpenAction" id="Actions.AzureExplorerOpenAction"
                 text="Show Azure Explorer" description="Show Azure Explorer" icon="/icons/Toolwindows/AzureToolWindow.svg"/>
     </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="Azure Developer" displayType="BALLOON" isLogByDefault="true"/>
+    </extensions>
 </idea-plugin>

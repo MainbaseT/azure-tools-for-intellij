@@ -68,6 +68,12 @@ class SparkSubmissionJobUploadStorageAzureBlobCard
         var selectedContainer: String?
     }
 
+    private val textChangeTriggerResetStorageContainerListener = object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+            storageContainerUI.comboBox.model = DefaultComboBoxModel()
+        }
+    }
+
     private val secureStore: ISecureStore? = AzureStoreManager.getInstance().secureStore
     private val storageAccountTip = "The default storage account of the HDInsight cluster, which can be found from HDInsight cluster properties of Azure portal."
     private val storageKeyTip = "The storage key of the default storage account, which can be found from HDInsight cluster storage accounts of Azure portal."
@@ -131,12 +137,6 @@ class SparkSubmissionJobUploadStorageAzureBlobCard
         button.toolTipText = "Refresh"
         button.icon = AllIcons.Actions.Refresh
         button.addActionListener { doRefresh() }
-    }
-
-    private val textChangeTriggerResetStorageContainerListener = object : DocumentAdapter() {
-        override fun textChanged(e: DocumentEvent) {
-            storageContainerUI.comboBox.model = DefaultComboBoxModel()
-        }
     }
 
     @Synchronized

@@ -19,7 +19,7 @@ import com.azure.resourcemanager.resources.fluentcore.arm.models.PrivateEndpoint
 import com.azure.resourcemanager.resources.fluentcore.arm.models.PrivateLinkResource;
 import reactor.core.publisher.Mono;
 
-public class RedisCacheMock implements RedisCache{
+public class RedisCacheMock implements RedisCache {
 
     private static final String MOCK_STRING = "test";
 
