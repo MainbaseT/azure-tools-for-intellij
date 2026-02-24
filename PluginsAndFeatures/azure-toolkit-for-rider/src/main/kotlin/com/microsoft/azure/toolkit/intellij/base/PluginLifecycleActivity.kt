@@ -2,11 +2,16 @@
  * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.base
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.platform.eel.provider.asNioPath
+import com.intellij.platform.eel.provider.getEelDescriptor
+import com.intellij.platform.eel.provider.toEelApi
 import com.intellij.util.net.ProxyAuthentication
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxySettings
@@ -15,6 +20,8 @@ import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer.initialize
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
 import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore
+import com.microsoft.azure.toolkit.intellij.AzureToolkitConstants.AZURE_TOOLKIT_HOME_FOLDER
+import com.microsoft.azure.toolkit.intellij.AzureToolkitConstants.AZURE_TOOLKIT_SETTINGS_FILE
 import com.microsoft.azure.toolkit.intellij.common.CommonConst
 import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore
@@ -23,9 +30,9 @@ import com.microsoft.azure.toolkit.lib.auth.AzureCloud
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager
-import java.util.UUID
+import java.nio.file.Path
+import java.util.*
 import javax.net.ssl.HttpsURLConnection
-import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 class PluginLifecycleActivity : ProjectActivity {
@@ -36,7 +43,7 @@ class PluginLifecycleActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
         try {
             registerRxTaskManager()
-            val azureJson = Path(CommonConst.PLUGIN_PATH).resolve("azure.json").absolutePathString()
+            val azureJson = getFilePathForToolkitMachineStore(project).absolutePathString()
             AzureStoreManager.register(
                 DefaultMachineStore(azureJson),
                 IntellijStore.getInstance(),
@@ -56,6 +63,12 @@ class PluginLifecycleActivity : ProjectActivity {
         } catch (e: IllegalStateException) {
             LOG.warn("An exception during Rx task manager registration. Probably it is already registered", e)
         }
+    }
+
+    private suspend fun getFilePathForToolkitMachineStore(project: Project): Path {
+        val eelApi = project.getEelDescriptor().toEelApi()
+        val home = eelApi.userInfo.home.asNioPath()
+        return home.resolve(AZURE_TOOLKIT_HOME_FOLDER).resolve(AZURE_TOOLKIT_SETTINGS_FILE)
     }
 
     private fun initializeConfig() {
