@@ -6,6 +6,18 @@
 
 ### Changed
 
+- Update the base plugin to the `endgame-202511` version
+- Update the platform version to `2026.1-EAP5-SNAPSHOT`
+
+### Fixed
+
+- Catch an exception while trying to register rx manager for the second time ([#1143](https://github.com/JetBrains/azure-tools-for-intellij/issues/1143))
+- Azure favorites disappear every time new Rider updated ([RIDER-129134](https://youtrack.jetbrains.com/issue/RIDER-129134))
+
+## [4.7.2] - 2026-02-13
+
+### Changed
+
 - Update platform version to RD-2026.1-EAP3 +
 
 ## [4.7.1] - 2026-01-20
@@ -421,7 +433,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.2...HEAD
+[4.7.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.1...4.7.2
 [4.7.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.0...4.7.1
 [4.7.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.5...4.7.0
 [4.6.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.4...4.6.5
