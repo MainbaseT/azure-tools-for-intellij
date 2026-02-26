@@ -12,8 +12,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <microservices.endpointsProvider implementation="com.microsoft.azure.toolkit.intellij.appservice.endpoints.AzureFunctionsEndpointsProvider"/>
-        <postStartupActivity
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.MigrateBuildProjectTaskActivity"/>
         <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
         <backgroundPostStartupActivity
