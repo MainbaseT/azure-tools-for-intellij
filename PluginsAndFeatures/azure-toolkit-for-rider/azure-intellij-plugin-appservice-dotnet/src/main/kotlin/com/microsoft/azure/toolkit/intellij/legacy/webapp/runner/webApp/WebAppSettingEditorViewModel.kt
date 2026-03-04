@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.platform.util.coroutines.childScope
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.DraftWebAppModel
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.RemoteWebAppModel
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
@@ -30,6 +32,13 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.java
 
+sealed interface WebAppModel {
+    val config: AppServiceConfig
+
+    class DraftWebAppModel(override val config: AppServiceConfig) : WebAppModel
+    class RemoteWebAppModel(override val config: AppServiceConfig, val deploymentSlots: List<String>) : WebAppModel
+}
+
 class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     companion object {
         private val LOG = logger<WebAppSettingEditorViewModel>()
@@ -47,11 +56,11 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _draftWebApps = MutableStateFlow<List<AppServiceConfig>>(emptyList())
-    val draftWebApps: StateFlow<List<AppServiceConfig>> = _draftWebApps.asStateFlow()
+    private val _draftWebApps = MutableStateFlow<List<DraftWebAppModel>>(emptyList())
+    val draftWebApps: StateFlow<List<DraftWebAppModel>> = _draftWebApps.asStateFlow()
 
-    private val _webAppItems = MutableStateFlow<List<AppServiceConfig>>(emptyList())
-    val webAppItems: StateFlow<List<AppServiceConfig>> = _webAppItems.asStateFlow()
+    private val _webAppItems = MutableStateFlow<List<RemoteWebAppModel>>(emptyList())
+    val webAppItems: StateFlow<List<RemoteWebAppModel>> = _webAppItems.asStateFlow()
 
     private val _webAppsLoading = MutableStateFlow(true)
     val webAppsLoading: StateFlow<Boolean> = _webAppsLoading.asStateFlow()
@@ -77,8 +86,8 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
         _searchQuery.value = query
     }
 
-    fun selectWebApp(appServiceConfig: AppServiceConfig) {
-        _selectedWebApp.value = appServiceConfig
+    fun selectWebApp(webAppModel: WebAppModel) {
+        _selectedWebApp.value = webAppModel.config
     }
 
     fun refreshWebApps() {
@@ -116,7 +125,7 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
         _selectedWebApp.value = webAppConfig
     }
 
-    private suspend fun loadListOfWebApps(): List<AppServiceConfig> {
+    private suspend fun loadListOfWebApps(): List<RemoteWebAppModel> {
         try {
             val account = Azure.az(AzureAccount::class.java).account()
             if (!account.isLoggedIn) {
@@ -130,6 +139,8 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
 
             val loadedApps = webApps.sortedBy { it.name }.map { webApp ->
                 convertAppServiceToConfig(webApp)
+            }.map { config ->
+                RemoteWebAppModel(config, emptyList())
             }
 
             return loadedApps
@@ -179,10 +190,11 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     }
 
     fun addDraftWebApp(config: AppServiceConfig) {
+        val model = DraftWebAppModel(config)
         _draftWebApps.update { current ->
-            listOf(config) + current.filter { !isSameApp(it, config) }
+            listOf(model) + current.filter { !isSameApp(it.config, config) }
         }
-        _selectedWebApp.value = config
+        _selectedWebApp.value = model.config
     }
 
     fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {

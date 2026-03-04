@@ -26,6 +26,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.DraftWebAppModel
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.RemoteWebAppModel
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.CoroutineScope
@@ -50,12 +52,7 @@ class WebAppTreePanel(
 ) : Disposable {
 
     private data class GroupNode(val name: String)
-    private interface WebAppNode {
-        val item: AppServiceConfig
-    }
-
-    private data class WebAppRemoteLeafNode(override val item: AppServiceConfig) : WebAppNode
-    private data class WebAppDraftLeafNode(override val item: AppServiceConfig) : WebAppNode
+    private data class WebAppNode(val webAppModel: WebAppModel)
 
     private val searchTextField = SearchTextField(false)
 
@@ -124,10 +121,10 @@ class WebAppTreePanel(
         tree.addTreeSelectionListener {
             if (isUpdatingSelection) return@addTreeSelectionListener
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
-            val leaf = node.userObject as? WebAppNode ?: return@addTreeSelectionListener
+            val webAppNode = node.userObject as? WebAppNode ?: return@addTreeSelectionListener
             isUpdatingSelection = true
             try {
-                vm.selectWebApp(leaf.item)
+                vm.selectWebApp(webAppNode.webAppModel)
             } finally {
                 isUpdatingSelection = false
             }
@@ -170,25 +167,29 @@ class WebAppTreePanel(
         loadingPanel.add(scrollPane, BorderLayout.CENTER)
     }
 
-    private fun rebuildTreeModel(remoteApps: List<AppServiceConfig>, draftApps: List<AppServiceConfig>, query: String) {
-        val filteredRemoteApps = if (query.isEmpty()) remoteApps else remoteApps.filter { matchesQuery(it, query) }
-        val filteredDraftApps = if (query.isEmpty()) draftApps else draftApps.filter { matchesQuery(it, query) }
+    private fun rebuildTreeModel(
+        remoteApps: List<RemoteWebAppModel>,
+        draftApps: List<DraftWebAppModel>,
+        query: String
+    ) {
+        val filteredRemoteApps = if (query.isEmpty()) remoteApps else remoteApps.filter { matchesQuery(it.config, query) }
+        val filteredDraftApps = if (query.isEmpty()) draftApps else draftApps.filter { matchesQuery(it.config, query) }
 
         val root = DefaultMutableTreeNode()
 
         if (filteredDraftApps.isNotEmpty()) {
             val draftsGroup = DefaultMutableTreeNode(GroupNode("Drafts"))
             filteredDraftApps
-                .sortedBy { it.appName }
-                .forEach { draftsGroup.add(DefaultMutableTreeNode(WebAppDraftLeafNode(it))) }
+                .sortedBy { it.config.appName }
+                .forEach { draftsGroup.add(DefaultMutableTreeNode(WebAppNode(it))) }
             root.add(draftsGroup)
         }
 
         if (filteredRemoteApps.isNotEmpty()) {
             val webAppsGroup = DefaultMutableTreeNode(GroupNode("Web Apps"))
             filteredRemoteApps
-                .sortedBy { it.appName }
-                .forEach { webAppsGroup.add(DefaultMutableTreeNode(WebAppRemoteLeafNode(it))) }
+                .sortedBy { it.config.appName }
+                .forEach { webAppsGroup.add(DefaultMutableTreeNode(WebAppNode(it))) }
             root.add(webAppsGroup)
         }
 
@@ -213,8 +214,8 @@ class WebAppTreePanel(
             val group = root.getChildAt(i) as DefaultMutableTreeNode
             for (j in 0 until group.childCount) {
                 val leaf = group.getChildAt(j) as DefaultMutableTreeNode
-                val nodeObj = leaf.userObject as? WebAppNode ?: continue
-                if (WebAppSettingEditorViewModel.isSameApp(nodeObj.item, config)) {
+                val webAppNode = leaf.userObject as? WebAppNode ?: continue
+                if (WebAppSettingEditorViewModel.isSameApp(webAppNode.webAppModel.config, config)) {
                     isUpdatingSelection = true
                     try {
                         tree.selectionPath = TreePath(leaf.path)
@@ -252,30 +253,18 @@ class WebAppTreePanel(
                     append(userObject.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
                 }
 
-                is WebAppRemoteLeafNode -> {
+                is WebAppNode -> {
                     icon = AllIcons.Nodes.Deploy
-                    val config = userObject.item
-                    append(config.appName ?: "Unknown")
-                    val os = config.runtime?.os
+                    val webAppModel = userObject.webAppModel
+                    append(webAppModel.config.appName ?: "Unknown")
+                    if (webAppModel is DraftWebAppModel) {
+                        append(" (New) ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+                    }
+                    val os = webAppModel.config.runtime?.os
                     if (os != null) {
                         append("  $os", SimpleTextAttributes.GRAYED_ATTRIBUTES)
                     }
-                    val resourceGroup = config.resourceGroup
-                    if (!resourceGroup.isNullOrEmpty()) {
-                        append("  $resourceGroup", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                    }
-                }
-
-                is WebAppDraftLeafNode -> {
-                    icon = AllIcons.Nodes.Deploy
-                    val config = userObject.item
-                    append("(New) ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                    append(config.appName ?: "Unknown")
-                    val os = config.runtime?.os
-                    if (os != null) {
-                        append("  $os", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                    }
-                    val resourceGroup = config.resourceGroup
+                    val resourceGroup = webAppModel.config.resourceGroup
                     if (!resourceGroup.isNullOrEmpty()) {
                         append("  $resourceGroup", SimpleTextAttributes.GRAYED_ATTRIBUTES)
                     }
