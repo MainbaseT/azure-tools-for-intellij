@@ -178,15 +178,12 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
         }
     }
 
-//    fun addDraftWebApp(config: AppServiceConfig) {
-//        draftWebApps.removeAll { isSameApp(it, config) }
-//        draftWebApps.add(0, config)
-//        val current = _webAppItems.value.toMutableList()
-//        current.removeAll { isSameApp(it, config) }
-//        current.add(0, config)
-//        _webAppItems.value = current
-//        selectedWebApp.value = config
-//    }
+    fun addDraftWebApp(config: AppServiceConfig) {
+        _draftWebApps.update { current ->
+            listOf(config) + current.filter { !isSameApp(it, config) }
+        }
+        _selectedWebApp.value = config
+    }
 
     fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
         val webAppConfig = selectedWebApp.value ?: return

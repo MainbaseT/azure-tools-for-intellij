@@ -21,7 +21,7 @@ import kotlinx.coroutines.cancel
 import javax.swing.JPanel
 
 class WebAppSettingEditor2(
-    private val project: Project,
+    project: Project,
     parentCs: CoroutineScope,
     private val viewModel: WebAppSettingEditorViewModel
 ) : SettingsEditor<WebAppConfiguration>() {
@@ -33,47 +33,25 @@ class WebAppSettingEditor2(
             }
         }
 
-    private val webAppTreePanel = WebAppTreePanel(cs, viewModel).also {
+    private val webAppTreePanel = WebAppTreePanel(project, cs, viewModel).also {
         Disposer.register(this, it)
     }
 
-    private val panel: JPanel
-
-    init {
-        panel = panel {
-            row {
-                cell(webAppTreePanel.component)
-                    .align(Align.FILL)
-                    .resizableColumn()
-            }.resizableRow()
-        }
-    }
-
-    private fun createWebApp() {
-//        val dialog = WebAppCreationDialog(project, viewModel.targetProjectOnNetFramework.value)
-//        Disposer.register(this, dialog)
-//        dialog.setOkAction(
-//            com.microsoft.azure.toolkit.lib.common.action.Action<AppServiceConfig>(
-//                com.microsoft.azure.toolkit.lib.common.action.Action.Id.of("user/webapp.create_app.app")
-//            )
-//                .withLabel("Create")
-//                .withIdParam(AppServiceConfig::appName)
-//                .withSource { it }
-//                .withAuthRequired(false)
-//                .withHandler { config -> viewModel.addDraftWebApp(config) }
-//        )
-//        dialog.show()
+    private val panel: JPanel = panel {
+        row {
+            cell(webAppTreePanel.component)
+                .align(Align.FILL)
+                .resizableColumn()
+        }.resizableRow()
     }
 
     override fun resetEditorFrom(configuration: WebAppConfiguration) {
         val configurationOptions = configuration.state ?: return
-
         viewModel.setConfigFromOptions(configurationOptions)
     }
 
     override fun applyEditorTo(configuration: WebAppConfiguration) {
         val state = configuration.state ?: return
-
         viewModel.applySelectedConfigToOptions(state)
     }
 

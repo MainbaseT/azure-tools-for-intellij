@@ -24,14 +24,16 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JTree
 import javax.swing.event.DocumentEvent
@@ -42,6 +44,7 @@ import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
 class WebAppTreePanel(
+    private val project: Project,
     cs: CoroutineScope,
     private val vm: WebAppSettingEditorViewModel
 ) : Disposable {
@@ -121,7 +124,7 @@ class WebAppTreePanel(
         tree.addTreeSelectionListener {
             if (isUpdatingSelection) return@addTreeSelectionListener
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
-            val leaf = node.userObject as? WebAppRemoteLeafNode ?: return@addTreeSelectionListener
+            val leaf = node.userObject as? WebAppNode ?: return@addTreeSelectionListener
             isUpdatingSelection = true
             try {
                 vm.selectWebApp(leaf.item)
@@ -133,6 +136,19 @@ class WebAppTreePanel(
 
     private fun setupLayout() {
         val actionGroup = DefaultActionGroup(
+            DumbAwareAction.create("Create New", AllIcons.General.Add) {
+                val dialog = WebAppCreationDialog(project, false)
+                Disposer.register(this, dialog)
+                dialog.setOkAction(
+                    Action<AppServiceConfig>(Action.Id.of("user/webapp.create_app.app"))
+                        .withLabel("Create")
+                        .withIdParam(AppServiceConfig::appName)
+                        .withSource { it }
+                        .withAuthRequired(false)
+                        .withHandler { config -> vm.addDraftWebApp(config) }
+                )
+                dialog.show()
+            },
             DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) { vm.refreshWebApps() }
         )
         val toolbar = ActionUtil.createToolbarComponent(tree, "WebAppTreePanel", actionGroup, true)
@@ -160,20 +176,20 @@ class WebAppTreePanel(
 
         val root = DefaultMutableTreeNode()
 
-        if (filteredRemoteApps.isNotEmpty()) {
-            val webAppsGroup = DefaultMutableTreeNode(GroupNode("Web Apps"))
-            filteredRemoteApps
-                .sortedBy { it.appName }
-                .forEach { webAppsGroup.add(DefaultMutableTreeNode(WebAppRemoteLeafNode(it))) }
-            root.add(webAppsGroup)
-        }
-
         if (filteredDraftApps.isNotEmpty()) {
             val draftsGroup = DefaultMutableTreeNode(GroupNode("Drafts"))
             filteredDraftApps
                 .sortedBy { it.appName }
                 .forEach { draftsGroup.add(DefaultMutableTreeNode(WebAppDraftLeafNode(it))) }
             root.add(draftsGroup)
+        }
+
+        if (filteredRemoteApps.isNotEmpty()) {
+            val webAppsGroup = DefaultMutableTreeNode(GroupNode("Web Apps"))
+            filteredRemoteApps
+                .sortedBy { it.appName }
+                .forEach { webAppsGroup.add(DefaultMutableTreeNode(WebAppRemoteLeafNode(it))) }
+            root.add(webAppsGroup)
         }
 
         treeModel.setRoot(root)
