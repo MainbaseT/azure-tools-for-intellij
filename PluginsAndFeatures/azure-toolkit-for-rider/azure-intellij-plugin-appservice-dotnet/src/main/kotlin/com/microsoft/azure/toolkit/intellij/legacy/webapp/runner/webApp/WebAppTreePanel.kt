@@ -30,7 +30,9 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
@@ -41,6 +43,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlin.time.Duration.Companion.milliseconds
 
 internal data class GroupNode(val name: String)
 internal data class WebAppNode(val webAppModel: WebAppModel)
@@ -69,19 +72,28 @@ class WebAppTreePanel(
         setupLayout()
 
         cs.launch {
-            vm.webAppsLoading.collect { loading ->
+            @OptIn(kotlinx.coroutines.FlowPreview::class)
+            combine(
+                vm.webAppsState,
+                vm.draftWebApps,
+                vm.searchQuery.debounce(150.milliseconds)
+            ) { state, draftApps, searchQuery ->
+                Triple(state, draftApps, searchQuery)
+            }.collectLatest { (state, draftApps, query) ->
                 withContext(Dispatchers.EDT) {
-                    if (loading) loadingPanel.startLoading() else loadingPanel.stopLoading()
-                }
-            }
-        }
+                    when (state) {
+                        is WebAppsLoadState.Loading -> loadingPanel.startLoading()
 
-        cs.launch {
-            combine(vm.webAppItems, vm.draftWebApps, vm.searchQuery) { remoteApps, draftApps, searchQuery ->
-                Triple(remoteApps, draftApps, searchQuery)
-            }.collect { (remoteApps, draftApps, query) ->
-                withContext(Dispatchers.EDT) {
-                    rebuildTreeModel(remoteApps, draftApps, query)
+                        is WebAppsLoadState.Loaded -> {
+                            loadingPanel.stopLoading()
+                            rebuildTreeModel(state.items, draftApps, query)
+                        }
+
+                        is WebAppsLoadState.Error -> {
+                            loadingPanel.stopLoading()
+                            rebuildTreeModel(emptyList(), draftApps, query)
+                        }
+                    }
                 }
             }
         }
@@ -168,8 +180,12 @@ class WebAppTreePanel(
         draftApps: List<DraftWebAppModel>,
         query: String
     ) {
-        val filteredRemoteApps = if (query.isEmpty()) remoteApps else remoteApps.filter { matchesQuery(it.config, query) }
-        val filteredDraftApps = if (query.isEmpty()) draftApps else draftApps.filter { matchesQuery(it.config, query) }
+        val filteredRemoteApps =
+            if (query.isEmpty()) remoteApps
+            else remoteApps.filter { matchesQuery(it.config, query) }
+        val filteredDraftApps =
+            if (query.isEmpty()) draftApps
+            else draftApps.filter { matchesQuery(it.config, query) }
 
         val root = DefaultMutableTreeNode()
 

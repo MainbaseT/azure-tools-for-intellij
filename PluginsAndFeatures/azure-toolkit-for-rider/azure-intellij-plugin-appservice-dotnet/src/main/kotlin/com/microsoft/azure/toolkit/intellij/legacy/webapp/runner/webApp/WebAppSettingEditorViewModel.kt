@@ -21,10 +21,8 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.*
 import kotlin.coroutines.cancellation.CancellationException
 
 sealed interface WebAppModel {
@@ -32,6 +30,12 @@ sealed interface WebAppModel {
 
     class DraftWebAppModel(override val config: AppServiceConfig) : WebAppModel
     class RemoteWebAppModel(override val config: AppServiceConfig, val deploymentSlots: List<String>) : WebAppModel
+}
+
+sealed interface WebAppsLoadState {
+    data object Loading : WebAppsLoadState
+    data class Loaded(val items: List<RemoteWebAppModel>) : WebAppsLoadState
+    data class Error(val message: String) : WebAppsLoadState
 }
 
 class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
@@ -54,26 +58,32 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     private val _draftWebApps = MutableStateFlow<List<DraftWebAppModel>>(emptyList())
     val draftWebApps: StateFlow<List<DraftWebAppModel>> = _draftWebApps.asStateFlow()
 
-    private val _webAppItems = MutableStateFlow<List<RemoteWebAppModel>>(emptyList())
-    val webAppItems: StateFlow<List<RemoteWebAppModel>> = _webAppItems.asStateFlow()
-
-    private val _webAppsLoading = MutableStateFlow(true)
-    val webAppsLoading: StateFlow<Boolean> = _webAppsLoading.asStateFlow()
+    private val _webAppsState = MutableStateFlow<WebAppsLoadState>(WebAppsLoadState.Loading)
+    val webAppsState: StateFlow<WebAppsLoadState> = _webAppsState.asStateFlow()
 
     private val _selectedWebApp = MutableStateFlow<AppServiceConfig?>(null)
     val selectedWebApp: StateFlow<AppServiceConfig?> = _selectedWebApp.asStateFlow()
 
-    private var loadWebAppsJob: Job? = null
+    private val reloadTrigger = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
-        loadWebAppsJob = cs.launch {
-            _webAppsLoading.value = true
-            try {
-                val configs = loadListOfWebApps()
-                _webAppItems.update { configs }
-            } finally {
-                _webAppsLoading.value = false
-            }
+        reloadTrigger.tryEmit(false)
+
+        cs.launch {
+            reloadTrigger
+                .collectLatest { refresh ->
+                    _webAppsState.value = WebAppsLoadState.Loading
+                    if (refresh) invalidateWebAppCache()
+                    try {
+                        val configs = loadListOfWebApps()
+                        _webAppsState.value = WebAppsLoadState.Loaded(configs)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        LOG.warn("Error while trying to load Azure web apps", e)
+                        _webAppsState.value = WebAppsLoadState.Error(e.message ?: "Unknown error")
+                    }
+                }
         }
     }
 
@@ -86,18 +96,7 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     }
 
     fun refreshWebApps() {
-        loadWebAppsJob?.cancel()
-        loadWebAppsJob = cs.launch {
-            _webAppsLoading.value = true
-            _webAppItems.update { emptyList() }
-            try {
-                invalidateWebAppCache()
-                val configs = loadListOfWebApps()
-                _webAppItems.update { configs }
-            } finally {
-                _webAppsLoading.value = false
-            }
-        }
+        reloadTrigger.tryEmit(true)
     }
 
     fun setConfigFromOptions(state: WebAppConfigurationOptions) {
@@ -121,29 +120,20 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     }
 
     private suspend fun loadListOfWebApps(): List<RemoteWebAppModel> {
-        try {
-            val account = Azure.az(AzureAccount::class.java).account()
-            if (!account.isLoggedIn) {
-                LOG.trace("User is not logged in, skipping web app loading")
-                return emptyList()
-            }
-
-            loadRemoteResources()
-
-            val webApps = Azure.az(AzureWebApp::class.java).webApps()
-
-            val loadedApps = webApps.sortedBy { it.name }.map { webApp ->
-                convertAppServiceToConfig(webApp)
-            }.map { config ->
-                RemoteWebAppModel(config, emptyList())
-            }
-
-            return loadedApps
-        } catch (ce: CancellationException) {
-            throw ce
-        } catch (e: Exception) {
-            LOG.warn("Error while trying to load Azure web apps", e)
+        val account = Azure.az(AzureAccount::class.java).account()
+        if (!account.isLoggedIn) {
+            LOG.trace("User is not logged in, skipping web app loading")
             return emptyList()
+        }
+
+        loadRemoteResources()
+
+        val webApps = Azure.az(AzureWebApp::class.java).webApps()
+
+        return webApps.sortedBy { it.name }.map { webApp ->
+            convertAppServiceToConfig(webApp)
+        }.map { config ->
+            RemoteWebAppModel(config, emptyList())
         }
     }
 
