@@ -58,6 +58,7 @@ class LoadAppServicesActivity : ProjectActivity {
             val account = Azure.az(AzureAccount::class.java).account()
             if (!account.isLoggedIn) return
 
+            //TODO: add progress and maybe a setting
             LOG.trace("Loading Azure App Services")
             coroutineScope {
                 launch { loadAppServicePlans() }
@@ -89,6 +90,9 @@ class LoadAppServicesActivity : ProjectActivity {
                 launch {
                     it.remote
                 }
+                launch {
+                    it.slots().list()
+                }
             }
         }
     }
@@ -100,6 +104,9 @@ class LoadAppServicesActivity : ProjectActivity {
             functionApps.forEach {
                 launch {
                     it.remote
+                }
+                launch {
+                    it.slots().list()
                 }
             }
         }

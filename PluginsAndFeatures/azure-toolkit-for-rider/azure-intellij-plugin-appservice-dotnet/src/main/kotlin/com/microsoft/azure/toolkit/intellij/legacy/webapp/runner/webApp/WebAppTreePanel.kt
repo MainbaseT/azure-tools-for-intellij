@@ -82,7 +82,10 @@ class WebAppTreePanel(
             }.collectLatest { (state, draftApps, query) ->
                 withContext(Dispatchers.EDT) {
                     when (state) {
-                        is WebAppsLoadState.Loading -> loadingPanel.startLoading()
+                        is WebAppsLoadState.Loading -> {
+                            loadingPanel.startLoading()
+                            rebuildTreeModel(emptyList(), emptyList(), "")
+                        }
 
                         is WebAppsLoadState.Loaded -> {
                             loadingPanel.stopLoading()

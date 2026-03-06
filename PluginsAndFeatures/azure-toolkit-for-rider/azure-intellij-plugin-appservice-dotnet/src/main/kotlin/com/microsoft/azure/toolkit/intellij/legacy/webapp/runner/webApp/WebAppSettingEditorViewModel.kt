@@ -29,7 +29,12 @@ sealed interface WebAppModel {
     val config: AppServiceConfig
 
     class DraftWebAppModel(override val config: AppServiceConfig) : WebAppModel
-    class RemoteWebAppModel(override val config: AppServiceConfig, val deploymentSlots: List<String>) : WebAppModel
+
+    class RemoteWebAppModel(
+        val resourceGroup: String,
+        override val config: AppServiceConfig,
+        val deploymentSlots: List<String>
+    ) : WebAppModel
 }
 
 sealed interface WebAppsLoadState {
@@ -73,6 +78,7 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             reloadTrigger
                 .collectLatest { refresh ->
                     _webAppsState.value = WebAppsLoadState.Loading
+
                     if (refresh) invalidateWebAppCache()
                     try {
                         val configs = loadListOfWebApps()
@@ -130,11 +136,17 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
 
         val webApps = Azure.az(AzureWebApp::class.java).webApps()
 
-        return webApps.sortedBy { it.name }.map { webApp ->
-            convertAppServiceToConfig(webApp)
-        }.map { config ->
-            RemoteWebAppModel(config, emptyList())
-        }
+        return webApps
+            .sortedBy { it.name }
+            .map { webApp ->
+                val config = convertAppServiceToConfig(webApp)
+                val deploymentSlots = webApp.slots().list().map { it.name }
+                RemoteWebAppModel(
+                    webApp.resourceGroupName,
+                    config,
+                    deploymentSlots
+                )
+            }
     }
 
     /**
@@ -167,6 +179,9 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             webApps.forEach {
                 launch {
                     it.remote
+                }
+                launch {
+                    it.slots().list()
                 }
             }
         }
