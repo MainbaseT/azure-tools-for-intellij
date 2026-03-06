@@ -69,6 +69,9 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     private val _selectedWebApp = MutableStateFlow<AppServiceConfig?>(null)
     val selectedWebApp: StateFlow<AppServiceConfig?> = _selectedWebApp.asStateFlow()
 
+    private val _selectedSlotName = MutableStateFlow<String?>(null)
+    val selectedSlotName: StateFlow<String?> = _selectedSlotName.asStateFlow()
+
     private val reloadTrigger = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
@@ -99,6 +102,12 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
 
     fun selectWebApp(webAppModel: WebAppModel) {
         _selectedWebApp.value = webAppModel.config
+        _selectedSlotName.value = null
+    }
+
+    fun selectDeploymentSlot(webAppModel: RemoteWebAppModel, slotName: String) {
+        _selectedWebApp.value = webAppModel.config
+        _selectedSlotName.value = slotName
     }
 
     fun refreshWebApps() {
@@ -123,6 +132,7 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             .build()
 
         _selectedWebApp.value = webAppConfig
+        _selectedSlotName.value = if (state.isDeployToSlot) state.slotName else null
     }
 
     private suspend fun loadListOfWebApps(): List<RemoteWebAppModel> {
@@ -208,6 +218,7 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
 
     fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
         val webAppConfig = selectedWebApp.value ?: return
+        val slotName = selectedSlotName.value
 
         state.apply {
             webAppName = webAppConfig.appName
@@ -219,6 +230,8 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             pricingTier = webAppConfig.pricingTier?.tier
             pricingSize = webAppConfig.pricingTier?.size
             operatingSystem = webAppConfig.runtime?.os?.toString()
+            isDeployToSlot = slotName != null
+            this.slotName = slotName
         }
     }
 

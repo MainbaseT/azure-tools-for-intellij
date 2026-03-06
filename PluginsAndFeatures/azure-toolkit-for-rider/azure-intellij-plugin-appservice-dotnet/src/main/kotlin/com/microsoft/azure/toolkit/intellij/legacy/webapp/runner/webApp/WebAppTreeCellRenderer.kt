@@ -25,6 +25,11 @@ internal class WebAppTreeCellRenderer : ColoredTreeCellRenderer() {
         val node = value as? DefaultMutableTreeNode ?: return
         when (val userObject = node.userObject) {
             is GroupNode -> {
+                icon = AllIcons.Nodes.Folder
+                append(userObject.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+            }
+
+            is ResourceGroupNode -> {
                 icon = AppServiceIcons.ResourceGroup
                 append(userObject.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
             }
@@ -39,11 +44,16 @@ internal class WebAppTreeCellRenderer : ColoredTreeCellRenderer() {
                 if (webAppModel is WebAppModel.DraftWebAppModel) {
                     append(" (New) ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
                 }
+            }
 
-                val resourceGroup = webAppModel.config.resourceGroup
-                if (!resourceGroup.isNullOrEmpty()) {
-                    append("  $resourceGroup", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                }
+            is DeploymentSlotsGroupNode -> {
+                icon = AllIcons.Nodes.Folder
+                append("Deployment Slots")
+            }
+
+            is DeploymentSlotNode -> {
+                icon = AppServiceIcons.DeploymentSlot
+                append(userObject.slotName)
             }
         }
     }
