@@ -12,10 +12,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
@@ -37,7 +35,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JTree
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.tree.DefaultMutableTreeNode
@@ -45,15 +42,14 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
+internal data class GroupNode(val name: String)
+internal data class WebAppNode(val webAppModel: WebAppModel)
+
 class WebAppTreePanel(
     private val project: Project,
     cs: CoroutineScope,
     private val vm: WebAppSettingEditorViewModel
 ) : Disposable {
-
-    private data class GroupNode(val name: String)
-    private data class WebAppNode(val webAppModel: WebAppModel)
-
     private val searchTextField = SearchTextField(false)
 
     private val treeModel = DefaultTreeModel(DefaultMutableTreeNode())
@@ -235,41 +231,4 @@ class WebAppTreePanel(
     }
 
     override fun dispose() {}
-
-    private class WebAppTreeCellRenderer : ColoredTreeCellRenderer() {
-        override fun customizeCellRenderer(
-            tree: JTree,
-            value: Any?,
-            selected: Boolean,
-            expanded: Boolean,
-            leaf: Boolean,
-            row: Int,
-            hasFocus: Boolean
-        ) {
-            val node = value as? DefaultMutableTreeNode ?: return
-            when (val userObject = node.userObject) {
-                is GroupNode -> {
-                    icon = AllIcons.Nodes.Module
-                    append(userObject.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
-                }
-
-                is WebAppNode -> {
-                    icon = AllIcons.Nodes.Deploy
-                    val webAppModel = userObject.webAppModel
-                    append(webAppModel.config.appName ?: "Unknown")
-                    if (webAppModel is DraftWebAppModel) {
-                        append(" (New) ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                    }
-                    val os = webAppModel.config.runtime?.os
-                    if (os != null) {
-                        append("  $os", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                    }
-                    val resourceGroup = webAppModel.config.resourceGroup
-                    if (!resourceGroup.isNullOrEmpty()) {
-                        append("  $resourceGroup", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-                    }
-                }
-            }
-        }
-    }
 }
