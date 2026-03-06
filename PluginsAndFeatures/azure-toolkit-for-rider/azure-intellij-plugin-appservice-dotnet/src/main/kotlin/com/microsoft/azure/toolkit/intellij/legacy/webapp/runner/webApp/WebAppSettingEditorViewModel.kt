@@ -20,17 +20,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.jvm.java
 
 sealed interface WebAppModel {
     val config: AppServiceConfig
@@ -133,7 +128,7 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
                 return emptyList()
             }
 
-            loadRemoteWebApps()
+            loadRemoteResources()
 
             val webApps = Azure.az(AzureWebApp::class.java).webApps()
 
@@ -153,12 +148,19 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     }
 
     /**
-     * This method loads remote web apps in parallel.
+     * This method loads remote web apps and app service plans in parallel.
      * The loaded web apps will be saved in the cache, so the further calls won't load them from Azure again.
      */
-    private suspend fun loadRemoteWebApps() {
-        LOG.trace("Loading web apps from Azure")
+    private suspend fun loadRemoteResources() {
+        LOG.trace("Loading web apps and app service plans from Azure")
 
+        coroutineScope {
+            launch { loadAppServicePlans() }
+            launch { loadWebApps() }
+        }
+    }
+
+    private suspend fun loadAppServicePlans() {
         val appServicePlans = Azure.az(AzureAppService::class.java).plans()
         coroutineScope {
             appServicePlans.forEach {
@@ -167,7 +169,9 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
                 }
             }
         }
+    }
 
+    private suspend fun loadWebApps() {
         val webApps = Azure.az(AzureWebApp::class.java).webApps()
         coroutineScope {
             webApps.forEach {

@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
 import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore
 import com.microsoft.azure.toolkit.intellij.AzureToolkitConstants.AZURE_TOOLKIT_HOME_FOLDER
 import com.microsoft.azure.toolkit.intellij.AzureToolkitConstants.AZURE_TOOLKIT_SETTINGS_FILE
+import com.microsoft.azure.toolkit.intellij.appservice.PluginInitializationService
 import com.microsoft.azure.toolkit.intellij.common.CommonConst
 import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore
@@ -52,6 +53,7 @@ class PluginLifecycleActivity : ProjectActivity {
             initProxy()
             initializeConfig()
             IdeAzureAccount.getInstance().restoreSignin()
+            PluginInitializationService.getInstance(project).setInitialized()
         } catch (t: Throwable) {
             LOG.error(t)
         }
