@@ -43,6 +43,10 @@ class WebAppSettingEditor2(
                 .align(Align.FILL)
                 .resizableColumn()
         }.resizableRow()
+        row {
+            checkBox("Open browser after deployment")
+                .bindSelected(viewModel.openBrowserAfterDeployment) { viewModel.setOpenBrowserFlag(it) }
+        }
     }
 
     override fun resetEditorFrom(configuration: WebAppConfiguration) {

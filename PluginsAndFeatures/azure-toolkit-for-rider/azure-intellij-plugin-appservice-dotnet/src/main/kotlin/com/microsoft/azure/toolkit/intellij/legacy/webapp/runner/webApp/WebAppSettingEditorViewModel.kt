@@ -66,6 +66,9 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     private val _selectedWebApp = MutableStateFlow<Pair<AppServiceConfig, String?>?>(null)
     val selectedWebApp: StateFlow<Pair<AppServiceConfig, String?>?> = _selectedWebApp.asStateFlow()
 
+    private val _openBrowserAfterDeployment = MutableStateFlow(false)
+    val openBrowserAfterDeployment: StateFlow<Boolean> = _openBrowserAfterDeployment.asStateFlow()
+
     private val reloadTrigger = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
@@ -106,6 +109,9 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
         _selectedWebApp.value = model.config to null
     }
 
+    fun setOpenBrowserFlag(enabled: Boolean) {
+        _openBrowserAfterDeployment.value = enabled
+    }
 
     fun setConfigFromOptions(state: WebAppConfigurationOptions) {
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
@@ -123,15 +129,17 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .build()
-
         val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
         _selectedWebApp.value = webAppConfig to deploymentSlotName
+
+        _openBrowserAfterDeployment.value = state.openBrowser
     }
 
     fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
         val webAppValue = selectedWebApp.value ?: return
         val webAppConfig = webAppValue.first
         val slotNameConfig = webAppValue.second
+        val openBrowserValue = openBrowserAfterDeployment.value
 
         state.apply {
             webAppName = webAppConfig.appName
@@ -150,6 +158,8 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
                 isDeployToSlot = false
                 slotName = null
             }
+
+            openBrowser = openBrowserValue
         }
     }
 
@@ -242,12 +252,5 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
                 servicePlanResourceGroup = it.resourceGroupName
             }
         }
-    }
-
-    private fun getResource(config: AppServiceConfig): com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase<*, *, *>? {
-        if (config.appName.isNullOrEmpty()) return null
-        return Azure.az(AzureWebApp::class.java)
-            .webApps(config.subscriptionId)
-            .get(config.appName, config.resourceGroup)
     }
 }
