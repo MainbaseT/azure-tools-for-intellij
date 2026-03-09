@@ -16,7 +16,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
-import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dsl.builder.AlignX
@@ -33,16 +32,12 @@ import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
-import kotlin.time.Duration.Companion.milliseconds
 
 internal data class GroupNode(val name: String)
 internal data class WebAppNode(val webAppModel: WebAppModel)
@@ -68,34 +63,31 @@ class WebAppTreePanel(
         get() = loadingPanel
 
     init {
-        setupSearchField()
         setupTree()
         setupLayout()
 
         tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.rebuild") {
-            @OptIn(kotlinx.coroutines.FlowPreview::class)
             combine(
                 vm.webAppsState,
-                vm.draftWebApps,
-                vm.searchQuery.debounce(150.milliseconds)
-            ) { state, draftApps, searchQuery ->
-                Triple(state, draftApps, searchQuery)
-            }.collectLatest { (state, draftApps, query) ->
+                vm.draftWebApps
+            ) { state, draftApps ->
+                state to draftApps
+            }.collectLatest { (state, draftApps) ->
                 withContext(Dispatchers.EDT) {
                     when (state) {
                         is WebAppsLoadState.Loading -> {
                             loadingPanel.startLoading()
-                            rebuildTreeModel(emptyList(), emptyList(), "")
+                            rebuildTreeModel(emptyList(), emptyList())
                         }
 
                         is WebAppsLoadState.Loaded -> {
                             loadingPanel.stopLoading()
-                            rebuildTreeModel(state.items, draftApps, query)
+                            rebuildTreeModel(state.items, draftApps)
                         }
 
                         is WebAppsLoadState.Error -> {
                             loadingPanel.stopLoading()
-                            rebuildTreeModel(emptyList(), draftApps, query)
+                            rebuildTreeModel(emptyList(), draftApps)
                         }
                     }
                 }
@@ -111,24 +103,13 @@ class WebAppTreePanel(
         }
     }
 
-    private fun setupSearchField() {
-        searchTextField.textEditor.emptyText.text = "Search web apps..."
-        searchTextField.textEditor.document.addDocumentListener(object : DocumentListener {
-            override fun insertUpdate(e: DocumentEvent?) = updateQuery()
-            override fun removeUpdate(e: DocumentEvent?) = updateQuery()
-            override fun changedUpdate(e: DocumentEvent?) = updateQuery()
-            private fun updateQuery() {
-                vm.setSearchQuery(searchTextField.text.trim())
-            }
-        })
-    }
-
     private fun setupTree() {
         tree.isRootVisible = false
         tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
         tree.cellRenderer = WebAppTreeCellRenderer()
         tree.emptyText.text = "No web apps found"
-        TreeSpeedSearch.installOn(tree)
+        searchTextField.textEditor.emptyText.text = "Search web apps..."
+        WebAppTreeSpeedSearch.installOn(tree, searchTextField)
 
         tree.addTreeSelectionListener {
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
@@ -180,50 +161,27 @@ class WebAppTreePanel(
 
     private fun rebuildTreeModel(
         remoteApps: List<RemoteWebAppModel>,
-        draftApps: List<DraftWebAppModel>,
-        query: String
+        draftApps: List<DraftWebAppModel>
     ) {
         val expandedPaths = TreeUtil.collectExpandedPaths(tree)
-
-        val filteredDraftApps =
-            if (query.isEmpty()) draftApps
-            else draftApps.filter { matchesQuery(it.config, query) }
 
         val root = treeModel.root as DefaultMutableTreeNode
         root.removeAllChildren()
 
-        if (filteredDraftApps.isNotEmpty()) {
+        if (draftApps.isNotEmpty()) {
             val draftsGroup = DefaultMutableTreeNode(GroupNode("Drafts"))
-            filteredDraftApps
+            draftApps
                 .sortedBy { it.config.appName }
                 .forEach { draftsGroup.add(DefaultMutableTreeNode(WebAppNode(it))) }
             root.add(draftsGroup)
         }
 
-        val lowerQuery = query.lowercase()
         val appsByResourceGroup = remoteApps.groupBy { it.resourceGroup }
         for ((resourceGroup, apps) in appsByResourceGroup.entries.sortedBy { it.key.lowercase() }) {
-            val filteredApps = if (query.isEmpty()) {
-                apps.map { it to it.deploymentSlots }
-            } else {
-                val resourceGroupMatches = resourceGroup.lowercase().contains(lowerQuery)
-                apps.mapNotNull { app ->
-                    val appNameMatches = app.config.appName?.lowercase()?.contains(lowerQuery) == true
-                    val matchingSlots = app.deploymentSlots.filter { it.lowercase().contains(lowerQuery) }
-
-                    when {
-                        resourceGroupMatches || appNameMatches -> app to app.deploymentSlots
-                        matchingSlots.isNotEmpty() -> app to matchingSlots
-                        else -> null
-                    }
-                }
-            }
-
-            if (filteredApps.isEmpty()) continue
-
             val rgNode = DefaultMutableTreeNode(ResourceGroupNode(resourceGroup))
-            for ((app, slots) in filteredApps.sortedBy { it.first.config.appName?.lowercase() }) {
+            for (app in apps.sortedBy { it.config.appName?.lowercase() }) {
                 val appNode = DefaultMutableTreeNode(WebAppNode(app))
+                val slots = app.deploymentSlots
                 if (slots.isNotEmpty()) {
                     val slotsGroup = DefaultMutableTreeNode(DeploymentSlotsGroupNode(app))
                     slots.sorted().forEach { slotName ->
@@ -238,11 +196,8 @@ class WebAppTreePanel(
 
         treeModel.reload()
 
-        when {
-            // Filter active: expand entire tree to reveal all matches (platform convention)
-            query.isNotEmpty() -> TreeUtil.expandAll(tree)
-            // No filter, but have prior state: restore it
-            expandedPaths.isNotEmpty() -> TreeUtil.restoreExpandedPaths(tree, expandedPaths)
+        if (expandedPaths.isNotEmpty()) {
+            TreeUtil.restoreExpandedPaths(tree, expandedPaths)
         }
 
         val selectedWebApp = vm.selectedWebApp.value
@@ -283,12 +238,6 @@ class WebAppTreePanel(
         } finally {
             isUpdatingSelection = false
         }
-    }
-
-    private fun matchesQuery(config: AppServiceConfig, query: String): Boolean {
-        val lowerQuery = query.lowercase()
-        return config.appName?.lowercase()?.contains(lowerQuery) == true ||
-                config.resourceGroup?.lowercase()?.contains(lowerQuery) == true
     }
 
     override fun dispose() {}

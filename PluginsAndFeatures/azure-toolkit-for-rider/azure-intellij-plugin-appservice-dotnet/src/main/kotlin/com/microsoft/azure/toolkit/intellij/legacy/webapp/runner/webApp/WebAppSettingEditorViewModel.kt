@@ -57,9 +57,6 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
 
     private val cs = parentCs.childScope("WebAppSettingEditorViewModel", Dispatchers.Default)
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
     private val _draftWebApps = MutableStateFlow<List<DraftWebAppModel>>(emptyList())
     val draftWebApps: StateFlow<List<DraftWebAppModel>> = _draftWebApps.asStateFlow()
 
@@ -91,10 +88,6 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
                     }
                 }
         }
-    }
-
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
     }
 
     fun selectWebApp(webAppModel: WebAppModel, deploymentSlotName: String?) {
