@@ -46,11 +46,6 @@ internal class WebAppTreeCellRenderer : ColoredTreeCellRenderer() {
                 }
             }
 
-            is DeploymentSlotsGroupNode -> {
-                icon = AllIcons.Nodes.Folder
-                append("Deployment Slots")
-            }
-
             is DeploymentSlotNode -> {
                 icon = AppServiceIcons.DeploymentSlot
                 append(userObject.slotName)

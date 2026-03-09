@@ -40,9 +40,8 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 internal data class GroupNode(val name: String)
-internal data class WebAppNode(val webAppModel: WebAppModel)
 internal data class ResourceGroupNode(val name: String)
-internal data class DeploymentSlotsGroupNode(val webAppModel: RemoteWebAppModel)
+internal data class WebAppNode(val webAppModel: WebAppModel)
 internal data class DeploymentSlotNode(val slotName: String, val webAppModel: RemoteWebAppModel)
 
 class WebAppTreePanel(
@@ -117,7 +116,6 @@ class WebAppTreePanel(
                 when (val userObject = node.userObject) {
                     is WebAppNode -> vm.selectWebApp(userObject.webAppModel, null)
                     is DeploymentSlotNode -> vm.selectWebApp(userObject.webAppModel, userObject.slotName)
-                    is DeploymentSlotsGroupNode -> vm.selectWebApp(userObject.webAppModel, null)
                 }
             }
         }
@@ -181,13 +179,8 @@ class WebAppTreePanel(
             val rgNode = DefaultMutableTreeNode(ResourceGroupNode(resourceGroup))
             for (app in apps.sortedBy { it.config.appName?.lowercase() }) {
                 val appNode = DefaultMutableTreeNode(WebAppNode(app))
-                val slots = app.deploymentSlots
-                if (slots.isNotEmpty()) {
-                    val slotsGroup = DefaultMutableTreeNode(DeploymentSlotsGroupNode(app))
-                    slots.sorted().forEach { slotName ->
-                        slotsGroup.add(DefaultMutableTreeNode(DeploymentSlotNode(slotName, app)))
-                    }
-                    appNode.add(slotsGroup)
+                app.deploymentSlots.sorted().forEach { slotName ->
+                    appNode.add(DefaultMutableTreeNode(DeploymentSlotNode(slotName, app)))
                 }
                 rgNode.add(appNode)
             }
