@@ -105,12 +105,10 @@ class WebAppTreePanel(
         }
 
         cs.launch {
-            combine(vm.selectedWebApp, vm.selectedSlotName) { selected, slotName ->
-                selected to slotName
-            }.collect { (selected, slotName) ->
+            vm.selectedWebApp.collect { pair ->
                 withContext(Dispatchers.EDT) {
                     if (isUpdatingSelection) return@withContext
-                    selectNodeForConfig(selected, slotName)
+                    selectNodeForConfig(pair?.first, pair?.second)
                 }
             }
         }
@@ -140,9 +138,9 @@ class WebAppTreePanel(
             isUpdatingSelection = true
             try {
                 when (val userObject = node.userObject) {
-                    is WebAppNode -> vm.selectWebApp(userObject.webAppModel)
-                    is DeploymentSlotNode -> vm.selectDeploymentSlot(userObject.webAppModel, userObject.slotName)
-                    is DeploymentSlotsGroupNode -> vm.selectWebApp(userObject.webAppModel)
+                    is WebAppNode -> vm.selectWebApp(userObject.webAppModel, null)
+                    is DeploymentSlotNode -> vm.selectWebApp(userObject.webAppModel, userObject.slotName)
+                    is DeploymentSlotsGroupNode -> vm.selectWebApp(userObject.webAppModel, null)
                 }
             } finally {
                 isUpdatingSelection = false
@@ -250,7 +248,8 @@ class WebAppTreePanel(
             tree.expandPath(TreePath(groupNode.path))
         }
 
-        selectNodeForConfig(vm.selectedWebApp.value, vm.selectedSlotName.value)
+        val selectedWebApp = vm.selectedWebApp.value
+        selectNodeForConfig(selectedWebApp?.first, selectedWebApp?.second)
     }
 
     private fun selectNodeForConfig(config: AppServiceConfig?, slotName: String?) {
@@ -258,6 +257,7 @@ class WebAppTreePanel(
             tree.clearSelection()
             return
         }
+
         val root = treeModel.root as? DefaultMutableTreeNode ?: return
         val targetNode = findMatchingNode(root, config, slotName)
         if (targetNode != null) {
@@ -285,6 +285,7 @@ class WebAppTreePanel(
                         return findMatchingSlotNode(child, slotName) ?: child
                     }
                 }
+
                 is DeploymentSlotNode -> {
                     if (slotName != null &&
                         userObject.slotName == slotName &&

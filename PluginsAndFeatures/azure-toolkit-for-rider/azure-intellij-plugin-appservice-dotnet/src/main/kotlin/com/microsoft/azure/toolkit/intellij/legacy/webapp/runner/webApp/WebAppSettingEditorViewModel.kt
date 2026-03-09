@@ -66,11 +66,8 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     private val _webAppsState = MutableStateFlow<WebAppsLoadState>(WebAppsLoadState.Loading)
     val webAppsState: StateFlow<WebAppsLoadState> = _webAppsState.asStateFlow()
 
-    private val _selectedWebApp = MutableStateFlow<AppServiceConfig?>(null)
-    val selectedWebApp: StateFlow<AppServiceConfig?> = _selectedWebApp.asStateFlow()
-
-    private val _selectedSlotName = MutableStateFlow<String?>(null)
-    val selectedSlotName: StateFlow<String?> = _selectedSlotName.asStateFlow()
+    private val _selectedWebApp = MutableStateFlow<Pair<AppServiceConfig, String?>?>(null)
+    val selectedWebApp: StateFlow<Pair<AppServiceConfig, String?>?> = _selectedWebApp.asStateFlow()
 
     private val reloadTrigger = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
@@ -100,19 +97,22 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
         _searchQuery.value = query
     }
 
-    fun selectWebApp(webAppModel: WebAppModel) {
-        _selectedWebApp.value = webAppModel.config
-        _selectedSlotName.value = null
-    }
-
-    fun selectDeploymentSlot(webAppModel: RemoteWebAppModel, slotName: String) {
-        _selectedWebApp.value = webAppModel.config
-        _selectedSlotName.value = slotName
+    fun selectWebApp(webAppModel: WebAppModel, deploymentSlotName: String?) {
+        _selectedWebApp.value = webAppModel.config to deploymentSlotName
     }
 
     fun refreshWebApps() {
         reloadTrigger.tryEmit(true)
     }
+
+    fun addDraftWebApp(config: AppServiceConfig) {
+        val model = DraftWebAppModel(config)
+        _draftWebApps.update { current ->
+            listOf(model) + current.filter { !isSameApp(it.config, config) }
+        }
+        _selectedWebApp.value = model.config to null
+    }
+
 
     fun setConfigFromOptions(state: WebAppConfigurationOptions) {
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
@@ -131,8 +131,33 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .build()
 
-        _selectedWebApp.value = webAppConfig
-        _selectedSlotName.value = if (state.isDeployToSlot) state.slotName else null
+        val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
+        _selectedWebApp.value = webAppConfig to deploymentSlotName
+    }
+
+    fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
+        val webAppValue = selectedWebApp.value ?: return
+        val webAppConfig = webAppValue.first
+        val slotNameConfig = webAppValue.second
+
+        state.apply {
+            webAppName = webAppConfig.appName
+            subscriptionId = webAppConfig.subscriptionId
+            resourceGroupName = webAppConfig.resourceGroup
+            region = webAppConfig.region?.toString()
+            appServicePlanName = webAppConfig.servicePlanName
+            appServicePlanResourceGroupName = webAppConfig.servicePlanResourceGroup
+            pricingTier = webAppConfig.pricingTier?.tier
+            pricingSize = webAppConfig.pricingTier?.size
+            operatingSystem = webAppConfig.runtime?.os?.toString()
+            if (slotNameConfig != null) {
+                isDeployToSlot = true
+                slotName = slotNameConfig
+            } else {
+                isDeployToSlot = false
+                slotName = null
+            }
+        }
     }
 
     private suspend fun loadListOfWebApps(): List<RemoteWebAppModel> {
@@ -205,33 +230,6 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
             Azure.az(AzureWebApp::class.java).refresh()
         } catch (e: Exception) {
             LOG.warn("Error while invalidating web app cache", e)
-        }
-    }
-
-    fun addDraftWebApp(config: AppServiceConfig) {
-        val model = DraftWebAppModel(config)
-        _draftWebApps.update { current ->
-            listOf(model) + current.filter { !isSameApp(it.config, config) }
-        }
-        _selectedWebApp.value = model.config
-    }
-
-    fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
-        val webAppConfig = selectedWebApp.value ?: return
-        val slotName = selectedSlotName.value
-
-        state.apply {
-            webAppName = webAppConfig.appName
-            subscriptionId = webAppConfig.subscriptionId
-            resourceGroupName = webAppConfig.resourceGroup
-            region = webAppConfig.region?.toString()
-            appServicePlanName = webAppConfig.servicePlanName
-            appServicePlanResourceGroupName = webAppConfig.servicePlanResourceGroup
-            pricingTier = webAppConfig.pricingTier?.tier
-            pricingSize = webAppConfig.pricingTier?.size
-            operatingSystem = webAppConfig.runtime?.os?.toString()
-            isDeployToSlot = slotName != null
-            this.slotName = slotName
         }
     }
 
