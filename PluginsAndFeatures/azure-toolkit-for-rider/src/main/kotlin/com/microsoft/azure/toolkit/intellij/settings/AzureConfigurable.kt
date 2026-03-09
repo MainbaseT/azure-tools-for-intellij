@@ -21,6 +21,7 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer
+import com.microsoft.azure.toolkit.intellij.appservice.settings.AzureAppServiceSettings
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud
@@ -31,6 +32,7 @@ import kotlin.io.path.exists
 
 class AzureConfigurable : BoundConfigurable("Azure") {
     private val config = Azure.az().config()
+    private val appServiceSettings get() = AzureAppServiceSettings.getInstance()
 
     private lateinit var environmentComboBox: Cell<ComboBox<AzureEnvironment>>
 
@@ -83,6 +85,11 @@ class AzureConfigurable : BoundConfigurable("Azure") {
                     }, {
                         config.isAuthPersistenceEnabled = it
                     })
+            }
+            row {
+                checkBox("Load Azure resources during startup")
+                    .comment("Allows to avoid waiting for resources to load in deployment configuration form")
+                    .bindSelected(appServiceSettings::loadResourcesDuringStartup)
             }
         }
     }

@@ -8,15 +8,15 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp.FunctionDeploymentConfiguration
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionAppContainer.FunctionAppContainerConfiguration
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfiguration
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainerConfiguration
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -58,12 +58,13 @@ class LoadAppServicesActivity : ProjectActivity {
             val account = Azure.az(AzureAccount::class.java).account()
             if (!account.isLoggedIn) return
 
-            //TODO: add progress and maybe a setting
-            LOG.trace("Loading Azure App Services")
-            coroutineScope {
-                launch { loadAppServicePlans() }
-                launch { loadWebApps() }
-                launch { loadFunctionApps() }
+            withBackgroundProgress(project, "Preloading Azure resources") {
+                LOG.trace("Loading Azure App Services")
+                coroutineScope {
+                    launch { loadAppServicePlans() }
+                    launch { loadWebApps() }
+                    launch { loadFunctionApps() }
+                }
             }
         } catch (_: Exception) {
             //User isn't logged in, do nothing
