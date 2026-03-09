@@ -33,7 +33,7 @@ class WebAppSettingEditor2(
             }
         }
 
-    private val webAppTreePanel = WebAppTreePanel(project, cs, viewModel).also {
+    private val webAppTreePanel = WebAppTreePanel(project, viewModel).also {
         Disposer.register(this, it)
     }
 

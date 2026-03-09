@@ -12,6 +12,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.TreeSpeedSearch
@@ -22,18 +24,16 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.launchOnShow
+import com.intellij.util.ui.tree.TreeUtil
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.DraftWebAppModel
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.RemoteWebAppModel
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -41,7 +41,6 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -53,7 +52,6 @@ internal data class DeploymentSlotNode(val slotName: String, val webAppModel: Re
 
 class WebAppTreePanel(
     private val project: Project,
-    cs: CoroutineScope,
     private val vm: WebAppSettingEditorViewModel
 ) : Disposable {
     private val searchTextField = SearchTextField(false)
@@ -74,7 +72,7 @@ class WebAppTreePanel(
         setupTree()
         setupLayout()
 
-        cs.launch {
+        tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.rebuild") {
             @OptIn(kotlinx.coroutines.FlowPreview::class)
             combine(
                 vm.webAppsState,
@@ -104,10 +102,9 @@ class WebAppTreePanel(
             }
         }
 
-        cs.launch {
+        tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.select") {
             vm.selectedWebApp.collect { pair ->
                 withContext(Dispatchers.EDT) {
-                    if (isUpdatingSelection) return@withContext
                     selectNodeForConfig(pair?.first, pair?.second)
                 }
             }
@@ -130,20 +127,17 @@ class WebAppTreePanel(
         tree.isRootVisible = false
         tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
         tree.cellRenderer = WebAppTreeCellRenderer()
+        tree.emptyText.text = "No web apps found"
         TreeSpeedSearch.installOn(tree)
 
         tree.addTreeSelectionListener {
-            if (isUpdatingSelection) return@addTreeSelectionListener
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
-            isUpdatingSelection = true
-            try {
+            withSelectionGuard {
                 when (val userObject = node.userObject) {
                     is WebAppNode -> vm.selectWebApp(userObject.webAppModel, null)
                     is DeploymentSlotNode -> vm.selectWebApp(userObject.webAppModel, userObject.slotName)
                     is DeploymentSlotsGroupNode -> vm.selectWebApp(userObject.webAppModel, null)
                 }
-            } finally {
-                isUpdatingSelection = false
             }
         }
     }
@@ -189,11 +183,14 @@ class WebAppTreePanel(
         draftApps: List<DraftWebAppModel>,
         query: String
     ) {
+        val expandedPaths = TreeUtil.collectExpandedPaths(tree)
+
         val filteredDraftApps =
             if (query.isEmpty()) draftApps
             else draftApps.filter { matchesQuery(it.config, query) }
 
-        val root = DefaultMutableTreeNode()
+        val root = treeModel.root as DefaultMutableTreeNode
+        root.removeAllChildren()
 
         if (filteredDraftApps.isNotEmpty()) {
             val draftsGroup = DefaultMutableTreeNode(GroupNode("Drafts"))
@@ -239,13 +236,13 @@ class WebAppTreePanel(
             root.add(rgNode)
         }
 
-        treeModel.setRoot(root)
         treeModel.reload()
 
-        // Expand resource group nodes and drafts group by default
-        for (i in 0 until root.childCount) {
-            val groupNode = root.getChildAt(i) as DefaultMutableTreeNode
-            tree.expandPath(TreePath(groupNode.path))
+        when {
+            // Filter active: expand entire tree to reveal all matches (platform convention)
+            query.isNotEmpty() -> TreeUtil.expandAll(tree)
+            // No filter, but have prior state: restore it
+            expandedPaths.isNotEmpty() -> TreeUtil.restoreExpandedPaths(tree, expandedPaths)
         }
 
         val selectedWebApp = vm.selectedWebApp.value
@@ -259,62 +256,33 @@ class WebAppTreePanel(
         }
 
         val root = treeModel.root as? DefaultMutableTreeNode ?: return
-        val targetNode = findMatchingNode(root, config, slotName)
-        if (targetNode != null) {
-            isUpdatingSelection = true
-            try {
-                tree.selectionPath = TreePath(targetNode.path)
-            } finally {
-                isUpdatingSelection = false
+
+        val targetNode = TreeUtil.findNode(root) { node ->
+            when (val obj = node.userObject) {
+                is WebAppNode ->
+                    slotName == null &&
+                            WebAppSettingEditorViewModel.isSameApp(obj.webAppModel.config, config)
+
+                is DeploymentSlotNode ->
+                    slotName != null &&
+                            obj.slotName == slotName &&
+                            WebAppSettingEditorViewModel.isSameApp(obj.webAppModel.config, config)
+
+                else -> false
             }
-        }
+        } ?: return
+
+        withSelectionGuard { TreeUtil.selectNode(tree, targetNode) }
     }
 
-    private fun findMatchingNode(
-        parent: DefaultMutableTreeNode,
-        config: AppServiceConfig,
-        slotName: String?
-    ): DefaultMutableTreeNode? {
-        for (i in 0 until parent.childCount) {
-            val child = parent.getChildAt(i) as DefaultMutableTreeNode
-            when (val userObject = child.userObject) {
-                is WebAppNode -> {
-                    if (WebAppSettingEditorViewModel.isSameApp(userObject.webAppModel.config, config)) {
-                        if (slotName == null) return child
-                        // Search for slot node under this web app
-                        return findMatchingSlotNode(child, slotName) ?: child
-                    }
-                }
-
-                is DeploymentSlotNode -> {
-                    if (slotName != null &&
-                        userObject.slotName == slotName &&
-                        WebAppSettingEditorViewModel.isSameApp(userObject.webAppModel.config, config)
-                    ) {
-                        return child
-                    }
-                }
-            }
-            // Recurse into group nodes
-            val found = findMatchingNode(child, config, slotName)
-            if (found != null) return found
+    private inline fun withSelectionGuard(action: () -> Unit) {
+        if (isUpdatingSelection) return
+        isUpdatingSelection = true
+        try {
+            action()
+        } finally {
+            isUpdatingSelection = false
         }
-        return null
-    }
-
-    private fun findMatchingSlotNode(
-        webAppNode: DefaultMutableTreeNode,
-        slotName: String
-    ): DefaultMutableTreeNode? {
-        for (i in 0 until webAppNode.childCount) {
-            val slotsGroup = webAppNode.getChildAt(i) as DefaultMutableTreeNode
-            for (j in 0 until slotsGroup.childCount) {
-                val slotNode = slotsGroup.getChildAt(j) as DefaultMutableTreeNode
-                val slotObj = slotNode.userObject as? DeploymentSlotNode ?: continue
-                if (slotObj.slotName == slotName) return slotNode
-            }
-        }
-        return null
     }
 
     private fun matchesQuery(config: AppServiceConfig, query: String): Boolean {
