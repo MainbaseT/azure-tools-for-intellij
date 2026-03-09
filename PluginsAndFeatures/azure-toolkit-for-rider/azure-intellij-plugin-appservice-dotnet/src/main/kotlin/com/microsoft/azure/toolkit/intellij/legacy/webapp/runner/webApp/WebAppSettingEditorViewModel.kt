@@ -26,9 +26,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 sealed interface WebAppModel {
@@ -91,6 +94,31 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
         reloadTrigger.tryEmit(false)
 
         cs.launch {
+            combine(webAppsState, selectedWebApp) { state, selected ->
+                state to selected
+            }.collect { (state, selected) ->
+                if (state is WebAppsLoadState.Loaded) {
+                    val remote = state.items
+                    _draftWebApps.update { drafts ->
+                        //Remove from drafts all the existing remote apps
+                        val filteredDrafts =
+                            drafts.filter { draft -> remote.none { isSameApp(it.config, draft.config) } }
+
+                        if (selected == null ||
+                            remote.any { isSameApp(it.config, selected.first) } ||
+                            drafts.any { isSameApp(it.config, selected.first) }
+                        ) {
+                            filteredDrafts
+                        } else {
+                            //If we cannot find selected app among remote apps and draft apps, add it to the drafts
+                            listOf(DraftWebAppModel(selected.first)) + filteredDrafts
+                        }
+                    }
+                }
+            }
+        }
+
+        cs.launch {
             reloadTrigger
                 .collectLatest { refresh ->
                     _webAppsState.value = WebAppsLoadState.Loading
@@ -120,7 +148,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
     fun addDraftWebApp(config: AppServiceConfig) {
         val model = DraftWebAppModel(config)
         _draftWebApps.update { current ->
-            listOf(model) + current.filter { !isSameApp(it.config, config) }
+            listOf(model) + current.filter { !isSameApp(it.config, model.config) }
         }
         _selectedWebApp.value = model.config to null
     }
