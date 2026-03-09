@@ -13,8 +13,10 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.platform.util.coroutines.childScope
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
+import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -37,7 +39,23 @@ class WebAppSettingEditor2(
         Disposer.register(this, it)
     }
 
+    private val configAndPlatformComboBox =
+        PublishRuntimeSettingsCoreHelper.createConfigurationAndPlatformComboBox(project).component
+
     private val panel: JPanel = panel {
+        row("Project:") {
+            comboBox(
+                viewModel.publishableProjects.toComboBoxModelIn(cs),
+                renderer = SimpleListCellRenderer.create("") { it.projectName }
+            )
+                .bindSelectedItemIn(cs, viewModel.selectedProject)
+                .align(Align.FILL)
+        }
+        row("Configuration:") {
+            cell(configAndPlatformComboBox)
+                .bindSelectedNullableItemIn(cs, viewModel.selectedConfigurationAndPlatform)
+                .align(Align.FILL)
+        }
         row {
             cell(webAppTreePanel.component)
                 .align(Align.FILL)

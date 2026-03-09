@@ -7,7 +7,13 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
 
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.util.coroutines.childScope
+import com.jetbrains.rider.model.PublishableProjectModel
+import com.jetbrains.rider.model.publishableProjectsModel
+import com.jetbrains.rider.projectView.solution
+import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.DraftWebAppModel
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.RemoteWebAppModel
 import com.microsoft.azure.toolkit.lib.Azure
@@ -43,7 +49,7 @@ sealed interface WebAppsLoadState {
     data class Error(val message: String) : WebAppsLoadState
 }
 
-class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
+class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
     companion object {
         private val LOG = logger<WebAppSettingEditorViewModel>()
 
@@ -69,9 +75,19 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
     private val _openBrowserAfterDeployment = MutableStateFlow(false)
     val openBrowserAfterDeployment: StateFlow<Boolean> = _openBrowserAfterDeployment.asStateFlow()
 
+    private val _publishableProjects = MutableStateFlow<List<PublishableProjectModel>>(emptyList())
+    val publishableProjects: StateFlow<List<PublishableProjectModel>> = _publishableProjects.asStateFlow()
+
+    val selectedProject = MutableStateFlow<PublishableProjectModel?>(null)
+
+    val selectedConfigurationAndPlatform = MutableStateFlow<ConfigurationAndPlatform?>(null)
+
     private val reloadTrigger = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
+        _publishableProjects.value = project.solution.publishableProjectsModel.publishableProjects.values
+            .filter { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
+
         reloadTrigger.tryEmit(false)
 
         cs.launch {
@@ -132,6 +148,15 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
         val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
         _selectedWebApp.value = webAppConfig to deploymentSlotName
 
+        selectedProject.value = _publishableProjects.value
+            .firstOrNull { it.projectFilePath == state.publishableProjectPath }
+
+        val config = state.projectConfiguration
+        val platform = state.projectPlatform
+        selectedConfigurationAndPlatform.value =
+            if (config != null && platform != null) ConfigurationAndPlatform(config, platform)
+            else null
+
         _openBrowserAfterDeployment.value = state.openBrowser
     }
 
@@ -158,6 +183,11 @@ class WebAppSettingEditorViewModel(parentCs: CoroutineScope) {
                 isDeployToSlot = false
                 slotName = null
             }
+
+            publishableProjectPath = this@WebAppSettingEditorViewModel.selectedProject.value?.projectFilePath
+            val cap = this@WebAppSettingEditorViewModel.selectedConfigurationAndPlatform.value
+            projectConfiguration = cap?.configuration
+            projectPlatform = cap?.platform
 
             openBrowser = openBrowserValue
         }
