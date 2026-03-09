@@ -48,7 +48,9 @@ class WebAppTreePanel(
     private val project: Project,
     private val vm: WebAppSettingEditorViewModel
 ) : Disposable {
-    private val searchTextField = SearchTextField(false)
+    private val searchTextField = SearchTextField(false).apply {
+        textEditor.emptyText.text = "Search web apps..."
+    }
 
     private val treeModel = DefaultTreeModel(DefaultMutableTreeNode())
     private val tree = Tree(treeModel)
@@ -107,7 +109,6 @@ class WebAppTreePanel(
         tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
         tree.cellRenderer = WebAppTreeCellRenderer()
         tree.emptyText.text = "No web apps found"
-        searchTextField.textEditor.emptyText.text = "Search web apps..."
         WebAppTreeSpeedSearch.installOn(tree, searchTextField)
 
         tree.addTreeSelectionListener {
