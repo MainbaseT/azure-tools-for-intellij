@@ -158,10 +158,7 @@ class WebAppTreePanel(
         loadingPanel.add(scrollPane, BorderLayout.CENTER)
     }
 
-    private fun rebuildTreeModel(
-        remoteApps: List<RemoteWebAppModel>,
-        draftApps: List<DraftWebAppModel>
-    ) {
+    private fun rebuildTreeModel(remoteApps: List<RemoteWebAppModel>, draftApps: List<DraftWebAppModel>) {
         val expandedPaths = TreeUtil.collectExpandedPaths(tree)
 
         val root = treeModel.root as DefaultMutableTreeNode
