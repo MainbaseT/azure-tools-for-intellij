@@ -4,7 +4,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
+package com.microsoft.azure.toolkit.intellij.appservice.deployment
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -25,9 +25,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.launchOnShow
 import com.intellij.util.ui.tree.TreeUtil
-import com.microsoft.azure.toolkit.intellij.appservice.deployment.*
-import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.DraftAppServiceModel
-import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.RemoteAppServiceModel
+import com.microsoft.azure.toolkit.intellij.appservice.utils.isSameApp
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppCreationDialog
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +39,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
-class WebAppTreePanel(
+class AppServiceDeploymentTreePanel(
     private val project: Project,
     private val vm: AppServiceDeploymentViewModel
 ) : Disposable {
@@ -63,7 +62,7 @@ class WebAppTreePanel(
         setupTree()
         setupLayout()
 
-        tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.rebuild") {
+        tree.launchOnShow("${AppServiceDeploymentTreePanel::class.java.name}.tree.rebuild") {
             combine(
                 vm.remoteAppServiceState,
                 vm.draftAppServiceState
@@ -91,7 +90,7 @@ class WebAppTreePanel(
             }
         }
 
-        tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.select") {
+        tree.launchOnShow("${AppServiceDeploymentTreePanel::class.java.name}.tree.select") {
             vm.selectedAppService.collect { pair ->
                 withContext(Dispatchers.EDT) {
                     selectNodeForConfig(pair?.first, pair?.second)
@@ -154,7 +153,10 @@ class WebAppTreePanel(
         loadingPanel.add(scrollPane, BorderLayout.CENTER)
     }
 
-    private fun rebuildTreeModel(remoteApps: List<RemoteAppServiceModel>, draftApps: List<DraftAppServiceModel>) {
+    private fun rebuildTreeModel(
+        remoteApps: List<AppServiceDeploymentModel.RemoteAppServiceModel>,
+        draftApps: List<AppServiceDeploymentModel.DraftAppServiceModel>
+    ) {
         val expandedPaths = TreeUtil.collectExpandedPaths(tree)
 
         val root = treeModel.root as DefaultMutableTreeNode
@@ -202,13 +204,11 @@ class WebAppTreePanel(
         val targetNode = TreeUtil.findNode(root) { node ->
             when (val obj = node.userObject) {
                 is AppServiceNode ->
-                    slotName == null &&
-                            WebAppSettingEditorViewModel.isSameApp(obj.appServiceModel.config, config)
+                    slotName == null && isSameApp(obj.appServiceModel.config, config)
 
                 is DeploymentSlotNode ->
                     slotName != null &&
-                            obj.slotName == slotName &&
-                            WebAppSettingEditorViewModel.isSameApp(obj.appServiceModel.config, config)
+                            obj.slotName == slotName && isSameApp(obj.appServiceModel.config, config)
 
                 else -> false
             }

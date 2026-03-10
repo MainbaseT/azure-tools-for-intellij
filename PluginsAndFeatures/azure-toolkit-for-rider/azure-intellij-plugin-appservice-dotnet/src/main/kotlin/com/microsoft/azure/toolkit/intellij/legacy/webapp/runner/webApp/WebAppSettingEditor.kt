@@ -17,6 +17,7 @@ import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentTreePanel
 import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelected
 import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelectedItemIn
 import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelectedNullableItemIn
@@ -39,7 +40,7 @@ class WebAppSettingEditor(
             }
         }
 
-    private val webAppTreePanel = WebAppTreePanel(project, viewModel).also {
+    private val webAppTreePanel = AppServiceDeploymentTreePanel(project, viewModel).also {
         Disposer.register(this, it)
     }
 

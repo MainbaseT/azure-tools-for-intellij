@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDepl
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.RemoteAppServiceModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentViewModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceLoadState
+import com.microsoft.azure.toolkit.intellij.appservice.utils.isSameApp
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
@@ -41,13 +42,6 @@ import kotlin.coroutines.cancellation.CancellationException
 class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope): AppServiceDeploymentViewModel {
     companion object {
         private val LOG = logger<WebAppSettingEditorViewModel>()
-
-        internal fun isSameApp(first: AppServiceConfig?, second: AppServiceConfig?): Boolean {
-            if (first == null || second == null) return first === second
-            return first.appName.equals(second.appName, ignoreCase = true) &&
-                    first.resourceGroup.equals(second.resourceGroup, ignoreCase = true) &&
-                    first.subscriptionId.equals(second.subscriptionId, ignoreCase = true)
-        }
     }
 
     private val cs = parentCs.childScope("WebAppSettingEditorViewModel", Dispatchers.Default)
