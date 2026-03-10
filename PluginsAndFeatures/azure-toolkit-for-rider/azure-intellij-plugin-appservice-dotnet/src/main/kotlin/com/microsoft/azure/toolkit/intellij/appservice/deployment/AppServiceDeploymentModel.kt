@@ -6,20 +6,22 @@ package com.microsoft.azure.toolkit.intellij.appservice.deployment
 
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 
-interface AppServiceDeploymentModel {
-    val config: AppServiceConfig
+interface AppServiceDeploymentModel<out TConfig : AppServiceConfig> {
+    val config: TConfig
 
-    class DraftAppServiceModel(override val config: AppServiceConfig) : AppServiceDeploymentModel
+    class DraftAppServiceModel<out TConfig : AppServiceConfig>(
+        override val config: TConfig
+    ) : AppServiceDeploymentModel<TConfig>
 
-    class RemoteAppServiceModel(
+    class RemoteAppServiceModel<out TConfig : AppServiceConfig>(
         val resourceGroup: String,
-        override val config: AppServiceConfig,
+        override val config: TConfig,
         val deploymentSlots: List<String>
-    ) : AppServiceDeploymentModel
+    ) : AppServiceDeploymentModel<TConfig>
 }
 
-sealed interface AppServiceLoadState {
-    data object Loading : AppServiceLoadState
-    data class Loaded(val items: List<AppServiceDeploymentModel.RemoteAppServiceModel>) : AppServiceLoadState
-    data class Error(val message: String) : AppServiceLoadState
+sealed interface AppServiceLoadState<out TConfig : AppServiceConfig> {
+    data object Loading : AppServiceLoadState<Nothing>
+    data class Loaded<out TConfig : AppServiceConfig>(val items: List<AppServiceDeploymentModel.RemoteAppServiceModel<TConfig>>) : AppServiceLoadState<TConfig>
+    data class Error(val message: String) : AppServiceLoadState<Nothing>
 }

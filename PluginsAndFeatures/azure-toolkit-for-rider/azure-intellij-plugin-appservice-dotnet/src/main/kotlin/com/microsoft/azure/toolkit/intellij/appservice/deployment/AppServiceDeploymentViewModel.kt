@@ -8,12 +8,12 @@ import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDepl
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import kotlinx.coroutines.flow.StateFlow
 
-interface AppServiceDeploymentViewModel {
-    val draftAppServiceState: StateFlow<List<DraftAppServiceModel>>
-    val remoteAppServiceState: StateFlow<AppServiceLoadState>
-    val selectedAppService: StateFlow<Pair<AppServiceConfig, String?>?>
+interface AppServiceDeploymentViewModel<TConfig : AppServiceConfig> {
+    val draftAppServiceState: StateFlow<List<DraftAppServiceModel<TConfig>>>
+    val remoteAppServiceState: StateFlow<AppServiceLoadState<TConfig>>
+    val selectedAppService: StateFlow<Pair<TConfig, String?>?>
 
-    fun selectAppService(appService: AppServiceDeploymentModel,  deploymentSlotName: String?)
-    fun addDraftAppService(config: AppServiceConfig)
+    fun selectAppService(appService: AppServiceDeploymentModel<TConfig>, deploymentSlotName: String?)
+    fun addDraftAppService(config: TConfig)
     fun refreshAppServices()
 }

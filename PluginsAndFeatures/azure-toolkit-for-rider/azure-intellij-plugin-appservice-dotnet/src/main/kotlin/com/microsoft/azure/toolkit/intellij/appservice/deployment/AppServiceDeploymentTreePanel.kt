@@ -12,8 +12,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLoadingPanel
@@ -26,9 +24,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.launchOnShow
 import com.intellij.util.ui.tree.TreeUtil
 import com.microsoft.azure.toolkit.intellij.appservice.utils.isSameApp
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppCreationDialog
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
-import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -39,12 +35,14 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
-class AppServiceDeploymentTreePanel(
-    private val project: Project,
-    private val vm: AppServiceDeploymentViewModel
+abstract class AppServiceDeploymentTreePanel<TConfig : AppServiceConfig>(
+    private val vm: AppServiceDeploymentViewModel<TConfig>,
+    emptySearchText: String,
+    private val emptyTreeText: String,
+    private val openCreateAppServiceDialog: (vm: AppServiceDeploymentViewModel<TConfig>, panel: AppServiceDeploymentTreePanel<TConfig>) -> Unit
 ) : Disposable {
     private val searchTextField = SearchTextField(false).apply {
-        textEditor.emptyText.text = "Search web apps..."
+        textEditor.emptyText.text = emptySearchText
     }
 
     private val treeModel = DefaultTreeModel(DefaultMutableTreeNode())
@@ -76,7 +74,7 @@ class AppServiceDeploymentTreePanel(
                             rebuildTreeModel(emptyList(), emptyList())
                         }
 
-                        is AppServiceLoadState.Loaded -> {
+                        is AppServiceLoadState.Loaded<TConfig> -> {
                             loadingPanel.stopLoading()
                             rebuildTreeModel(state.items, draftApps)
                         }
@@ -103,15 +101,23 @@ class AppServiceDeploymentTreePanel(
         tree.isRootVisible = false
         tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
         tree.cellRenderer = AppServiceDeploymentTreeCellRenderer()
-        tree.emptyText.text = "No web apps found"
+        tree.emptyText.text = emptyTreeText
         AppServiceTreeSpeedSearch.installOn(tree, searchTextField)
 
         tree.addTreeSelectionListener {
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
+            @Suppress("UNCHECKED_CAST")
             withSelectionGuard {
                 when (val userObject = node.userObject) {
-                    is AppServiceNode -> vm.selectAppService(userObject.appServiceModel, null)
-                    is DeploymentSlotNode -> vm.selectAppService(userObject.appServiceModel, userObject.slotName)
+                    is AppServiceNode<*> -> vm.selectAppService(
+                        userObject.appServiceModel as AppServiceDeploymentModel<TConfig>,
+                        null
+                    )
+
+                    is DeploymentSlotNode<*> -> vm.selectAppService(
+                        userObject.appServiceModel as AppServiceDeploymentModel.RemoteAppServiceModel<TConfig>,
+                        userObject.slotName
+                    )
                 }
             }
         }
@@ -120,21 +126,13 @@ class AppServiceDeploymentTreePanel(
     private fun setupLayout() {
         val actionGroup = DefaultActionGroup(
             DumbAwareAction.create("Create New", AllIcons.General.Add) {
-                val dialog = WebAppCreationDialog(project, false)
-                Disposer.register(this, dialog)
-                dialog.setOkAction(
-                    Action<AppServiceConfig>(Action.Id.of("user/webapp.create_app.app"))
-                        .withLabel("Create")
-                        .withIdParam(AppServiceConfig::appName)
-                        .withSource { it }
-                        .withAuthRequired(false)
-                        .withHandler { config -> vm.addDraftAppService(config) }
-                )
-                dialog.show()
+                openCreateAppServiceDialog(vm, this@AppServiceDeploymentTreePanel)
             },
-            DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) { vm.refreshAppServices() }
+            DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) {
+                vm.refreshAppServices()
+            }
         )
-        val toolbar = ActionUtil.createToolbarComponent(tree, "WebAppTreePanel", actionGroup, true)
+        val toolbar = ActionUtil.createToolbarComponent(tree, "AppServiceDeploymentTreePanel", actionGroup, true)
 
         val topPanel = panel {
             row {
@@ -154,8 +152,8 @@ class AppServiceDeploymentTreePanel(
     }
 
     private fun rebuildTreeModel(
-        remoteApps: List<AppServiceDeploymentModel.RemoteAppServiceModel>,
-        draftApps: List<AppServiceDeploymentModel.DraftAppServiceModel>
+        remoteApps: List<AppServiceDeploymentModel.RemoteAppServiceModel<TConfig>>,
+        draftApps: List<AppServiceDeploymentModel.DraftAppServiceModel<TConfig>>
     ) {
         val expandedPaths = TreeUtil.collectExpandedPaths(tree)
 
@@ -189,8 +187,8 @@ class AppServiceDeploymentTreePanel(
             TreeUtil.restoreExpandedPaths(tree, expandedPaths)
         }
 
-        val selectedWebApp = vm.selectedAppService.value
-        selectNodeForConfig(selectedWebApp?.first, selectedWebApp?.second)
+        val selectedAppService = vm.selectedAppService.value
+        selectNodeForConfig(selectedAppService?.first, selectedAppService?.second)
     }
 
     private fun selectNodeForConfig(config: AppServiceConfig?, slotName: String?) {
@@ -203,12 +201,11 @@ class AppServiceDeploymentTreePanel(
 
         val targetNode = TreeUtil.findNode(root) { node ->
             when (val obj = node.userObject) {
-                is AppServiceNode ->
+                is AppServiceNode<*> ->
                     slotName == null && isSameApp(obj.appServiceModel.config, config)
 
-                is DeploymentSlotNode ->
-                    slotName != null &&
-                            obj.slotName == slotName && isSameApp(obj.appServiceModel.config, config)
+                is DeploymentSlotNode<*> ->
+                    slotName != null && obj.slotName == slotName && isSameApp(obj.appServiceModel.config, config)
 
                 else -> false
             }

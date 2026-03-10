@@ -1,52 +1,54 @@
 /*
- * Copyright 2018-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("UnstableApiUsage")
-
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
-import com.jetbrains.rider.model.publishableProjectsModel
-import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AbstractAppServiceDeploymentViewModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.RemoteAppServiceModel
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-
-class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
-    AbstractAppServiceDeploymentViewModel<AppServiceConfig>(
+internal class FunctionDeploymentSettingsEditorViewModel(project: Project, parentCs: CoroutineScope) :
+    AbstractAppServiceDeploymentViewModel<FunctionAppConfig>(
         project,
         parentCs,
-        { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
+        { it.isAzureFunction }
     ) {
     companion object {
-        private val LOG = logger<WebAppSettingEditorViewModel>()
+        private val LOG = logger<FunctionDeploymentSettingsEditorViewModel>()
     }
 
-    fun setConfigFromOptions(state: WebAppConfigurationOptions) {
+    fun setConfigFromOptions(state: FunctionDeploymentConfigurationOptions) {
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
         val operatingSystem = OperatingSystem.fromString(state.operatingSystem)
 
-        val webAppConfig = AppServiceConfig
+        val flexConsumptionConfiguration = if (pricingTier.isFlexConsumption) {
+            FlexConsumptionConfiguration.builder()
+                .deploymentResourceGroup(state.deploymentResourceGroup)
+                .deploymentAccount(state.deploymentAccountName)
+                .instanceSize(state.instanceSize)
+                .build()
+        } else null
+
+        val functionAppConfig = FunctionAppConfig
             .builder()
-            .appName(state.webAppName)
+            .appName(state.functionAppName)
             .subscriptionId(state.subscriptionId)
             .resourceGroup(state.resourceGroupName)
             .region(region)
@@ -54,9 +56,12 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
             .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig().apply { os = operatingSystem })
+            .storageAccountName(state.storageAccountName)
+            .storageAccountResourceGroup(state.storageAccountResourceGroup)
+            .flexConsumptionConfiguration(flexConsumptionConfiguration)
             .build()
         val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
-        _selectedAppService.value = webAppConfig to deploymentSlotName
+        _selectedAppService.value = functionAppConfig to deploymentSlotName
 
         selectedProject.value = _publishableProjects.value
             .firstOrNull { it.projectFilePath == state.publishableProjectPath }
@@ -70,24 +75,24 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
         _openBrowserAfterDeployment.value = state.openBrowser
     }
 
-    fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
-        val webAppValue = selectedAppService.value ?: return
-        val webAppConfig = webAppValue.first
-        val slotNameConfig = webAppValue.second
+    fun applySelectedConfigToOptions(state: FunctionDeploymentConfigurationOptions) {
+        val functionAppValue = selectedAppService.value ?: return
+        val functionAppConfig = functionAppValue.first
+        val slotNameConfig = functionAppValue.second
         val projectPath = selectedProject.value?.projectFilePath
         val cap = selectedConfigurationAndPlatform.value
         val openBrowserValue = openBrowserAfterDeployment.value
 
         state.apply {
-            webAppName = webAppConfig.appName
-            subscriptionId = webAppConfig.subscriptionId
-            resourceGroupName = webAppConfig.resourceGroup
-            region = webAppConfig.region?.toString()
-            appServicePlanName = webAppConfig.servicePlanName
-            appServicePlanResourceGroupName = webAppConfig.servicePlanResourceGroup
-            pricingTier = webAppConfig.pricingTier?.tier
-            pricingSize = webAppConfig.pricingTier?.size
-            operatingSystem = webAppConfig.runtime?.os?.toString()
+            functionAppName = functionAppConfig.appName
+            subscriptionId = functionAppConfig.subscriptionId
+            resourceGroupName = functionAppConfig.resourceGroup
+            region = functionAppConfig.region?.toString()
+            appServicePlanName = functionAppConfig.servicePlanName
+            appServicePlanResourceGroupName = functionAppConfig.servicePlanResourceGroup
+            pricingTier = functionAppConfig.pricingTier?.tier
+            pricingSize = functionAppConfig.pricingTier?.size
+            operatingSystem = functionAppConfig.runtime?.os?.toString()
             if (slotNameConfig != null) {
                 isDeployToSlot = true
                 slotName = slotNameConfig
@@ -95,6 +100,11 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
                 isDeployToSlot = false
                 slotName = null
             }
+            storageAccountName = functionAppConfig.storageAccountName
+            storageAccountResourceGroup = functionAppConfig.storageAccountResourceGroup
+            deploymentAccountName = functionAppConfig.flexConsumptionConfiguration?.deploymentAccount
+            deploymentResourceGroup = functionAppConfig.flexConsumptionConfiguration?.deploymentResourceGroup
+            instanceSize = functionAppConfig.flexConsumptionConfiguration?.instanceSize ?: 0
 
             publishableProjectPath = projectPath
             projectConfiguration = cap?.configuration
@@ -104,7 +114,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
         }
     }
 
-    override suspend fun loadListOfApps(): List<RemoteAppServiceModel<AppServiceConfig>> {
+    override suspend fun loadListOfApps(): List<RemoteAppServiceModel<FunctionAppConfig>> {
         val account = Azure.az(AzureAccount::class.java).account()
         if (!account.isLoggedIn) {
             LOG.trace("User is not logged in, skipping web app loading")
@@ -113,9 +123,9 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
 
         loadRemoteResources()
 
-        val webApps = Azure.az(AzureWebApp::class.java).webApps()
+        val functionApps = Azure.az(AzureFunctions::class.java).functionApps()
 
-        return webApps
+        return functionApps
             .sortedBy { it.name }
             .map { webApp ->
                 val config = convertAppServiceToConfig(webApp)
@@ -129,20 +139,20 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
     }
 
     /**
-     * This method loads remote web apps and app service plans in parallel.
-     * The loaded web apps will be saved in the cache, so the further calls won't load them from Azure again.
+     * This method loads remote function apps and app service plans in parallel.
+     * The loaded function apps will be saved in the cache, so the further calls won't load them from Azure again.
      */
     private suspend fun loadRemoteResources() {
         LOG.trace("Loading web apps and app service plans from Azure")
 
         coroutineScope {
             launch { loadAppServicePlans() }
-            launch { loadWebApps() }
+            launch { loadFunctionApps() }
         }
     }
 
-    private suspend fun loadWebApps() {
-        val webApps = Azure.az(AzureWebApp::class.java).webApps()
+    private suspend fun loadFunctionApps() {
+        val webApps = Azure.az(AzureFunctions::class.java).functionApps()
         coroutineScope {
             webApps.forEach {
                 launch {
@@ -156,18 +166,18 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
     }
 
     /**
-     * This method invalidates the cache and reloads web apps from Azure.
+     * This method invalidates the cache and reloads function apps from Azure.
      */
     override fun invalidateAppCache() {
         try {
-            Azure.az(AzureWebApp::class.java).refresh()
+            Azure.az(AzureFunctions::class.java).refresh()
         } catch (e: Exception) {
             LOG.warn("Error while invalidating web app cache", e)
         }
     }
 
-    private fun convertAppServiceToConfig(appService: AppServiceAppBase<*, *, *>): AppServiceConfig {
-        return AppServiceConfig().apply {
+    private fun convertAppServiceToConfig(appService: AppServiceAppBase<*, *, *>): FunctionAppConfig {
+        return FunctionAppConfig().apply {
             subscriptionId = appService.subscriptionId
             resourceGroup = appService.resourceGroupName
             appName = appService.name
