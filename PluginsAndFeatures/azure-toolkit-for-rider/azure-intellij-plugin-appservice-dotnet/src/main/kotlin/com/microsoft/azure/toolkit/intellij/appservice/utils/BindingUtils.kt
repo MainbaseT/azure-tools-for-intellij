@@ -4,7 +4,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
+package com.microsoft.azure.toolkit.intellij.appservice.utils
 
 import com.intellij.openapi.application.UiImmediate
 import com.intellij.openapi.ui.ComboBox
