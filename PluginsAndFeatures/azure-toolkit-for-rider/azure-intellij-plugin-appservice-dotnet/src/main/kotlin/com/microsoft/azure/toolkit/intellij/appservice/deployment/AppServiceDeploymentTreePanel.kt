@@ -109,6 +109,11 @@ abstract class AppServiceDeploymentTreePanel<TConfig : AppServiceConfig>(
             @Suppress("UNCHECKED_CAST")
             withSelectionGuard {
                 when (val userObject = node.userObject) {
+                    is ResourceGroupNode -> vm.selectAppService(
+                        null,
+                        null
+                    )
+
                     is AppServiceNode<*> -> vm.selectAppService(
                         userObject.appServiceModel as AppServiceDeploymentModel<TConfig>,
                         null

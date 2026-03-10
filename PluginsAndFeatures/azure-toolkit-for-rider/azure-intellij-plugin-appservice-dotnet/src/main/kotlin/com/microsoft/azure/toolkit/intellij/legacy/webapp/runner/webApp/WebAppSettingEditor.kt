@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.utils.toComboBoxModelIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import javax.swing.JPanel
 
 class WebAppSettingEditor(
@@ -36,6 +37,14 @@ class WebAppSettingEditor(
                 it.cancel("WebAppSettingEditor disposal")
             }
         }
+
+    init {
+        cs.launch {
+            viewModel.selectedAppService.collect {
+                fireEditorStateChanged()
+            }
+        }
+    }
 
     private val webAppTreePanel = WebAppDeploymentTreePanel(project, viewModel).also {
         Disposer.register(this, it)

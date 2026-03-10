@@ -41,8 +41,7 @@ abstract class AbstractAppServiceDeploymentViewModel<TConfig : AppServiceConfig>
     protected val cs = parentCs.childScope("AbstractAppServiceDeploymentViewModel", Dispatchers.Default)
 
     protected val _draftAppServiceState = MutableStateFlow<List<DraftAppServiceModel<TConfig>>>(emptyList())
-    override val draftAppServiceState: StateFlow<List<DraftAppServiceModel<TConfig>>> =
-        _draftAppServiceState.asStateFlow()
+    override val draftAppServiceState: StateFlow<List<DraftAppServiceModel<TConfig>>> = _draftAppServiceState.asStateFlow()
 
     protected val _remoteAppServiceState = MutableStateFlow<AppServiceLoadState<TConfig>>(AppServiceLoadState.Loading)
     override val remoteAppServiceState: StateFlow<AppServiceLoadState<TConfig>> = _remoteAppServiceState.asStateFlow()
@@ -124,8 +123,8 @@ abstract class AbstractAppServiceDeploymentViewModel<TConfig : AppServiceConfig>
         }
     }
 
-    override fun selectAppService(appService: AppServiceDeploymentModel<TConfig>, deploymentSlotName: String?) {
-        _selectedAppService.value = appService.config to deploymentSlotName
+    override fun selectAppService(appService: AppServiceDeploymentModel<TConfig>?, deploymentSlotName: String?) {
+        _selectedAppService.value = appService?.let { it.config to deploymentSlotName }
     }
 
     override fun refreshAppServices() {

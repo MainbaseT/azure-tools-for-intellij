@@ -13,7 +13,7 @@ interface AppServiceDeploymentViewModel<TConfig : AppServiceConfig> {
     val remoteAppServiceState: StateFlow<AppServiceLoadState<TConfig>>
     val selectedAppService: StateFlow<Pair<TConfig, String?>?>
 
-    fun selectAppService(appService: AppServiceDeploymentModel<TConfig>, deploymentSlotName: String?)
+    fun selectAppService(appService: AppServiceDeploymentModel<TConfig>?, deploymentSlotName: String?)
     fun addDraftAppService(config: TConfig)
     fun refreshAppServices()
 }
