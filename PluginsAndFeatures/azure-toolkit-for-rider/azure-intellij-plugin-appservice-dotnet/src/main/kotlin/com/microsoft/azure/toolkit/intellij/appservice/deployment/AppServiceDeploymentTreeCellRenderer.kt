@@ -34,11 +34,23 @@ internal class AppServiceDeploymentTreeCellRenderer : ColoredTreeCellRenderer() 
                 append(userObject.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
             }
 
-            is AppServiceNode<*> -> {
+            is WebAppNode -> {
                 val webAppModel = userObject.appServiceModel
                 val os = webAppModel.config.runtime?.os
 
                 icon = if (os == OperatingSystem.LINUX) AppServiceIcons.LinuxWebApp else AppServiceIcons.WebApp
+
+                append(webAppModel.config.appName ?: "Unknown")
+                if (webAppModel is AppServiceDeploymentModel.DraftAppServiceModel<*>) {
+                    append(" (New) ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+                }
+            }
+
+            is FunctionAppNode -> {
+                val webAppModel = userObject.appServiceModel
+                val os = webAppModel.config.runtime?.os
+
+                icon = if (os == OperatingSystem.LINUX) AppServiceIcons.LinuxFunctionApp else AppServiceIcons.FunctionApp
 
                 append(webAppModel.config.appName ?: "Unknown")
                 if (webAppModel is AppServiceDeploymentModel.DraftAppServiceModel<*>) {

@@ -164,7 +164,7 @@ abstract class AppServiceDeploymentTreePanel<TConfig : AppServiceConfig>(
             val draftsGroup = DefaultMutableTreeNode(GroupNode("Drafts"))
             draftApps
                 .sortedBy { it.config.appName }
-                .forEach { draftsGroup.add(DefaultMutableTreeNode(AppServiceNode(it))) }
+                .forEach { draftsGroup.add(DefaultMutableTreeNode(createAppNode(it))) }
             root.add(draftsGroup)
         }
 
@@ -172,7 +172,7 @@ abstract class AppServiceDeploymentTreePanel<TConfig : AppServiceConfig>(
         for ((resourceGroup, apps) in appsByResourceGroup.entries.sortedBy { it.key.lowercase() }) {
             val rgNode = DefaultMutableTreeNode(ResourceGroupNode(resourceGroup))
             for (app in apps.sortedBy { it.config.appName?.lowercase() }) {
-                val appNode = DefaultMutableTreeNode(AppServiceNode(app))
+                val appNode = DefaultMutableTreeNode(createAppNode(app))
                 app.deploymentSlots.sorted().forEach { slotName ->
                     appNode.add(DefaultMutableTreeNode(DeploymentSlotNode(slotName, app)))
                 }
@@ -190,6 +190,8 @@ abstract class AppServiceDeploymentTreePanel<TConfig : AppServiceConfig>(
         val selectedAppService = vm.selectedAppService.value
         selectNodeForConfig(selectedAppService?.first, selectedAppService?.second)
     }
+
+    protected abstract fun createAppNode( appServiceModel: AppServiceDeploymentModel<TConfig>): AppServiceNode<TConfig>
 
     private fun selectNodeForConfig(config: AppServiceConfig?, slotName: String?) {
         if (config == null) {

@@ -11,6 +11,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.platform.util.coroutines.childScope
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
+import com.jetbrains.rider.projectView.SolutionConfigurationManager
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.DraftAppServiceModel
@@ -25,9 +26,10 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.*
 import kotlin.coroutines.cancellation.CancellationException
 
-abstract class AbstractAppServiceDeploymentViewModel<TConfig: AppServiceConfig>(
+abstract class AbstractAppServiceDeploymentViewModel<TConfig : AppServiceConfig>(
     project: Project,
     parentCs: CoroutineScope,
     publishableProjectFilter: (PublishableProjectModel) -> Boolean
@@ -39,7 +41,8 @@ abstract class AbstractAppServiceDeploymentViewModel<TConfig: AppServiceConfig>(
     protected val cs = parentCs.childScope("AbstractAppServiceDeploymentViewModel", Dispatchers.Default)
 
     protected val _draftAppServiceState = MutableStateFlow<List<DraftAppServiceModel<TConfig>>>(emptyList())
-    override val draftAppServiceState: StateFlow<List<DraftAppServiceModel<TConfig>>> = _draftAppServiceState.asStateFlow()
+    override val draftAppServiceState: StateFlow<List<DraftAppServiceModel<TConfig>>> =
+        _draftAppServiceState.asStateFlow()
 
     protected val _remoteAppServiceState = MutableStateFlow<AppServiceLoadState<TConfig>>(AppServiceLoadState.Loading)
     override val remoteAppServiceState: StateFlow<AppServiceLoadState<TConfig>> = _remoteAppServiceState.asStateFlow()
@@ -55,6 +58,9 @@ abstract class AbstractAppServiceDeploymentViewModel<TConfig: AppServiceConfig>(
 
     val selectedProject = MutableStateFlow<PublishableProjectModel?>(null)
 
+    protected val _configurationAndPlatforms = MutableStateFlow<List<ConfigurationAndPlatform>>(emptyList())
+    val configurationAndPlatforms: StateFlow<List<ConfigurationAndPlatform>> = _configurationAndPlatforms.asStateFlow()
+
     val selectedConfigurationAndPlatform = MutableStateFlow<ConfigurationAndPlatform?>(null)
 
     protected val reloadTrigger = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -62,6 +68,15 @@ abstract class AbstractAppServiceDeploymentViewModel<TConfig: AppServiceConfig>(
     init {
         _publishableProjects.value = project.solution.publishableProjectsModel.publishableProjects.values
             .filter { publishableProjectFilter(it) }
+        selectedProject.value = _publishableProjects.value.firstOrNull()
+
+        val manager = SolutionConfigurationManager.tryGetInstance(project)
+        _configurationAndPlatforms.value = manager?.solutionConfigurationsAndPlatforms.orEmpty()
+            .sortedBy { it.configuration.lowercase(Locale.ROOT) + "_" + it.platform.lowercase(Locale.ROOT) }
+            .map { ConfigurationAndPlatform(it.configuration, it.platform) }
+        selectedConfigurationAndPlatform.value =
+            _configurationAndPlatforms.value.firstOrNull { it.configuration.contains("Release") }
+                ?: configurationAndPlatforms.value.firstOrNull()
 
         reloadTrigger.tryEmit(false)
 

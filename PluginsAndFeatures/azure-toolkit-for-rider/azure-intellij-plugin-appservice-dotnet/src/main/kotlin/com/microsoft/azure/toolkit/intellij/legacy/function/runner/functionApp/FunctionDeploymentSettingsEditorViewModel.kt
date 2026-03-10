@@ -23,7 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-internal class FunctionDeploymentSettingsEditorViewModel(project: Project, parentCs: CoroutineScope) :
+class FunctionDeploymentSettingsEditorViewModel(project: Project, parentCs: CoroutineScope) :
     AbstractAppServiceDeploymentViewModel<FunctionAppConfig>(
         project,
         parentCs,
@@ -34,43 +34,48 @@ internal class FunctionDeploymentSettingsEditorViewModel(project: Project, paren
     }
 
     fun setConfigFromOptions(state: FunctionDeploymentConfigurationOptions) {
-        val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
-        val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
-        val operatingSystem = OperatingSystem.fromString(state.operatingSystem)
+        if (state.functionAppName != null && state.resourceGroupName != null && state.subscriptionId != null) {
+            val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
+            val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
+            val operatingSystem = OperatingSystem.fromString(state.operatingSystem)
 
-        val flexConsumptionConfiguration = if (pricingTier.isFlexConsumption) {
-            FlexConsumptionConfiguration.builder()
-                .deploymentResourceGroup(state.deploymentResourceGroup)
-                .deploymentAccount(state.deploymentAccountName)
-                .instanceSize(state.instanceSize)
+            val flexConsumptionConfiguration = if (pricingTier.isFlexConsumption) {
+                FlexConsumptionConfiguration.builder()
+                    .deploymentResourceGroup(state.deploymentResourceGroup)
+                    .deploymentAccount(state.deploymentAccountName)
+                    .instanceSize(state.instanceSize)
+                    .build()
+            } else null
+
+            val functionAppConfig = FunctionAppConfig
+                .builder()
+                .appName(state.functionAppName)
+                .subscriptionId(state.subscriptionId)
+                .resourceGroup(state.resourceGroupName)
+                .region(region)
+                .servicePlanName(state.appServicePlanName)
+                .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
+                .pricingTier(pricingTier)
+                .runtime(RuntimeConfig().apply { os = operatingSystem })
+                .storageAccountName(state.storageAccountName)
+                .storageAccountResourceGroup(state.storageAccountResourceGroup)
+                .flexConsumptionConfiguration(flexConsumptionConfiguration)
                 .build()
-        } else null
+            val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
+            _selectedAppService.value = functionAppConfig to deploymentSlotName
+        }
 
-        val functionAppConfig = FunctionAppConfig
-            .builder()
-            .appName(state.functionAppName)
-            .subscriptionId(state.subscriptionId)
-            .resourceGroup(state.resourceGroupName)
-            .region(region)
-            .servicePlanName(state.appServicePlanName)
-            .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
-            .pricingTier(pricingTier)
-            .runtime(RuntimeConfig().apply { os = operatingSystem })
-            .storageAccountName(state.storageAccountName)
-            .storageAccountResourceGroup(state.storageAccountResourceGroup)
-            .flexConsumptionConfiguration(flexConsumptionConfiguration)
-            .build()
-        val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
-        _selectedAppService.value = functionAppConfig to deploymentSlotName
-
-        selectedProject.value = _publishableProjects.value
+        val publishableProject = _publishableProjects.value
             .firstOrNull { it.projectFilePath == state.publishableProjectPath }
+        if (publishableProject != null) {
+            selectedProject.value = publishableProject
+        }
 
         val config = state.projectConfiguration
         val platform = state.projectPlatform
-        selectedConfigurationAndPlatform.value =
-            if (config != null && platform != null) ConfigurationAndPlatform(config, platform)
-            else null
+        if (config != null && platform != null) {
+            selectedConfigurationAndPlatform.value = ConfigurationAndPlatform(config, platform)
+        }
 
         _openBrowserAfterDeployment.value = state.openBrowser
     }

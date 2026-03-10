@@ -66,11 +66,6 @@ fun <T : Any> Cell<ComboBox<T>>.bindSelectedItemIn(scope: CoroutineScope, flow: 
         model.bindSelectedItemIn(scope, flow)
     }
 
-fun <T : Any> Cell<ComboBox<T?>>.bindSelectedNullableItemIn(scope: CoroutineScope, flow: MutableStateFlow<T?>): Cell<ComboBox<T?>> =
-    applyToComponent {
-        model.bindSelectedItemIn(scope, flow)
-    }
-
 private fun <T : Any> ComboBoxModel<T?>.bindSelectedItemIn(scope: CoroutineScope, flow: MutableStateFlow<T?>) {
     @Suppress("UNCHECKED_CAST")
     addSelectionChangeListenerIn(scope) { flow.value = (selectedItem as T?) }

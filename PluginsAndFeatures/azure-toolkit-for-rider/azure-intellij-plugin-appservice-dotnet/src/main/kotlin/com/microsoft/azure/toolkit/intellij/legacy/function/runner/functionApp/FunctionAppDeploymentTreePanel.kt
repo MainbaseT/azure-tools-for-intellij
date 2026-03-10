@@ -6,8 +6,11 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.functionApp
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentTreePanel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentViewModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceNode
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.FunctionAppNode
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
 
@@ -31,4 +34,7 @@ internal class FunctionAppDeploymentTreePanel(private val project: Project, vm: 
             dialog.show()
         }
     ) {
+    override fun createAppNode(appServiceModel: AppServiceDeploymentModel<FunctionAppConfig>): AppServiceNode<FunctionAppConfig> {
+        return FunctionAppNode(appServiceModel)
+    }
 }

@@ -6,8 +6,11 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentTreePanel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentViewModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceNode
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.WebAppNode
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
 
@@ -30,4 +33,8 @@ internal class WebAppDeploymentTreePanel(private val project: Project, vm: AppSe
             //TODO: dialog.data = FunctionAppConfigProducer.getInstance().generateDefaultConfig()
             dialog.show()
         }
-    )
+    ) {
+    override fun createAppNode(appServiceModel: AppServiceDeploymentModel<AppServiceConfig>): AppServiceNode<AppServiceConfig> {
+        return WebAppNode(appServiceModel)
+    }
+}

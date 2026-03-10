@@ -38,7 +38,8 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         )
 
     override fun getConfigurationEditor(): WebAppSettingEditor {
-        val configurationScope = AppServiceProjectService.getInstance(project).scope.childScope("WebAppConfiguration")
+        val configurationScope = AppServiceProjectService.getInstance(project).scope
+            .childScope("WebAppConfiguration")
         val viewModel = WebAppSettingEditorViewModel(project, configurationScope)
         return WebAppSettingEditor(project, configurationScope, viewModel)
     }
@@ -65,7 +66,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         }
     }
 
-    fun setWebApp(webApp: WebAppBase<*,*,*>) {
+    fun setWebApp(webApp: WebAppBase<*, *, *>) {
         getState()?.apply {
             webAppName = webApp.name
             subscriptionId = webApp.subscriptionId

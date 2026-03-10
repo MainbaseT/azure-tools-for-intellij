@@ -16,10 +16,8 @@ import com.intellij.platform.util.coroutines.childScope
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
-import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelected
 import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelectedItemIn
-import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelectedNullableItemIn
 import com.microsoft.azure.toolkit.intellij.appservice.utils.toComboBoxModelIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,9 +41,6 @@ class WebAppSettingEditor(
         Disposer.register(this, it)
     }
 
-    private val configAndPlatformComboBox =
-        PublishRuntimeSettingsCoreHelper.createConfigurationAndPlatformComboBox(project).component
-
     private val panel: JPanel = panel {
         row("Project:") {
             comboBox(
@@ -56,8 +51,11 @@ class WebAppSettingEditor(
                 .align(Align.FILL)
         }
         row("Configuration:") {
-            cell(configAndPlatformComboBox)
-                .bindSelectedNullableItemIn(cs, viewModel.selectedConfigurationAndPlatform)
+            comboBox(
+                viewModel.configurationAndPlatforms.toComboBoxModelIn(cs),
+                renderer = SimpleListCellRenderer.create("") { "${it.configuration} | ${it.platform}" }
+            )
+                .bindSelectedItemIn(cs, viewModel.selectedConfigurationAndPlatform)
                 .align(Align.FILL)
         }
         row {
