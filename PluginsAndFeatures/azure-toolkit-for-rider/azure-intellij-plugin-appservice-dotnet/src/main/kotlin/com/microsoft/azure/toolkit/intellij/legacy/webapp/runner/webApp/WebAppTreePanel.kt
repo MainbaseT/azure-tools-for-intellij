@@ -42,7 +42,7 @@ import javax.swing.tree.TreeSelectionModel
 
 class WebAppTreePanel(
     private val project: Project,
-    private val vm: WebAppSettingEditorViewModel
+    private val vm: AppServiceDeploymentViewModel
 ) : Disposable {
     private val searchTextField = SearchTextField(false).apply {
         textEditor.emptyText.text = "Search web apps..."
@@ -65,8 +65,8 @@ class WebAppTreePanel(
 
         tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.rebuild") {
             combine(
-                vm.webAppsState,
-                vm.draftWebApps
+                vm.remoteAppServiceState,
+                vm.draftAppServiceState
             ) { state, draftApps ->
                 state to draftApps
             }.collectLatest { (state, draftApps) ->
@@ -92,7 +92,7 @@ class WebAppTreePanel(
         }
 
         tree.launchOnShow("${WebAppTreePanel::class.java.name}.tree.select") {
-            vm.selectedWebApp.collect { pair ->
+            vm.selectedAppService.collect { pair ->
                 withContext(Dispatchers.EDT) {
                     selectNodeForConfig(pair?.first, pair?.second)
                 }
@@ -111,8 +111,8 @@ class WebAppTreePanel(
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
             withSelectionGuard {
                 when (val userObject = node.userObject) {
-                    is AppServiceNode -> vm.selectWebApp(userObject.appServiceModel, null)
-                    is DeploymentSlotNode -> vm.selectWebApp(userObject.appServiceModel, userObject.slotName)
+                    is AppServiceNode -> vm.selectAppService(userObject.appServiceModel, null)
+                    is DeploymentSlotNode -> vm.selectAppService(userObject.appServiceModel, userObject.slotName)
                 }
             }
         }
@@ -129,11 +129,11 @@ class WebAppTreePanel(
                         .withIdParam(AppServiceConfig::appName)
                         .withSource { it }
                         .withAuthRequired(false)
-                        .withHandler { config -> vm.addDraftWebApp(config) }
+                        .withHandler { config -> vm.addDraftAppService(config) }
                 )
                 dialog.show()
             },
-            DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) { vm.refreshWebApps() }
+            DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) { vm.refreshAppServices() }
         )
         val toolbar = ActionUtil.createToolbarComponent(tree, "WebAppTreePanel", actionGroup, true)
 
@@ -187,7 +187,7 @@ class WebAppTreePanel(
             TreeUtil.restoreExpandedPaths(tree, expandedPaths)
         }
 
-        val selectedWebApp = vm.selectedWebApp.value
+        val selectedWebApp = vm.selectedAppService.value
         selectNodeForConfig(selectedWebApp?.first, selectedWebApp?.second)
     }
 

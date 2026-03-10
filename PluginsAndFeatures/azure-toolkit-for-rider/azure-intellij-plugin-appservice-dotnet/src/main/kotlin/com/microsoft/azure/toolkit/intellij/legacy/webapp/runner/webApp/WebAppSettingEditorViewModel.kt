@@ -17,6 +17,7 @@ import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsC
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.DraftAppServiceModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.RemoteAppServiceModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentViewModel
 import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceLoadState
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
@@ -37,7 +38,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 
-class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
+class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope): AppServiceDeploymentViewModel {
     companion object {
         private val LOG = logger<WebAppSettingEditorViewModel>()
 
@@ -51,14 +52,14 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
 
     private val cs = parentCs.childScope("WebAppSettingEditorViewModel", Dispatchers.Default)
 
-    private val _draftWebApps = MutableStateFlow<List<DraftAppServiceModel>>(emptyList())
-    val draftWebApps: StateFlow<List<DraftAppServiceModel>> = _draftWebApps.asStateFlow()
+    private val _draftAppServiceState = MutableStateFlow<List<DraftAppServiceModel>>(emptyList())
+    override val draftAppServiceState: StateFlow<List<DraftAppServiceModel>> = _draftAppServiceState.asStateFlow()
 
-    private val _webAppsState = MutableStateFlow<AppServiceLoadState>(AppServiceLoadState.Loading)
-    val webAppsState: StateFlow<AppServiceLoadState> = _webAppsState.asStateFlow()
+    private val _remoteAppServiceState = MutableStateFlow<AppServiceLoadState>(AppServiceLoadState.Loading)
+    override val remoteAppServiceState: StateFlow<AppServiceLoadState> = _remoteAppServiceState.asStateFlow()
 
-    private val _selectedWebApp = MutableStateFlow<Pair<AppServiceConfig, String?>?>(null)
-    val selectedWebApp: StateFlow<Pair<AppServiceConfig, String?>?> = _selectedWebApp.asStateFlow()
+    private val _selectedAppService = MutableStateFlow<Pair<AppServiceConfig, String?>?>(null)
+    override val selectedAppService: StateFlow<Pair<AppServiceConfig, String?>?> = _selectedAppService.asStateFlow()
 
     private val _openBrowserAfterDeployment = MutableStateFlow(false)
     val openBrowserAfterDeployment: StateFlow<Boolean> = _openBrowserAfterDeployment.asStateFlow()
@@ -79,12 +80,12 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
         reloadTrigger.tryEmit(false)
 
         cs.launch {
-            combine(webAppsState, selectedWebApp) { state, selected ->
+            combine(remoteAppServiceState, selectedAppService) { state, selected ->
                 state to selected
             }.collect { (state, selected) ->
                 if (state is AppServiceLoadState.Loaded) {
                     val remote = state.items
-                    _draftWebApps.update { drafts ->
+                    _draftAppServiceState.update { drafts ->
                         //Remove from drafts all the existing remote apps
                         val filteredDrafts =
                             drafts.filter { draft -> remote.none { isSameApp(it.config, draft.config) } }
@@ -106,36 +107,36 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
         cs.launch {
             reloadTrigger
                 .collectLatest { refresh ->
-                    _webAppsState.value = AppServiceLoadState.Loading
+                    _remoteAppServiceState.value = AppServiceLoadState.Loading
 
                     if (refresh) invalidateWebAppCache()
                     try {
                         val configs = loadListOfWebApps()
-                        _webAppsState.value = AppServiceLoadState.Loaded(configs)
+                        _remoteAppServiceState.value = AppServiceLoadState.Loaded(configs)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
                         LOG.warn("Error while trying to load Azure web apps", e)
-                        _webAppsState.value = AppServiceLoadState.Error(e.message ?: "Unknown error")
+                        _remoteAppServiceState.value = AppServiceLoadState.Error(e.message ?: "Unknown error")
                     }
                 }
         }
     }
 
-    fun selectWebApp(webAppModel: AppServiceDeploymentModel, deploymentSlotName: String?) {
-        _selectedWebApp.value = webAppModel.config to deploymentSlotName
+    override fun selectAppService(appService: AppServiceDeploymentModel, deploymentSlotName: String?) {
+        _selectedAppService.value = appService.config to deploymentSlotName
     }
 
-    fun refreshWebApps() {
+    override fun refreshAppServices() {
         reloadTrigger.tryEmit(true)
     }
 
-    fun addDraftWebApp(config: AppServiceConfig) {
+    override fun addDraftAppService(config: AppServiceConfig) {
         val model = DraftAppServiceModel(config)
-        _draftWebApps.update { current ->
+        _draftAppServiceState.update { current ->
             listOf(model) + current.filter { !isSameApp(it.config, model.config) }
         }
-        _selectedWebApp.value = model.config to null
+        _selectedAppService.value = model.config to null
     }
 
     fun setOpenBrowserFlag(enabled: Boolean) {
@@ -159,7 +160,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .build()
         val deploymentSlotName = if (state.isDeployToSlot) state.slotName else null
-        _selectedWebApp.value = webAppConfig to deploymentSlotName
+        _selectedAppService.value = webAppConfig to deploymentSlotName
 
         selectedProject.value = _publishableProjects.value
             .firstOrNull { it.projectFilePath == state.publishableProjectPath }
@@ -174,7 +175,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
     }
 
     fun applySelectedConfigToOptions(state: WebAppConfigurationOptions) {
-        val webAppValue = selectedWebApp.value ?: return
+        val webAppValue = selectedAppService.value ?: return
         val webAppConfig = webAppValue.first
         val slotNameConfig = webAppValue.second
         val openBrowserValue = openBrowserAfterDeployment.value
