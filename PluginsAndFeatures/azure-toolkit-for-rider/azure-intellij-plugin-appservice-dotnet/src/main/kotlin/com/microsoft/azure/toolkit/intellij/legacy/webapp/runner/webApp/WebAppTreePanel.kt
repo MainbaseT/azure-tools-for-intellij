@@ -25,8 +25,9 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.launchOnShow
 import com.intellij.util.ui.tree.TreeUtil
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.DraftWebAppModel
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.RemoteWebAppModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.*
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.DraftAppServiceModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.RemoteAppServiceModel
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import kotlinx.coroutines.Dispatchers
@@ -38,11 +39,6 @@ import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
-
-internal data class GroupNode(val name: String)
-internal data class ResourceGroupNode(val name: String)
-internal data class WebAppNode(val webAppModel: WebAppModel)
-internal data class DeploymentSlotNode(val slotName: String, val webAppModel: RemoteWebAppModel)
 
 class WebAppTreePanel(
     private val project: Project,
@@ -76,17 +72,17 @@ class WebAppTreePanel(
             }.collectLatest { (state, draftApps) ->
                 withContext(Dispatchers.EDT) {
                     when (state) {
-                        is WebAppsLoadState.Loading -> {
+                        is AppServiceLoadState.Loading -> {
                             loadingPanel.startLoading()
                             rebuildTreeModel(emptyList(), emptyList())
                         }
 
-                        is WebAppsLoadState.Loaded -> {
+                        is AppServiceLoadState.Loaded -> {
                             loadingPanel.stopLoading()
                             rebuildTreeModel(state.items, draftApps)
                         }
 
-                        is WebAppsLoadState.Error -> {
+                        is AppServiceLoadState.Error -> {
                             loadingPanel.stopLoading()
                             rebuildTreeModel(emptyList(), draftApps)
                         }
@@ -107,16 +103,16 @@ class WebAppTreePanel(
     private fun setupTree() {
         tree.isRootVisible = false
         tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-        tree.cellRenderer = WebAppTreeCellRenderer()
+        tree.cellRenderer = AppServiceDeploymentTreeCellRenderer()
         tree.emptyText.text = "No web apps found"
-        WebAppTreeSpeedSearch.installOn(tree, searchTextField)
+        AppServiceTreeSpeedSearch.installOn(tree, searchTextField)
 
         tree.addTreeSelectionListener {
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
             withSelectionGuard {
                 when (val userObject = node.userObject) {
-                    is WebAppNode -> vm.selectWebApp(userObject.webAppModel, null)
-                    is DeploymentSlotNode -> vm.selectWebApp(userObject.webAppModel, userObject.slotName)
+                    is AppServiceNode -> vm.selectWebApp(userObject.appServiceModel, null)
+                    is DeploymentSlotNode -> vm.selectWebApp(userObject.appServiceModel, userObject.slotName)
                 }
             }
         }
@@ -158,7 +154,7 @@ class WebAppTreePanel(
         loadingPanel.add(scrollPane, BorderLayout.CENTER)
     }
 
-    private fun rebuildTreeModel(remoteApps: List<RemoteWebAppModel>, draftApps: List<DraftWebAppModel>) {
+    private fun rebuildTreeModel(remoteApps: List<RemoteAppServiceModel>, draftApps: List<DraftAppServiceModel>) {
         val expandedPaths = TreeUtil.collectExpandedPaths(tree)
 
         val root = treeModel.root as DefaultMutableTreeNode
@@ -168,7 +164,7 @@ class WebAppTreePanel(
             val draftsGroup = DefaultMutableTreeNode(GroupNode("Drafts"))
             draftApps
                 .sortedBy { it.config.appName }
-                .forEach { draftsGroup.add(DefaultMutableTreeNode(WebAppNode(it))) }
+                .forEach { draftsGroup.add(DefaultMutableTreeNode(AppServiceNode(it))) }
             root.add(draftsGroup)
         }
 
@@ -176,7 +172,7 @@ class WebAppTreePanel(
         for ((resourceGroup, apps) in appsByResourceGroup.entries.sortedBy { it.key.lowercase() }) {
             val rgNode = DefaultMutableTreeNode(ResourceGroupNode(resourceGroup))
             for (app in apps.sortedBy { it.config.appName?.lowercase() }) {
-                val appNode = DefaultMutableTreeNode(WebAppNode(app))
+                val appNode = DefaultMutableTreeNode(AppServiceNode(app))
                 app.deploymentSlots.sorted().forEach { slotName ->
                     appNode.add(DefaultMutableTreeNode(DeploymentSlotNode(slotName, app)))
                 }
@@ -205,14 +201,14 @@ class WebAppTreePanel(
 
         val targetNode = TreeUtil.findNode(root) { node ->
             when (val obj = node.userObject) {
-                is WebAppNode ->
+                is AppServiceNode ->
                     slotName == null &&
-                            WebAppSettingEditorViewModel.isSameApp(obj.webAppModel.config, config)
+                            WebAppSettingEditorViewModel.isSameApp(obj.appServiceModel.config, config)
 
                 is DeploymentSlotNode ->
                     slotName != null &&
                             obj.slotName == slotName &&
-                            WebAppSettingEditorViewModel.isSameApp(obj.webAppModel.config, config)
+                            WebAppSettingEditorViewModel.isSameApp(obj.appServiceModel.config, config)
 
                 else -> false
             }

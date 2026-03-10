@@ -2,7 +2,7 @@
  * Copyright 2018-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
+package com.microsoft.azure.toolkit.intellij.appservice.deployment
 
 import com.intellij.icons.AllIcons
 import com.intellij.ui.ColoredTreeCellRenderer
@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-internal class WebAppTreeCellRenderer : ColoredTreeCellRenderer() {
+internal class AppServiceDeploymentTreeCellRenderer : ColoredTreeCellRenderer() {
     override fun customizeCellRenderer(
         tree: JTree,
         value: Any?,
@@ -34,14 +34,14 @@ internal class WebAppTreeCellRenderer : ColoredTreeCellRenderer() {
                 append(userObject.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
             }
 
-            is WebAppNode -> {
-                val webAppModel = userObject.webAppModel
+            is AppServiceNode -> {
+                val webAppModel = userObject.appServiceModel
                 val os = webAppModel.config.runtime?.os
 
                 icon = if (os == OperatingSystem.LINUX) AppServiceIcons.LinuxWebApp else AppServiceIcons.WebApp
 
                 append(webAppModel.config.appName ?: "Unknown")
-                if (webAppModel is WebAppModel.DraftWebAppModel) {
+                if (webAppModel is AppServiceDeploymentModel.DraftAppServiceModel) {
                     append(" (New) ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
                 }
             }

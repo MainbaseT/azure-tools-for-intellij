@@ -4,7 +4,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
+package com.microsoft.azure.toolkit.intellij.appservice.deployment
 
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.TreeSpeedSearch
@@ -16,7 +16,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.tree.TreePath
 
-internal class WebAppTreeSpeedSearch private constructor(
+internal class AppServiceTreeSpeedSearch private constructor(
     tree: JTree,
     canExpand: Boolean,
     presentableStringFunction: (TreePath) -> String,
@@ -35,8 +35,8 @@ internal class WebAppTreeSpeedSearch private constructor(
             searchTextField: SearchTextField,
             canExpand: Boolean = true,
             presentableStringFunction: (TreePath) -> String = { it.lastPathComponent.toString() }
-        ): WebAppTreeSpeedSearch {
-            val search = WebAppTreeSpeedSearch(tree, canExpand, presentableStringFunction, searchTextField)
+        ): AppServiceTreeSpeedSearch {
+            val search = AppServiceTreeSpeedSearch(tree, canExpand, presentableStringFunction, searchTextField)
             search.setupListeners()
             return search
         }

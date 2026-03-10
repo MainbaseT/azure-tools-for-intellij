@@ -14,8 +14,10 @@ import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.DraftWebAppModel
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppModel.RemoteWebAppModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.DraftAppServiceModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceDeploymentModel.RemoteAppServiceModel
+import com.microsoft.azure.toolkit.intellij.appservice.deployment.AppServiceLoadState
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
@@ -34,23 +36,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-sealed interface WebAppModel {
-    val config: AppServiceConfig
-
-    class DraftWebAppModel(override val config: AppServiceConfig) : WebAppModel
-
-    class RemoteWebAppModel(
-        val resourceGroup: String,
-        override val config: AppServiceConfig,
-        val deploymentSlots: List<String>
-    ) : WebAppModel
-}
-
-sealed interface WebAppsLoadState {
-    data object Loading : WebAppsLoadState
-    data class Loaded(val items: List<RemoteWebAppModel>) : WebAppsLoadState
-    data class Error(val message: String) : WebAppsLoadState
-}
 
 class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
     companion object {
@@ -66,11 +51,11 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
 
     private val cs = parentCs.childScope("WebAppSettingEditorViewModel", Dispatchers.Default)
 
-    private val _draftWebApps = MutableStateFlow<List<DraftWebAppModel>>(emptyList())
-    val draftWebApps: StateFlow<List<DraftWebAppModel>> = _draftWebApps.asStateFlow()
+    private val _draftWebApps = MutableStateFlow<List<DraftAppServiceModel>>(emptyList())
+    val draftWebApps: StateFlow<List<DraftAppServiceModel>> = _draftWebApps.asStateFlow()
 
-    private val _webAppsState = MutableStateFlow<WebAppsLoadState>(WebAppsLoadState.Loading)
-    val webAppsState: StateFlow<WebAppsLoadState> = _webAppsState.asStateFlow()
+    private val _webAppsState = MutableStateFlow<AppServiceLoadState>(AppServiceLoadState.Loading)
+    val webAppsState: StateFlow<AppServiceLoadState> = _webAppsState.asStateFlow()
 
     private val _selectedWebApp = MutableStateFlow<Pair<AppServiceConfig, String?>?>(null)
     val selectedWebApp: StateFlow<Pair<AppServiceConfig, String?>?> = _selectedWebApp.asStateFlow()
@@ -97,7 +82,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
             combine(webAppsState, selectedWebApp) { state, selected ->
                 state to selected
             }.collect { (state, selected) ->
-                if (state is WebAppsLoadState.Loaded) {
+                if (state is AppServiceLoadState.Loaded) {
                     val remote = state.items
                     _draftWebApps.update { drafts ->
                         //Remove from drafts all the existing remote apps
@@ -111,7 +96,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
                             filteredDrafts
                         } else {
                             //If we cannot find selected app among remote apps and draft apps, add it to the drafts
-                            listOf(DraftWebAppModel(selected.first)) + filteredDrafts
+                            listOf(DraftAppServiceModel(selected.first)) + filteredDrafts
                         }
                     }
                 }
@@ -121,23 +106,23 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
         cs.launch {
             reloadTrigger
                 .collectLatest { refresh ->
-                    _webAppsState.value = WebAppsLoadState.Loading
+                    _webAppsState.value = AppServiceLoadState.Loading
 
                     if (refresh) invalidateWebAppCache()
                     try {
                         val configs = loadListOfWebApps()
-                        _webAppsState.value = WebAppsLoadState.Loaded(configs)
+                        _webAppsState.value = AppServiceLoadState.Loaded(configs)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
                         LOG.warn("Error while trying to load Azure web apps", e)
-                        _webAppsState.value = WebAppsLoadState.Error(e.message ?: "Unknown error")
+                        _webAppsState.value = AppServiceLoadState.Error(e.message ?: "Unknown error")
                     }
                 }
         }
     }
 
-    fun selectWebApp(webAppModel: WebAppModel, deploymentSlotName: String?) {
+    fun selectWebApp(webAppModel: AppServiceDeploymentModel, deploymentSlotName: String?) {
         _selectedWebApp.value = webAppModel.config to deploymentSlotName
     }
 
@@ -146,7 +131,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
     }
 
     fun addDraftWebApp(config: AppServiceConfig) {
-        val model = DraftWebAppModel(config)
+        val model = DraftAppServiceModel(config)
         _draftWebApps.update { current ->
             listOf(model) + current.filter { !isSameApp(it.config, model.config) }
         }
@@ -221,7 +206,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
         }
     }
 
-    private suspend fun loadListOfWebApps(): List<RemoteWebAppModel> {
+    private suspend fun loadListOfWebApps(): List<RemoteAppServiceModel> {
         val account = Azure.az(AzureAccount::class.java).account()
         if (!account.isLoggedIn) {
             LOG.trace("User is not logged in, skipping web app loading")
@@ -237,7 +222,7 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) {
             .map { webApp ->
                 val config = convertAppServiceToConfig(webApp)
                 val deploymentSlots = webApp.slots().list().map { it.name }
-                RemoteWebAppModel(
+                RemoteAppServiceModel(
                     webApp.resourceGroupName,
                     config,
                     deploymentSlots
