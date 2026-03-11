@@ -23,6 +23,10 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
@@ -34,6 +38,13 @@ class WebAppSettingEditorViewModel(project: Project, parentCs: CoroutineScope) :
     ) {
     companion object {
         private val LOG = logger<WebAppSettingEditorViewModel>()
+    }
+
+    override val isNetFramework: StateFlow<Boolean> by lazy {
+        selectedProject.map { sp ->
+            if (sp == null) return@map false
+            !sp.isDotNetCore
+        }.stateIn(cs, SharingStarted.Eagerly, false)
     }
 
     fun setConfigFromOptions(state: WebAppConfigurationOptions) {

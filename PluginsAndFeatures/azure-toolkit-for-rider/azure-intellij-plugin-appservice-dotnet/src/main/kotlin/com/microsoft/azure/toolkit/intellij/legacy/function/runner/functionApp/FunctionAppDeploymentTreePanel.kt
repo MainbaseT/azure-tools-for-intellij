@@ -20,7 +20,7 @@ internal class FunctionAppDeploymentTreePanel(private val project: Project, vm: 
         "Search function apps...",
         "No function apps found",
         { vm, panel ->
-            val dialog = FunctionAppCreationDialog(project, false) //TODO: targetProjectOnNetFramework
+            val dialog = FunctionAppCreationDialog(project, vm.isNetFramework.value)
             Disposer.register(panel, dialog)
             dialog.setOkAction(
                 Action<FunctionAppConfig>(Action.Id.of("user/function.create_app.app"))
@@ -30,7 +30,6 @@ internal class FunctionAppDeploymentTreePanel(private val project: Project, vm: 
                     .withAuthRequired(false)
                     .withHandler { config -> vm.addDraftAppService(config) }
             )
-            //TODO: dialog.data = FunctionAppConfigProducer.getInstance().generateDefaultConfig()
             dialog.show()
         }
     ) {

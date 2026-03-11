@@ -20,7 +20,7 @@ internal class WebAppDeploymentTreePanel(private val project: Project, vm: AppSe
         "Search web apps...",
         "No web apps found",
         { vm, panel ->
-            val dialog = WebAppCreationDialog(project, false) //TODO: targetProjectOnNetFramework
+            val dialog = WebAppCreationDialog(project, vm.isNetFramework.value)
             Disposer.register(panel, dialog)
             dialog.setOkAction(
                 Action<AppServiceConfig>(Action.Id.of("user/webapp.create_app.app"))
@@ -30,7 +30,6 @@ internal class WebAppDeploymentTreePanel(private val project: Project, vm: AppSe
                     .withAuthRequired(false)
                     .withHandler { config -> vm.addDraftAppService(config) }
             )
-            //TODO: dialog.data = FunctionAppConfigProducer.getInstance().generateDefaultConfig()
             dialog.show()
         }
     ) {

@@ -12,6 +12,7 @@ interface AppServiceDeploymentViewModel<TConfig : AppServiceConfig> {
     val draftAppServiceState: StateFlow<List<DraftAppServiceModel<TConfig>>>
     val remoteAppServiceState: StateFlow<AppServiceLoadState<TConfig>>
     val selectedAppService: StateFlow<Pair<TConfig, String?>?>
+    val isNetFramework: StateFlow<Boolean>
 
     fun selectAppService(appService: AppServiceDeploymentModel<TConfig>?, deploymentSlotName: String?)
     fun addDraftAppService(config: TConfig)
