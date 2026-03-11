@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
 import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore
 import com.microsoft.azure.toolkit.intellij.AzureToolkitConstants.AZURE_TOOLKIT_HOME_FOLDER
 import com.microsoft.azure.toolkit.intellij.AzureToolkitConstants.AZURE_TOOLKIT_SETTINGS_FILE
+import com.microsoft.azure.toolkit.intellij.appservice.PluginInitializationService
 import com.microsoft.azure.toolkit.intellij.common.CommonConst
 import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore
@@ -51,7 +52,8 @@ class PluginLifecycleActivity : ProjectActivity {
             )
             initProxy()
             initializeConfig()
-            IdeAzureAccount.getInstance().restoreSignin()
+            restoreSignIn()
+            PluginInitializationService.getInstance(project).setInitialized()
         } catch (t: Throwable) {
             LOG.error(t)
         }
@@ -69,15 +71,6 @@ class PluginLifecycleActivity : ProjectActivity {
         val eelApi = project.getEelDescriptor().toEelApi()
         val home = eelApi.userInfo.home.asNioPath()
         return home.resolve(AZURE_TOOLKIT_HOME_FOLDER).resolve(AZURE_TOOLKIT_SETTINGS_FILE)
-    }
-
-    private fun initializeConfig() {
-        val installId = UUID.randomUUID().toString()
-        initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION)
-        val cloud = Azure.az().config().cloud
-        if (cloud.isNotBlank()) {
-            Azure.az(AzureCloud::class.java).setByName(cloud)
-        }
     }
 
     private fun initProxy() {
@@ -101,5 +94,21 @@ class PluginLifecycleActivity : ProjectActivity {
         val certificateManager = CertificateManager.getInstance()
         Azure.az().config().sslContext = certificateManager.sslContext
         HttpsURLConnection.setDefaultSSLSocketFactory(certificateManager.sslContext.socketFactory)
+    }
+
+    private fun initializeConfig() {
+        val installId = UUID.randomUUID().toString()
+        initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION)
+        val cloud = Azure.az().config().cloud
+        if (cloud.isNotBlank()) {
+            Azure.az(AzureCloud::class.java).setByName(cloud)
+        }
+    }
+
+    private fun restoreSignIn() {
+        val account = IdeAzureAccount.getInstance()
+        if (account.isLoggedIn) return
+
+        IdeAzureAccount.getInstance().restoreSignin()
     }
 }

@@ -16,6 +16,8 @@
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
         <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.UpdateFunctionCoreToolsActivity"/>
+        <backgroundPostStartupActivity
+                implementation="com.microsoft.azure.toolkit.intellij.appservice.LoadAppServicesActivity"/>
 
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfigurationType"/>
@@ -105,6 +107,8 @@
 
         <xdebugger.dialog.process.view.provider implementation="com.microsoft.azure.toolkit.intellij.debugger.view.AttachToAzureAppServiceProcessViewProvider" />
         <xdebugger.attachDebuggerProvider implementation="com.microsoft.azure.toolkit.intellij.debugger.RiderAzureAttachDebuggerProvider" />
+
+        <iconMapper mappingFile="AppServiceIconMappings.json"/>
     </extensions>
 
     <actions>

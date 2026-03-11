@@ -8,6 +8,7 @@
 
 - Update the base plugin to the `endgame-202511` version
 - Update the platform version to `2026.1-EAP5-SNAPSHOT`
+- Rework deployment configuration app combo boxes ([RIDER-136305](https://youtrack.jetbrains.com/issue/RIDER-136305), [RIDER-132995](https://youtrack.jetbrains.com/issue/RIDER-132995))
 
 ### Fixed
 

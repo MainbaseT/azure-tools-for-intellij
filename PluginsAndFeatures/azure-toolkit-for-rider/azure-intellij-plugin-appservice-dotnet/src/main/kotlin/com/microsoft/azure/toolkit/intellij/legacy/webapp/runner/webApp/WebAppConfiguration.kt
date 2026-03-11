@@ -26,18 +26,23 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             getState()?.publishableProjectPath = value
         }
 
-    override fun suggestedName() = "Publish Web App"
+    override fun suggestedName(): String = "Publish Web App"
 
-    override fun getState() = options as? WebAppConfigurationOptions
+    override fun getState(): WebAppConfigurationOptions? = options as? WebAppConfigurationOptions
 
-    override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
+    override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment): WebAppDeploymentState =
         WebAppDeploymentState(
             project,
             AppServiceProjectService.getInstance(project).scope.childScope("WebAppRunState"),
             this
         )
 
-    override fun getConfigurationEditor() = WebAppSettingEditor(project)
+    override fun getConfigurationEditor(): WebAppSettingEditor {
+        val configurationScope = AppServiceProjectService.getInstance(project).scope
+            .childScope("WebAppConfiguration")
+        val viewModel = WebAppSettingEditorViewModel(project, configurationScope)
+        return WebAppSettingEditor(project, configurationScope, viewModel)
+    }
 
     override fun checkConfiguration() {
         val options = getState() ?: return
@@ -61,7 +66,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         }
     }
 
-    fun setWebApp(webApp: WebAppBase<*,*,*>) {
+    fun setWebApp(webApp: WebAppBase<*, *, *>) {
         getState()?.apply {
             webAppName = webApp.name
             subscriptionId = webApp.subscriptionId
