@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `Function App name is not provided` error doesn't disappear after selecting Function App name in the tree ([RIDER-136950](https://youtrack.jetbrains.com/issue/RIDER-136950))
+- Can't select an Azure project to be published and its configuration ([RIDER-136947](https://youtrack.jetbrains.com/issue/RIDER-136947))
+- Function apps tree has a lot of redundant empty space ([RIDER-136948](https://youtrack.jetbrains.com/issue/RIDER-136948))
+
+## [4.7.3] - 2026-03-11
+
 ### Changed
 
 - Update the base plugin to the `endgame-202511` version
@@ -434,7 +442,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.2...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.3...HEAD
+[4.7.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.2...4.7.3
 [4.7.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.1...4.7.2
 [4.7.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.0...4.7.1
 [4.7.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.6.5...4.7.0

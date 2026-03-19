@@ -41,7 +41,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         val configurationScope = AppServiceProjectService.getInstance(project).scope
             .childScope("WebAppConfiguration")
         val viewModel = WebAppSettingEditorViewModel(project, configurationScope)
-        return WebAppSettingEditor(project, configurationScope, viewModel)
+        return WebAppSettingEditor(project, viewModel)
     }
 
     override fun checkConfiguration() {

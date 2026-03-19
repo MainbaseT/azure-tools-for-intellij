@@ -41,7 +41,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
         val configurationScope = AppServiceProjectService.getInstance(project).scope
             .childScope("FunctionDeploymentConfiguration")
         val viewModel = FunctionDeploymentSettingsEditorViewModel(project, configurationScope)
-        return FunctionDeploymentSettingsEditor(project, configurationScope, viewModel)
+        return FunctionDeploymentSettingsEditor(project, viewModel)
     }
 
     override fun checkConfiguration() {
