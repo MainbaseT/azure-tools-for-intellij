@@ -99,6 +99,7 @@ abstract class AppServiceDeploymentTreePanel<TConfig : AppServiceConfig>(
 
     private fun setupTree() {
         tree.isRootVisible = false
+        tree.visibleRowCount = 10
         tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
         tree.cellRenderer = AppServiceDeploymentTreeCellRenderer()
         tree.emptyText.text = emptyTreeText
