@@ -6,45 +6,25 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp
 
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.UI
-import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.platform.util.coroutines.childScope
+import com.intellij.ui.MutableCollectionComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.util.ui.launchOnShow
+import com.jetbrains.rider.model.PublishableProjectModel
+import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
+import com.microsoft.azure.toolkit.intellij.appservice.utils.bindItems
 import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelected
-import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelectedItemIn
-import com.microsoft.azure.toolkit.intellij.appservice.utils.toComboBoxModelIn
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import com.microsoft.azure.toolkit.intellij.appservice.utils.bindSelectedItem
 import javax.swing.JPanel
 
 class WebAppSettingEditor(
     project: Project,
-    parentCs: CoroutineScope,
     private val viewModel: WebAppSettingEditorViewModel
 ) : SettingsEditor<WebAppConfiguration>() {
-
-    private val cs: CoroutineScope =
-        parentCs.childScope("WebAppSettingEditor", Dispatchers.UI + ModalityState.current().asContextElement()).also {
-            Disposer.register(this) {
-                it.cancel("WebAppSettingEditor disposal")
-            }
-        }
-
-    init {
-        cs.launch {
-            viewModel.selectedAppService.collect {
-                fireEditorStateChanged()
-            }
-        }
-    }
 
     private val webAppTreePanel = WebAppDeploymentTreePanel(project, viewModel).also {
         Disposer.register(this, it)
@@ -53,18 +33,20 @@ class WebAppSettingEditor(
     private val panel: JPanel = panel {
         row("Project:") {
             comboBox(
-                viewModel.publishableProjects.toComboBoxModelIn(cs),
+                MutableCollectionComboBoxModel<PublishableProjectModel>(),
                 renderer = SimpleListCellRenderer.create("") { it.projectName }
             )
-                .bindSelectedItemIn(cs, viewModel.selectedProject)
+                .bindItems(viewModel.publishableProjects)
+                .bindSelectedItem(viewModel.selectedProject)
                 .align(Align.FILL)
         }
         row("Configuration:") {
             comboBox(
-                viewModel.configurationAndPlatforms.toComboBoxModelIn(cs),
+                MutableCollectionComboBoxModel<ConfigurationAndPlatform>(),
                 renderer = SimpleListCellRenderer.create("") { "${it.configuration} | ${it.platform}" }
             )
-                .bindSelectedItemIn(cs, viewModel.selectedConfigurationAndPlatform)
+                .bindItems(viewModel.configurationAndPlatforms)
+                .bindSelectedItem(viewModel.selectedConfigurationAndPlatform)
                 .align(Align.FILL)
         }
         row {
@@ -75,6 +57,12 @@ class WebAppSettingEditor(
         row {
             checkBox("Open browser after deployment")
                 .bindSelected(viewModel.openBrowserAfterDeployment) { viewModel.setOpenBrowserFlag(it) }
+        }
+    }.also {
+        it.launchOnShow("WebAppSettingEditor state observer") {
+            viewModel.selectedAppService.collect {
+                fireEditorStateChanged()
+            }
         }
     }
 

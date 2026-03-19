@@ -6,19 +6,13 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.utils
 
-import com.intellij.openapi.application.UiImmediate
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.MutableCollectionComboBoxModel
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.util.ui.launchOnShow
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.swing.ComboBoxModel
 import javax.swing.JToggleButton
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
@@ -61,45 +55,52 @@ private fun JToggleButton.bindSelected(isSelected: Flow<Boolean>, onSelected: (s
     }
 }
 
-fun <T : Any> Cell<ComboBox<T>>.bindSelectedItemIn(scope: CoroutineScope, flow: MutableStateFlow<T?>): Cell<ComboBox<T>> =
+fun <T> Cell<ComboBox<T>>.bindItems(flow: StateFlow<List<T>>): Cell<ComboBox<T>> =
     applyToComponent {
-        model.bindSelectedItemIn(scope, flow)
+        bindItems(flow)
     }
 
-private fun <T : Any> ComboBoxModel<T?>.bindSelectedItemIn(scope: CoroutineScope, flow: MutableStateFlow<T?>) {
-    @Suppress("UNCHECKED_CAST")
-    addSelectionChangeListenerIn(scope) { flow.value = (selectedItem as T?) }
-
-    scope.launch(Dispatchers.UiImmediate) {
-        flow.collect {
-            selectedItem = it
+private fun <T> ComboBox<T>.bindItems(flow: StateFlow<List<T>>) {
+    launchOnShow("ComboBox items binding") {
+        flow.collect { items ->
+            (model as MutableCollectionComboBoxModel<T>).update(items)
         }
     }
 }
 
-private fun <T> ComboBoxModel<T>.addSelectionChangeListenerIn(scope: CoroutineScope, listener: () -> Unit) {
-    scope.launch(Dispatchers.UiImmediate) {
-        val dataListener = object : ListDataListener {
+fun <T : Any> Cell<ComboBox<T>>.bindSelectedItem(flow: MutableStateFlow<T?>): Cell<ComboBox<T>> =
+    applyToComponent {
+        bindSelectedItem(flow)
+    }
+
+fun <T : Any> ComboBox<T>.bindSelectedItem(flow: MutableStateFlow<T?>) {
+    launchOnShow("ComboBox selection binding") {
+        val listener = object : ListDataListener {
+            var isActive = true
+
             override fun contentsChanged(e: ListDataEvent) {
-                if (e.index0 == -1 && e.index1 == -1) listener()
+                if (isActive && e.index0 == -1 && e.index1 == -1) {
+                    @Suppress("UNCHECKED_CAST")
+                    flow.value = (model.selectedItem as T?)
+                }
             }
 
             override fun intervalAdded(e: ListDataEvent) {}
             override fun intervalRemoved(e: ListDataEvent) {}
         }
+        model.addListDataListener(listener)
+
         try {
-            addListDataListener(dataListener)
-            awaitCancellation()
+            flow.collect {
+                try {
+                    listener.isActive = false
+                    model.selectedItem = it
+                } finally {
+                    listener.isActive = true
+                }
+            }
         } finally {
-            removeListDataListener(dataListener)
+            model.removeListDataListener(listener)
         }
     }
-}
-
-fun <T> StateFlow<List<T>>.toComboBoxModelIn(cs: CoroutineScope): ComboBoxModel<T> {
-    val model = MutableCollectionComboBoxModel<T>()
-    cs.launch(Dispatchers.UiImmediate) {
-        collect { items -> model.update(items) }
-    }
-    return model
 }
