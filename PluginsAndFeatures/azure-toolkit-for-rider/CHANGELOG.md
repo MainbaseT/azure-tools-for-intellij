@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support Fast mode for Azure Functions projects running in a Docker container
+
+## [4.7.4] - 2026-03-19
+
 ### Fixed
 
 - `Function App name is not provided` error doesn't disappear after selecting Function App name in the tree ([RIDER-136950](https://youtrack.jetbrains.com/issue/RIDER-136950))
@@ -442,7 +448,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.3...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.4...HEAD
+[4.7.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.3...4.7.4
 [4.7.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.2...4.7.3
 [4.7.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.1...4.7.2
 [4.7.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.0...4.7.1
