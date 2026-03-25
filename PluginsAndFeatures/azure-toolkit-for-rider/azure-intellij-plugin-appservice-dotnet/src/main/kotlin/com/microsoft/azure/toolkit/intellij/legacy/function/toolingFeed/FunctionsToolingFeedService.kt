@@ -292,9 +292,11 @@ class FunctionsToolingFeedService : Disposable {
             else null
 
         val osFolder = releaseFilter.os.lowercase()
+        val cpuFolder = releaseFilter.architectures.joinToString(separator = "-") { it.lowercase() }
 
         val path = downloadRoot
             ?.resolve(osFolder)
+            ?.resolve(cpuFolder)
             ?.resolve(toolingRelease.functionsVersion)
             ?.resolve(toolingRelease.releaseTag)
 
