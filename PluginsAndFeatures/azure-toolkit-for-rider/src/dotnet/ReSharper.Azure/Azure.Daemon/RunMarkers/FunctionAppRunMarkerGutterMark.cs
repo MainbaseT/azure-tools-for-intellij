@@ -5,8 +5,6 @@ using JetBrains.Application.UI.Controls.BulbMenu.Anchors;
 using JetBrains.Application.UI.Controls.BulbMenu.Items;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Azure.Daemon.FunctionApp;
-using JetBrains.ReSharper.Azure.Psi.FunctionApp;
-using JetBrains.ReSharper.Azure.Psi.FunctionApp.Routing;
 using JetBrains.Rider.Azure.Model;
 using JetBrains.Rider.Backend.Features.RunMarkers;
 using JetBrains.TextControl.DocumentMarkup;

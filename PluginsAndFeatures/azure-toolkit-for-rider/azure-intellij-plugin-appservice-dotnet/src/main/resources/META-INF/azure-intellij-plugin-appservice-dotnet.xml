@@ -12,7 +12,6 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <microservices.endpointsProvider implementation="com.microsoft.azure.toolkit.intellij.appservice.endpoints.AzureFunctionsEndpointsProvider"/>
         <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
         <backgroundPostStartupActivity
