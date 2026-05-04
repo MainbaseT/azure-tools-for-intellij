@@ -57,16 +57,6 @@
                                  id="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"
                                  instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"/>
 
-        <projectConfigurable parentId="FileTemplatesSettingsId"
-                             displayName="Azure (C#)"
-                             instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.templates.RiderAzureCSharpFileTemplatesOptionPage"
-                             groupWeight="-150"/>
-
-        <projectConfigurable parentId="FileTemplatesSettingsId"
-                             displayName="Azure (F#)"
-                             instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.templates.RiderAzureFSharpFileTemplatesOptionPage"
-                             groupWeight="-150"/>
-
         <registryKey key="azure.function_app.core_tools.feed.enabled"
                      defaultValue="true"
                      description="Enable downloading from Azure Functions Core Tools releases feed URL."/>

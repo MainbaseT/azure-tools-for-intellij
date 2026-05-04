@@ -19,9 +19,6 @@
             <OutputFile>Templates\templates.generated.dotSettings</OutputFile>
             <ReadmeFile>Templates\README.md</ReadmeFile>
         </LiveTemplate>
-        <EmbeddedResource Include="Templates\templates.generated.dotSettings">
-            <LogicalName>JetBrains.ReSharper.Azure.Templates.templates.dotSettings</LogicalName>
-        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
