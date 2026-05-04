@@ -13,10 +13,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <backgroundPostStartupActivity
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
-        <backgroundPostStartupActivity
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.UpdateFunctionCoreToolsActivity"/>
-        <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.appservice.LoadAppServicesActivity"/>
 
         <configurationType
