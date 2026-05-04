@@ -29,17 +29,6 @@
         <rider.publishConfigurationProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppContextPublishProvider"/>
 
-        <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
-                                 displayName="Functions"
-                                 id="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"
-                                 instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"/>
-
-        <internalFileTemplate name="Trigger Azure HTTP Function"/>
-        <internalFileTemplate name="Trigger Azure Function"/>
-
-        <editorNotificationProvider
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionMissingNugetPackageNotificationProvider"/>
-
         <completion.contributor language="C#"
                                 implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.completion.csharp.TimerTriggerCompletionContributor"/>
 
