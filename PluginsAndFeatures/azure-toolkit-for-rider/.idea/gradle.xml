@@ -24,7 +24,6 @@
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-resource-connector-lib" />
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-appservice-dotnet" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-appservice-dotnet-aspire" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-bicep" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-cosmos" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-cosmos-dotnet" />

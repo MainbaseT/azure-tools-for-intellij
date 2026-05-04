@@ -68,7 +68,6 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-monitor"))
     implementation(project(path = ":azure-intellij-plugin-appservice"))
     implementation(project(path = ":azure-intellij-plugin-appservice-dotnet"))
-    implementation(project(path = ":azure-intellij-plugin-appservice-dotnet-aspire"))
     implementation(project(path = ":azure-intellij-plugin-database"))
     implementation(project(path = ":azure-intellij-plugin-database-dotnet"))
     implementation(project(path = ":azure-intellij-plugin-cloud-shell"))
