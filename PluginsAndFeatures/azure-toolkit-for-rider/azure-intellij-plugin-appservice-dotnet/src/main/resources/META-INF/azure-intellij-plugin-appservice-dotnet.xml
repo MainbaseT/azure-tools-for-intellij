@@ -29,12 +29,6 @@
         <rider.publishConfigurationProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppContextPublishProvider"/>
 
-        <projectTemplateProviderNew
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider"
-                order="first"/>
-        <projectTemplateCustomizer
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateCustomizer"/>
-
         <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                                  displayName="Functions"
                                  id="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"
@@ -57,9 +51,6 @@
                          groupName="Azure"
                          implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.codeInspection.msbuild.AzureFunctionsVersionInspection"/>
 
-        <rd.solutionExtListener endpoint="IDE Frontend"
-                                listener="com.microsoft.azure.toolkit.intellij.legacy.function.daemon.FunctionAppSolutionExtListener"/>
-
         <fileEditorProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppPropertyViewProvider"/>
         <fileEditorProvider
@@ -73,8 +64,6 @@
 
         <xdebugger.dialog.process.view.provider implementation="com.microsoft.azure.toolkit.intellij.debugger.view.AttachToAzureAppServiceProcessViewProvider" />
         <xdebugger.attachDebuggerProvider implementation="com.microsoft.azure.toolkit.intellij.debugger.RiderAzureAttachDebuggerProvider" />
-        <rider.dockerDeploymentTransformer
-                implementation="com.microsoft.azure.toolkit.intellij.appservice.docker.fastMode.DockerFastModeAzureTransformer"/>
 
         <iconMapper mappingFile="AppServiceIconMappings.json"/>
     </extensions>
