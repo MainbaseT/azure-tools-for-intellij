@@ -22,6 +22,7 @@ dependencies {
             useCache = true
         }
         jetbrainsRuntime()
+        bundledModule("intellij.rider.rdclient.dotnet")
         bundledPlugin("org.jetbrains.plugins.textmate")
     }
 
