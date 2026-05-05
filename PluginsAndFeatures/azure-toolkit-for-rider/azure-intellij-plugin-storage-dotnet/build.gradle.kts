@@ -22,6 +22,7 @@ dependencies {
             useCache = true
         }
         jetbrainsRuntime()
+        bundledModule("intellij.rider.rdclient.dotnet")
     }
 
     implementation(project(path = ":azure-intellij-plugin-lib"))

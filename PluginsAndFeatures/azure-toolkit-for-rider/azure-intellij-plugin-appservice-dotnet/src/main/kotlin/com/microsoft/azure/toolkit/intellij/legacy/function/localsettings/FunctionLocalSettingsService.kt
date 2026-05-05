@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.localsettings
@@ -13,7 +13,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValuesManager
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.RunnableProject
-import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -39,12 +38,6 @@ class FunctionLocalSettingsService(private val project: Project) {
     }
 
     private val cache = ConcurrentHashMap<Path, CachedValue<FunctionLocalSettings>>()
-
-    suspend fun initialize(runnableProjects: List<RunnableProject>) {
-        runnableProjects
-            .filter { it.kind == AzureRunnableProjectKinds.AzureFunctions }
-            .forEach { getFunctionLocalSettings(it) }
-    }
 
     suspend fun getFunctionLocalSettings(publishableProject: PublishableProjectModel) =
         getFunctionLocalSettingsInternal(Path(publishableProject.projectFilePath).parent)

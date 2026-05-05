@@ -4,9 +4,9 @@
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- Support Fast mode for Azure Functions projects running in a Docker container
+- Update platform version to RD-2026.2-SNAPSHOT
 
 ## [4.7.4] - 2026-03-19
 

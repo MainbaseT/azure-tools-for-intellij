@@ -19,6 +19,7 @@ import com.jetbrains.rider.model.BuildResultKind
 import com.jetbrains.rider.model.CustomTargetExtraProperty
 import com.jetbrains.rider.model.CustomTargetWithExtraProperties
 import com.jetbrains.rider.model.PublishableProjectModel
+import com.jetbrains.rider.model.SilentMode
 import com.jetbrains.rider.run.configurations.publishing.base.MsBuildPublishingService
 import java.io.File
 import java.nio.file.Path
@@ -78,15 +79,17 @@ class ArtifactService(private val project: Project) {
 
         val buildStatus =
             if (publishableProject.isDotNetCore) {
-                invokeMsBuild(publishableProject, listOf(tempDirMsBuildProperty) + extraProperties,
+                invokeMsBuild(
+                    publishableProject, listOf(tempDirMsBuildProperty) + extraProperties,
                     diagnosticsMode = false,
-                    silentMode = true,
+                    silentMode = SilentMode.Silent,
                     noRestore = true
                 )
             } else {
-                webPublishToFileSystem(publishableProject.projectFilePath, outPath, extraProperties,
+                webPublishToFileSystem(
+                    publishableProject.projectFilePath, outPath, extraProperties,
                     diagnosticsMode = false,
-                    silentMode = true
+                    silentMode = SilentMode.Silent
                 )
             }
 
@@ -105,14 +108,15 @@ class ArtifactService(private val project: Project) {
         projectModel: PublishableProjectModel,
         extraProperties: List<CustomTargetExtraProperty>,
         diagnosticsMode: Boolean,
-        silentMode: Boolean = false,
+        silentMode: SilentMode = SilentMode.Default,
         noRestore: Boolean = false
     ): BuildStatus {
         val buildParameters = BuildParameters(
-            CustomTargetWithExtraProperties(
-                "Publish",
-                extraProperties
-            ), listOf(projectModel.projectFilePath), diagnosticsMode, silentMode, noRestore = noRestore
+            CustomTargetWithExtraProperties("Publish", extraProperties),
+            listOf(projectModel.projectFilePath),
+            diagnosticsMode,
+            silentMode,
+            noRestore = noRestore
         )
 
         return BuildTaskThrottler.getInstance(project).buildSequentially(buildParameters)
@@ -123,7 +127,7 @@ class ArtifactService(private val project: Project) {
         outPath: Path,
         extraProperties: List<CustomTargetExtraProperty>,
         diagnosticsMode: Boolean = false,
-        silentMode: Boolean = false
+        silentMode: SilentMode = SilentMode.Default
     ): BuildStatus {
         val buildParameters = BuildParameters(
             CustomTargetWithExtraProperties(
@@ -132,7 +136,9 @@ class ArtifactService(private val project: Project) {
                     CustomTargetExtraProperty("WebPublishMethod", "FileSystem"),
                     CustomTargetExtraProperty("PublishUrl", outPath.toString())
                 )
-            ), listOf(pathToProject), diagnosticsMode, silentMode
+            ), listOf(pathToProject),
+            diagnosticsMode,
+            silentMode
         )
 
         return BuildTaskThrottler.getInstance(project).buildSequentially(buildParameters)

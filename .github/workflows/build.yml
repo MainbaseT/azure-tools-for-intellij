@@ -135,7 +135,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 21
+          java-version: 25
 
       # Set up Gradle
       - name: Setup Gradle
@@ -278,7 +278,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 21
+          java-version: 25
 
       # Set up Gradle
       - name: Setup Gradle

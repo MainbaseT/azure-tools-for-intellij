@@ -9,6 +9,10 @@ repositories {
     mavenCentral()
 }
 
+kotlin {
+    jvmToolchain(25)
+}
+
 dependencies {
     implementation(libs.rdGen)
     implementation(libs.kotlinStdLib)

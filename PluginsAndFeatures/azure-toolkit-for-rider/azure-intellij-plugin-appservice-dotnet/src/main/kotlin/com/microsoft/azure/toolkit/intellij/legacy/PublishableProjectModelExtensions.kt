@@ -7,18 +7,18 @@ package com.microsoft.azure.toolkit.intellij.legacy
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack
 import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
 import com.azure.resourcemanager.appservice.models.RuntimeStack
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
+import com.jetbrains.rider.model.RdTargetFrameworkId
 import com.jetbrains.rider.model.projectModelTasks
 import com.jetbrains.rider.projectView.solution
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService
+import com.jetbrains.rider.run.environment.MSBuildEvaluator
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.getWorkerRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 private val netCoreAppVersionRegex = Regex("\\.NETCoreApp,Version=v([0-9]+(?:\\.[0-9])*)", RegexOption.IGNORE_CASE)
 private val netAppVersionRegex = Regex("net([0-9]+(?:\\.[0-9])*)", RegexOption.IGNORE_CASE)
@@ -75,19 +75,31 @@ suspend fun PublishableProjectModel.getFunctionStack(
         .getInstance(project)
         .getFunctionLocalSettings(this)
     val workerRuntime = functionLocalSettings?.getWorkerRuntime() ?: FunctionWorkerRuntime.DOTNET_ISOLATED
-    val azureFunctionVersion = withContext(Dispatchers.EDT) {
-        FunctionsVersionMsBuildService
-            .getInstance(project)
-            .requestAzureFunctionsVersion(this@getFunctionStack.projectFilePath)
-            ?.trimStart('v', 'V')
-            ?: "4"
-    }
+    val path = Path.of(this@getFunctionStack.projectFilePath)
+    val azureFunctionVersion = getAzureFunctionsVersionProjectProperty(path, null, project)
+        ?.trimStart('v', 'V')
+        ?: "4"
     val dotnetVersion = getProjectDotNetVersion(project, this)
     return FunctionRuntimeStack(
         workerRuntime.value(),
         functionRuntimeVersionFromProjectProperty(azureFunctionVersion),
         if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value()}|$dotnetVersion" else ""
     )
+}
+
+private suspend fun getAzureFunctionsVersionProjectProperty(
+    projectFilePath: Path,
+    projectTfm: RdTargetFrameworkId?,
+    project: Project
+): String? {
+    val evaluator = MSBuildEvaluator.getInstance(project)
+    val request = MSBuildEvaluator.PropertyRequest(
+        projectFilePath.absolutePathString(),
+        projectTfm,
+        listOf("AzureFunctionsVersion")
+    )
+    val result = evaluator.evaluatePropertiesSuspending(request)
+    return result["AzureFunctionsVersion"]
 }
 
 private fun functionRuntimeVersionFromProjectProperty(azureFunctionVersion: String) = when (azureFunctionVersion) {
