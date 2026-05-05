@@ -14,9 +14,12 @@ import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.xml.util.XmlUtil
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_KNOWN_SUPPORTED_VERSIONS
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsVersionMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
 
 class AzureFunctionsVersionInspection : XmlSuppressableInspectionTool() {
+    companion object {
+        const val PROPERTY_AZURE_FUNCTIONS_VERSION = "AzureFunctionsVersion"
+    }
+
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) = object : XmlElementVisitor() {
         override fun visitXmlTag(tag: XmlTag) {
             val tagName = tag.name.lowercase()
