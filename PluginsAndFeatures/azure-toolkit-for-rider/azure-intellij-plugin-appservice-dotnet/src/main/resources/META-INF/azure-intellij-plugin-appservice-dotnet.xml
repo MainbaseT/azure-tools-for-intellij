@@ -13,6 +13,8 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <backgroundPostStartupActivity
+                implementation="com.microsoft.azure.toolkit.intellij.RemoveAzureFunctionTemplatesActivity"/>
+        <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.appservice.LoadAppServicesActivity"/>
 
         <configurationType
