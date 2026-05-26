@@ -6,13 +6,6 @@ pluginManagement {
         mavenCentral()
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.jetbrains.rdgen") {
-                useModule("com.jetbrains.rd:rd-gen:${requested.version}")
-            }
-        }
-    }
 }
 
 plugins {
@@ -27,8 +20,6 @@ fun riderModule(name: String) {
     include(":$name")
 }
 
-riderModule("protocol")
-riderModule("azure-intellij-plugin-resharper-host")
 intellijModule("azure-intellij-plugin-lib")
 riderModule("azure-intellij-plugin-lib-dotnet")
 intellijModule("azure-intellij-plugin-guidance")

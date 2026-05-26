@@ -18,11 +18,6 @@ updates:
       - dependency-name: "org.jetbrains.kotlinx:kotlinx-serialization-json"
       - dependency-name: "io.ktor:kotlinx-serialization-json"
       - dependency-name: "io.ktor:*"
-  # Maintain dependencies for NuGet dependencies
-  - package-ecosystem: "nuget"
-    directory: "/"
-    schedule:
-      interval: "weekly"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"

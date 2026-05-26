@@ -31,9 +31,7 @@
             <option value="$PROJECT_DIR$/azure-intellij-plugin-keyvault-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-redis-dotnet" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-resharper-host" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-storage-dotnet" />
-            <option value="$PROJECT_DIR$/protocol" />
           </set>
         </option>
       </GradleProjectSettings>
