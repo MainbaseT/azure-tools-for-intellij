@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Removed
+
+- ReSharper part for Azure Functions. The Azure Functions features were moved to Rider itself. 
+
+## [4.8.0] - 2026-05-06
+
 ### Changed
 
 - Update platform version to RD-2026.2-SNAPSHOT
@@ -448,7 +454,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.4...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.0...HEAD
+[4.8.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.4...4.8.0
 [4.7.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.3...4.7.4
 [4.7.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.2...4.7.3
 [4.7.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.1...4.7.2
