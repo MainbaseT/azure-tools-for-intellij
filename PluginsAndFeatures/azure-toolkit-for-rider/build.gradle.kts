@@ -22,17 +22,8 @@ plugins {
 
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
-val dotnetBuildConfiguration = providers.gradleProperty("dotnetBuildConfiguration").get()
 
 val platformVersion by extra { providers.gradleProperty("platformVersion").get() }
-
-val riderSdkPath by lazy {
-    val path = intellijPlatform.platformPath.resolve("lib/DotNetSdkForRdPlugins").absolute()
-    if (!path.isDirectory()) error("$path does not exist or not a directory")
-
-    println("Rider SDK path: $path")
-    return@lazy path
-}
 
 kotlin {
     jvmToolchain(25)
@@ -45,7 +36,6 @@ repositories {
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
-        jetbrainsRuntime()
     }
 }
 
@@ -173,92 +163,6 @@ tasks {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
 
-    val generateDotNetSdkProperties by registering {
-        val dotNetSdkGeneratedPropsFile = projectDir.resolve("build/DotNetSdkPath.Generated.props")
-        doLast {
-            dotNetSdkGeneratedPropsFile.writeTextIfChanged("""
-            <Project>
-              <PropertyGroup>
-                <DotNetSdkPath>$riderSdkPath</DotNetSdkPath>
-              </PropertyGroup>
-            </Project>
-            """.trimIndent())
-        }
-    }
-
-    val generateNuGetConfig by registering {
-        val nuGetConfigFile = projectDir.resolve("nuget.config")
-        doLast {
-            nuGetConfigFile.writeTextIfChanged("""
-            <?xml version="1.0" encoding="utf-8"?>
-            <!-- Auto-generated from 'generateNuGetConfig' task of old.build_gradle.kts -->
-            <!-- Run `gradlew :prepare` to regenerate -->
-            <configuration>
-                <packageSources>
-                    <add key="rider-sdk" value="$riderSdkPath" />
-                </packageSources>
-            </configuration>
-            """.trimIndent())
-        }
-    }
-
-    val rdGen = ":protocol:rdgen"
-
-    val prepareDotNetPart by registering {
-        dependsOn(rdGen, generateDotNetSdkProperties, generateNuGetConfig)
-    }
-
-    val compileDotNet by registering(Exec::class) {
-        dependsOn(prepareDotNetPart)
-        inputs.property("dotnetBuildConfiguration", dotnetBuildConfiguration)
-
-        executable("./dotnet.cmd")
-        args("build", "-consoleLoggerParameters:ErrorsOnly", "-c", dotnetBuildConfiguration, "ReSharper.Azure.sln")
-    }
-
-    withType<KotlinCompile> {
-        dependsOn(rdGen)
-    }
-
-    buildPlugin {
-        dependsOn(compileDotNet)
-    }
-
-    withType<PrepareSandboxTask> {
-        dependsOn(compileDotNet)
-
-        val dotnetOutputFolder = file("$projectDir/src/dotnet/ReSharper.Azure")
-
-        val dllFiles = listOf(
-            "$dotnetOutputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.dll",
-            "$dotnetOutputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.pdb",
-            "$dotnetOutputFolder/Azure.Psi/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Psi.dll",
-            "$dotnetOutputFolder/Azure.Psi/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Psi.pdb",
-            "$dotnetOutputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.dll",
-            "$dotnetOutputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb",
-            "$dotnetOutputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Daemon.dll",
-            "$dotnetOutputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Daemon.pdb",
-            "$dotnetOutputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/NCrontab.Signed.dll",
-            "$dotnetOutputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/CronExpressionDescriptor.dll"
-        )
-
-        for (f in dllFiles) {
-            from(f) { into("${rootProject.name}/dotnet") }
-        }
-
-        val dotnetExtensionsFolder =
-            file("$projectDir/src/main/resources/dotnet/Extensions/com.intellij.resharper.azure")
-
-        from(dotnetExtensionsFolder) { into("${rootProject.name}/dotnet/Extensions/com.intellij.resharper.azure") }
-
-        doLast {
-            for (f in dllFiles) {
-                val file = file(f)
-                if (!file.exists()) throw RuntimeException("File \"$file\" does not exist")
-            }
-        }
-    }
-
     publishPlugin {
         dependsOn(patchChangelog)
     }
@@ -270,32 +174,5 @@ tasks {
             exceptionFormat = TestExceptionFormat.FULL
         }
         environment["LOCAL_ENV_RUN"] = "true"
-    }
-}
-
-val riderModel: Configuration by configurations.creating {
-    isCanBeConsumed = true
-    isCanBeResolved = false
-}
-
-artifacts {
-    add(riderModel.name, provider {
-        intellijPlatform.platformPath.resolve("lib/rd/rider-model.jar").also {
-            check(it.isRegularFile()) {
-                "rider-model.jar is not found at \"$it\"."
-            }
-        }
-    }) {
-        builtBy(Constants.Tasks.INITIALIZE_INTELLIJ_PLATFORM_PLUGIN)
-    }
-}
-
-fun File.writeTextIfChanged(content: String) {
-    val bytes = content.toByteArray()
-
-    if (!exists() || !readBytes().contentEquals(bytes)) {
-        println("Writing $path")
-        parentFile.mkdirs()
-        writeBytes(bytes)
     }
 }

@@ -33,17 +33,6 @@
         <rider.publishConfigurationProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppContextPublishProvider"/>
 
-        <completion.contributor language="C#"
-                                implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.completion.csharp.TimerTriggerCompletionContributor"/>
-
-        <localInspection language="MSBuild"
-                         enabledByDefault="true"
-                         level="WARNING"
-                         shortName="AzureFunctionsVersionNotSpecified"
-                         displayName="Azure Functions version not specified"
-                         groupName="Azure"
-                         implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.codeInspection.msbuild.AzureFunctionsVersionInspection"/>
-
         <fileEditorProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppPropertyViewProvider"/>
         <fileEditorProvider

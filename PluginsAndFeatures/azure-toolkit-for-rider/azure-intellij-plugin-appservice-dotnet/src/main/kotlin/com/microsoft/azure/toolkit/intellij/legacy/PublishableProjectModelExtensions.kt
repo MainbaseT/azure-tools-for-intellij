@@ -8,14 +8,14 @@ import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack
 import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
 import com.azure.resourcemanager.appservice.models.RuntimeStack
 import com.intellij.openapi.project.Project
+import com.jetbrains.rider.azureFunctions.common.AzureFunctionsWorkerRuntime
+import com.jetbrains.rider.azureFunctions.localSettings.AzureFunctionsLocalSettingsService
+import com.jetbrains.rider.azureFunctions.localSettings.getWorkerRuntime
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.RdTargetFrameworkId
 import com.jetbrains.rider.model.projectModelTasks
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.environment.MSBuildEvaluator
-import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
-import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
-import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.getWorkerRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -67,23 +67,24 @@ data class PublishableProjectRuntime(
     val frameworkVersion: NetFrameworkVersion?
 )
 
+@Suppress("UnstableApiUsage")
 suspend fun PublishableProjectModel.getFunctionStack(
     project: Project,
     operatingSystem: OperatingSystem
 ): FunctionRuntimeStack {
-    val functionLocalSettings = FunctionLocalSettingsService
+    val functionLocalSettings = AzureFunctionsLocalSettingsService
         .getInstance(project)
-        .getFunctionLocalSettings(this)
-    val workerRuntime = functionLocalSettings?.getWorkerRuntime() ?: FunctionWorkerRuntime.DOTNET_ISOLATED
+        .getLocalSettingsFor(this)
+    val workerRuntime = functionLocalSettings?.getWorkerRuntime() ?: AzureFunctionsWorkerRuntime.DOTNET_ISOLATED
     val path = Path.of(this@getFunctionStack.projectFilePath)
     val azureFunctionVersion = getAzureFunctionsVersionProjectProperty(path, null, project)
         ?.trimStart('v', 'V')
         ?: "4"
     val dotnetVersion = getProjectDotNetVersion(project, this)
     return FunctionRuntimeStack(
-        workerRuntime.value(),
+        workerRuntime.value,
         functionRuntimeVersionFromProjectProperty(azureFunctionVersion),
-        if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value()}|$dotnetVersion" else ""
+        if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value}|$dotnetVersion" else ""
     )
 }
 
