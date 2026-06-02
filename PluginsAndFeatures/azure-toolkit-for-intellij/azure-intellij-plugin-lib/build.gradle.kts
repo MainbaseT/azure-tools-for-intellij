@@ -38,6 +38,7 @@ dependencies {
     annotationProcessor(libs.lombok)
     implementation(libs.azureToolkitCommonLib)
     aspect(libs.azureToolkitCommonLib)
+    implementation("org.aspectj:aspectjrt:1.9.25")
 
     implementation("org.dom4j:dom4j:2.1.3") {
         exclude(group = "javax.xml.stream", module = "stax-api")
@@ -59,10 +60,15 @@ configurations {
     implementation { exclude(module = "xsdlib") }
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
 tasks {
     compileJava {
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+        options.release.set(25)
     }
 
     processResources {

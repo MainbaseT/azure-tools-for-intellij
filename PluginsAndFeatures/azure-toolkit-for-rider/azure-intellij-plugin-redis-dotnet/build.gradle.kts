@@ -15,6 +15,10 @@ repositories {
 
 val platformVersion: String by extra
 
+kotlin {
+    jvmToolchain(25)
+}
+
 dependencies {
     intellijPlatform {
         rider(platformVersion) {

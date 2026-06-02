@@ -39,6 +39,7 @@ dependencies {
     annotationProcessor(libs.lombok)
     implementation(libs.azureToolkitCommonLib)
     aspect(libs.azureToolkitCommonLib)
+    implementation("org.aspectj:aspectjrt:1.9.25")
 }
 
 configurations {
@@ -52,10 +53,15 @@ configurations {
     implementation { exclude(module = "xsdlib") }
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
 tasks {
     compileJava {
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+        options.release.set(25)
     }
 
     processResources {
