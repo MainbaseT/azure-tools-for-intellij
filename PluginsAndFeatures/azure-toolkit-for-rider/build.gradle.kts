@@ -93,7 +93,6 @@ configurations {
     implementation { exclude(module = "log4j") }
     implementation { exclude(module = "stax-api") }
     implementation { exclude(module = "groovy-xml") }
-    implementation { exclude(module = "groovy-templates") }
     implementation { exclude(module = "jna") }
     implementation { exclude(module = "xpp3") }
     implementation { exclude(module = "pull-parser") }
