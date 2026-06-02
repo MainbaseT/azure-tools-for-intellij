@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix Azure Explorer tool window ([RIDER-139406](https://youtrack.jetbrains.com/issue/RIDER-139406))
+
 ## [4.8.1] - 2026-05-28
 
 ### Removed
