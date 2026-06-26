@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.8.2] - 2026-06-02
+
 ### Fixed
 
 - Fix Azure Explorer tool window ([RIDER-139406](https://youtrack.jetbrains.com/issue/RIDER-139406))
@@ -460,7 +462,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.2...HEAD
+[4.8.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.1...4.8.2
 [4.8.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.0...4.8.1
 [4.8.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.4...4.8.0
 [4.7.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.3...4.7.4
