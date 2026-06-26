@@ -23,6 +23,7 @@ dependencies {
             useCache = true
         }
         jetbrainsRuntime()
+        bundledModule("intellij.platform.ui.jcef")
         bundledPlugins("org.jetbrains.plugins.terminal")
     }
 

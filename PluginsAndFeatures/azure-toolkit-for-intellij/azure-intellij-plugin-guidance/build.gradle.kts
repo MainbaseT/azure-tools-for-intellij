@@ -23,6 +23,7 @@ dependencies {
             useCache = true
         }
         jetbrainsRuntime()
+        bundledModule("intellij.platform.ui.jcef")
     }
 
     implementation(libs.azureToolkitLibs)
