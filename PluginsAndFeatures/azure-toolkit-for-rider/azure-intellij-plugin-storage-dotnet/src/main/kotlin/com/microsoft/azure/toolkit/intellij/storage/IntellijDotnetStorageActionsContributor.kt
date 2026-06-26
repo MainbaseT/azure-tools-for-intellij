@@ -2,9 +2,12 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.storage
 
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.jetbrains.rider.azureFunctions.azurite.services.AzuriteService
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor
 import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor
@@ -30,16 +33,14 @@ class IntellijDotnetStorageActionsContributor : IActionsContributor {
         am.registerHandler(
             StorageActionsContributor.START_AZURITE
         ) { _, e: AnActionEvent ->
-//            TODO: Make AzuriteService public
-//            val project = e.project ?: return@registerHandler
-//            AzuriteService.getInstance().start(project)
+            val project = e.project ?: return@registerHandler
+            AzuriteService.getInstance().start(project)
         }
 
         am.registerHandler(
             StorageActionsContributor.STOP_AZURITE
         ) { _, _: AnActionEvent ->
-//            TODO: Make AzuriteService public
-//            AzuriteService.getInstance().stop()
+            AzuriteService.getInstance().stop()
         }
     }
 }
