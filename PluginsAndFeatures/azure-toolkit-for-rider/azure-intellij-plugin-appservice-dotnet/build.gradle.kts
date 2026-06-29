@@ -28,7 +28,7 @@ dependencies {
             useCache = true
         }
         jetbrainsRuntime()
-        bundledModule("intellij.rider.rdclient.dotnet")
+        bundledModules("intellij.rider.rdclient.dotnet", "intellij.rider.ssh")
         bundledPlugins("com.jetbrains.restClient", "Docker", "rider.intellij.plugin.appender")
     }
 

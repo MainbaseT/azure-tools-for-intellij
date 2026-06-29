@@ -8,7 +8,7 @@ import com.intellij.execution.process.ProcessInfo
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.remote.RemoteCredentials
-import com.jetbrains.rider.debugger.attach.processes.MsClrAttachableProcessesHost
+import com.jetbrains.rider.debugger.attach.processes.MsClrRemoteAttachableProcessesHost
 import com.jetbrains.rider.debugger.attach.remoting.RiderSshAttachHostBase
 import com.jetbrains.rider.debugger.attach.remoting.tools.DebuggerTools
 import com.jetbrains.rider.debugger.attach.remoting.tools.local.DefaultLocalDebuggerTools
@@ -33,7 +33,7 @@ abstract class AppServiceAttachHost<T : AppServiceAppBase<*, *, *>>(project: Pro
     }
 
     override suspend fun calculateProcesses(debuggerTools: DebuggerTools): List<RdProcessInfoBase> {
-        val processesHost = service<MsClrAttachableProcessesHost>()
+        val processesHost = service<MsClrRemoteAttachableProcessesHost>()
         return processesHost.calculateRemoteProcesses(project, debuggerTools)
     }
 

@@ -4,8 +4,13 @@
 
 <!--suppress PluginXmlValidity -->
 <idea-plugin>
-    <depends>Docker</depends>
-    <depends>rider.intellij.plugin.appender</depends>
+    <dependencies>
+        <plugin id="com.intellij.modules.rider"/>
+        <plugin id="com.jetbrains.restClient"/>
+        <plugin id="Docker"/>
+        <plugin id="rider.intellij.plugin.appender"/>
+        <module name="intellij.rider.ssh"/>
+    </dependencies>
 
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <actions implementation="com.microsoft.azure.toolkit.intellij.appservice.AppServiceRiderActionsContributor"/>
@@ -44,8 +49,10 @@
 
         <notificationGroup id="Azure AppServices" displayType="BALLOON" isLogByDefault="true"/>
 
-        <xdebugger.dialog.process.view.provider implementation="com.microsoft.azure.toolkit.intellij.debugger.view.AttachToAzureAppServiceProcessViewProvider" />
-        <xdebugger.attachDebuggerProvider implementation="com.microsoft.azure.toolkit.intellij.debugger.RiderAzureAttachDebuggerProvider" />
+        <xdebugger.dialog.process.view.provider
+                implementation="com.microsoft.azure.toolkit.intellij.debugger.view.AttachToAzureAppServiceProcessViewProvider"/>
+        <xdebugger.attachDebuggerProvider
+                implementation="com.microsoft.azure.toolkit.intellij.debugger.RiderAzureAttachDebuggerProvider"/>
 
         <iconMapper mappingFile="AppServiceIconMappings.json"/>
     </extensions>
@@ -69,6 +76,7 @@
     </actions>
 
     <projectListeners>
-        <listener topic="com.intellij.xdebugger.XDebuggerManagerListener" class="com.microsoft.azure.toolkit.intellij.debugger.pings.AzureAppServiceDebugSessionsListener"/>
+        <listener topic="com.intellij.xdebugger.XDebuggerManagerListener"
+                  class="com.microsoft.azure.toolkit.intellij.debugger.pings.AzureAppServiceDebugSessionsListener"/>
     </projectListeners>
 </idea-plugin>
