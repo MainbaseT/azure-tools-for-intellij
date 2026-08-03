@@ -11,13 +11,11 @@
 <p>The plugin streamlines the development, deployment, and management of .NET applications on Azure, directly from Rider and across all supported platforms.</p>
 <p>Key features:</p>
 <ul>
-    <li><b>Azure App Services</b>: Easily create, deploy, and manage .NET Web Apps on any platform.</li>
-    <li><b>Azure Functions</b>: Manage your Function Apps and deployment slots. Run and debug them locally.</li>
-    <li><b>Databases</b>: Create and manage SQL Server, PostgreSQL, and MySQL databases with ease.</li>
-    <li><b>Azure Explorer</b>: Visualize and manage your Azure resources, including Web and Function Apps, databases, Redis caches, virtual machines, storage accounts, and more.</li>
-    <li><b>Azure Cloud Shell</b>: Use a built-in Cloud Shell terminal to run commands in your Azure subscription, upload files, intercept downloads, and open a browser to retrieve files from the Cloud Shell.</li>
-    <li><b>Core tools</b>: Utilize Azure Functions Core Tools in project and item templates and use the corresponding configuration to run/debug .NET Function Apps.</li>
-    <li><b>Azurite Emulator</b>: Start, stop, and manage a local instance of Azurite.</li>
+    <li><b>Azure Explorer</b>: View and manage your Azure resources, including Web Apps, Function Apps, databases, Redis caches, virtual machines, storage accounts, and more.</li>
+    <li><b>Azure App Services</b>: Easily create, deploy, and manage .NET Web Apps and Function Apps on any platform.</li>
+    <li><b>Databases</b>: Create and manage SQL Server, PostgreSQL, and MySQL databases.</li>
+    <li><b>Azure Cloud Shell</b>: Use the built-in Cloud Shell terminal to run commands in your Azure subscription, upload files, intercept downloads, and open files from Cloud Shell in a browser.</li>
+    <li><b>Bicep support</b>: Automatically download and connect to the Bicep language server.</li>
 </ul>
     ]]></description>
 
