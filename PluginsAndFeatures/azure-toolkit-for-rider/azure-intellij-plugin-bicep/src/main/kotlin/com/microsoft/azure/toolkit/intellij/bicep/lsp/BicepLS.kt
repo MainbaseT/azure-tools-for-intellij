@@ -17,7 +17,7 @@ internal data object BicepLS : LsInfrastructure {
 
     override val formattedUrl: String
         get() {
-            val supportedVersion = "v0.38.33"
+            val supportedVersion = "v0.46.1"
             return URL_TEMPLATE.format(supportedVersion)
         }
 

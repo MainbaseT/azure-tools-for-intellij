@@ -16,13 +16,11 @@ The plugin streamlines the development, deployment, and management of .NET appli
 
 ## Key features
 
-- **Azure App Services**: Easily create, deploy, and manage .NET Web Apps on any platform.
-- **Azure Functions**: Manage your Function Apps and deployment slots. Run and debug them locally.
-- **Databases**: Create and manage SQL Server, PostgreSQL, and MySQL databases with ease.
-- **Azure Explorer**: Visualize and manage your Azure resources, including Web and Function Apps, databases, Redis caches, virtual machines, storage accounts, and more.
-- **Azure Cloud Shell**: Use a built-in Cloud Shell terminal to run commands in your Azure subscription, upload files, intercept downloads, and open a browser to retrieve files from the Cloud Shell.
-- **Core tools**: Utilize Azure Functions Core Tools in project and item templates and use the corresponding configuration to run/debug .NET Function Apps.
-- **Azurite Emulator**: Start, stop, and manage a local instance of Azurite.
+- **Azure Explorer**: View and manage your Azure resources, including Web Apps, Function Apps, databases, Redis caches, virtual machines, storage accounts, and more.
+- **Azure App Services**: Easily create, deploy, and manage .NET Web Apps and Function Apps on any platform.
+- **Databases**: Create and manage SQL Server, PostgreSQL, and MySQL databases.
+- **Azure Cloud Shell**: Use the built-in Cloud Shell terminal to run commands in your Azure subscription, upload files, intercept downloads, and open files from Cloud Shell in a browser.
+- **Bicep support**: Automatically download and connect to the Bicep language server.
 
 The plugin can be downloaded and installed in JetBrains Rider and is
 available [from the JetBrains plugins repository](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider).

@@ -6,6 +6,13 @@
 
 ### Changed
 
+- Update platform version to RD-2026.2
+- Update Bicep LSP to v0.46.1
+
+## [4.8.3] - 2026-06-29
+
+### Changed
+
 - Update platform version to RD-2026.2-EAP8-SNAPSHOT
 
 ## [4.8.2] - 2026-06-02
@@ -466,7 +473,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.2...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.3...HEAD
+[4.8.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.2...4.8.3
 [4.8.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.1...4.8.2
 [4.8.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.8.0...4.8.1
 [4.8.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/4.7.4...4.8.0
