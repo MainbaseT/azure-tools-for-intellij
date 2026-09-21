@@ -6,7 +6,7 @@ user_invocable: true
 
 # Sync an Upstream Release
 
-Use this skill when the user asks to bring a release branch from `microsoft/azure-tools-for-java` into the JetBrains fork. Work from the repository root returned by `git rev-parse --show-toplevel`, not the Rider plugin directory. In this repository, the root contains `.github/workflows/build.yml` and `CHANGELOG.md`.
+Use this skill when the user asks to bring a release branch from `microsoft/azure-tools-for-java` into the JetBrains fork. Work from the repository root returned by `git rev-parse --show-toplevel`, not the Rider plugin directory. In this repository, the workflow is at the root (`.github/workflows/build.yml`) and the Rider changelog is at `PluginsAndFeatures/azure-toolkit-for-rider/CHANGELOG.md`.
 
 ## Required input and safety checks
 
@@ -45,7 +45,7 @@ If the merge succeeds, retain its result and continue.
 
 ## Update fork metadata
 
-Update only the following repository-root files after a successful merge:
+Update only the following files after a successful merge:
 
 1. In `.github/workflows/build.yml`, set the single `UPSTREAM_RELEASE_VERSION` value to the selected release branch exactly, for example:
 
@@ -53,7 +53,7 @@ Update only the following repository-root files after a successful merge:
    UPSTREAM_RELEASE_VERSION: release-v3.97.1
    ```
 
-2. In `CHANGELOG.md`, add an entry for the selected release version (remove the `release-v` prefix for the version heading, e.g. `3.97.1`). Use the existing changelog structure and table of contents. Add the item under an `Updated` subsection, creating the release section or subsection only if absent:
+2. In `PluginsAndFeatures/azure-toolkit-for-rider/CHANGELOG.md`, add the selected upstream release under the `[Unreleased]` section's `Changed` subsection, creating that subsection if absent:
 
    ```markdown
    - Sync plugin with upstream `release-v3.97.1`.
