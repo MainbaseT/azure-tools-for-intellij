@@ -41,13 +41,13 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: azure-tools-for-intellij
 
       # Set up the Java environment
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: zulu
           java-version: 21
@@ -107,32 +107,32 @@ jobs:
 
       # Download azure artifacts
       - name: Download library artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: azure-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azure/
 
       # Download hdinsight artifacts
       - name: Download library artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: hdinsight-artifacts
           path: /home/runner/.m2/repository/com/microsoft/hdinsight/
 
       # Download azuretools artifacts
       - name: Download library artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: azuretools-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azuretools/
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # Set up the Java environment
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: zulu
           java-version: 25
@@ -182,32 +182,32 @@ jobs:
 
       # Download azure artifacts
       - name: Download library artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: azure-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azure/
 
       # Download hdinsight artifacts
       - name: Download library artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: hdinsight-artifacts
           path: /home/runner/.m2/repository/com/microsoft/hdinsight/
 
       # Download azuretools artifacts
       - name: Download library artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: azuretools-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azuretools/
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # Set up the Java environment
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: zulu
           java-version: 25
@@ -244,7 +244,7 @@ jobs:
 
       # Check out the current repository
       - name: Fetch Sources
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # Remove old release drafts by using the curl request for the available releases with a draft flag
       - name: Remove Old Release Drafts
