@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.intellij.debugger.AzureAttachDialogHostType
 import com.microsoft.azure.toolkit.intellij.debugger.attachHosts.AzureAttachHostFactory
 import com.microsoft.azure.toolkit.intellij.debugger.canBeDebugged
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
@@ -28,6 +29,8 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AttachToAzureAppServiceProcessView(
@@ -60,9 +63,11 @@ class AttachToAzureAppServiceProcessView(
         if (!Azure.az(AzureAccount::class.java).isLoggedIn) return emptyList()
 
         return withContext(Dispatchers.IO) {
+            val appServicePlans = async { loadAppServicePlans() }
             val functions = async { getAllFunctions() }
             val webApps = async { getAllWebApps() }
 
+            appServicePlans.await()
             awaitAll(functions, webApps).flatten().filter { it.canBeDebugged() }.toServiceItems()
         }
     }
@@ -89,12 +94,35 @@ class AttachToAzureAppServiceProcessView(
         PropertiesComponent.getInstance(project).setValue(SELECTED_APP_SERVICE_KEY, containerPresentationKey)
     }
 
-    private fun getAllFunctions(): List<FunctionApp> {
-        return Azure.az(AzureFunctions::class.java).functionApps()
+    private suspend fun getAllFunctions(): List<FunctionApp> {
+        val functionApps = Azure.az(AzureFunctions::class.java).functionApps()
+        coroutineScope {
+            functionApps.forEach {
+                launch { it.remote }
+                launch { it.slots().list() }
+            }
+        }
+        return functionApps
     }
 
-    private fun getAllWebApps(): List<WebApp> {
-        return Azure.az(AzureWebApp::class.java).webApps()
+    private suspend fun getAllWebApps(): List<WebApp> {
+        val webApps = Azure.az(AzureWebApp::class.java).webApps()
+        coroutineScope {
+            webApps.forEach {
+                launch { it.remote }
+                launch { it.slots().list() }
+            }
+        }
+        return webApps
+    }
+
+    private suspend fun loadAppServicePlans() {
+        val appServicePlans = Azure.az(AzureAppService::class.java).plans()
+        coroutineScope {
+            appServicePlans.forEach { appServicePlan ->
+                launch { appServicePlan.remote }
+            }
+        }
     }
 
     private fun List<AppServiceAppBase<*, *, *>>.toServiceItems(): List<AttachAzureAppServiceItem> {
