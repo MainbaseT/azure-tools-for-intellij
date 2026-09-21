@@ -179,12 +179,12 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
             final ActionManager manager = ActionManager.getInstance();
             final DefaultActionGroup popupMenu = (DefaultActionGroup) manager.getAction("ProjectViewPopupMenu");
             if (this.currentNode == null && CollectionUtils.isEmpty(backupActions)) {
-                this.backupActions = Arrays.stream(popupMenu.getChildren((AnActionEvent) null)).collect(Collectors.toList());
+                this.backupActions = Arrays.stream(popupMenu.getChildren(manager)).collect(Collectors.toList());
             }
             final List<Object> actions = Optional.ofNullable(node.getActionGroup()).map(IActionGroup::getActions).orElse(Collections.emptyList());
             final IntellijAzureActionManager.ActionGroupWrapper wrapper = new IntellijAzureActionManager.ActionGroupWrapper(new ActionGroup(actions));
             popupMenu.removeAll();
-            Arrays.stream(wrapper.getChildren((AnActionEvent) null)).forEach(popupMenu::add);
+            Arrays.stream(wrapper.getChildren(manager)).forEach(popupMenu::add);
         }
     }
 

@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class contains configuration options for code style rules. It contains the methods to check, the client name, and
@@ -14,6 +15,8 @@ import lombok.Getter;
  */
 @Getter
 public class RuleConfig {
+    public static final RuleConfig EMPTY_CONFIG = new RuleConfig(Collections.emptyList(), Collections.emptyList(), StringUtils.EMPTY, Collections.emptyMap(), true);
+    
     private final List<String> usagesToCheck;
     private final List<String> scopeToCheck;
     private final String antiPatternMessage;

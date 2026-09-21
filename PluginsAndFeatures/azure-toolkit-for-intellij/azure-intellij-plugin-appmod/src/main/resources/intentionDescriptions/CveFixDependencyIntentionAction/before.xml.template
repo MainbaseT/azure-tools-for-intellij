@@ -1,0 +1,5 @@
+<dependency>
+    <groupId>org.example</groupId>
+    <artifactId>vulnerable-library</artifactId>
+    <version>1.0.0</version><!-- CVE-2024-XXXXX -->
+</dependency>

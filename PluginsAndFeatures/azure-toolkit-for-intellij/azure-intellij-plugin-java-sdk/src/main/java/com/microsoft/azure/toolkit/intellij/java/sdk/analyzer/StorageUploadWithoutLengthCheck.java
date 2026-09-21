@@ -5,7 +5,7 @@ package com.microsoft.azure.toolkit.intellij.java.sdk.analyzer;
 
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.JavaElementVisitor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
@@ -38,7 +38,7 @@ public class StorageUploadWithoutLengthCheck extends LocalInspectionTool {
     /**
      * Visitor class to check for Azure Storage upload APIs without a 'length' parameter.
      */
-    static class StorageUploadVisitor extends JavaRecursiveElementWalkingVisitor {
+    static class StorageUploadVisitor extends JavaElementVisitor {
         private static final String LENGTH_TYPE = "long";
         private final ProblemsHolder holder;
         private static RuleConfig RULE_CONFIG;
@@ -53,7 +53,7 @@ public class StorageUploadWithoutLengthCheck extends LocalInspectionTool {
         private void initializeRuleConfig(Map<String, RuleConfig> ruleConfigs) {
             if (RULE_CONFIG == null) {
                 final String ruleName = "StorageUploadWithoutLengthCheck";
-                RULE_CONFIG = ruleConfigs.get(ruleName);
+                RULE_CONFIG = ruleConfigs.getOrDefault(ruleName, RuleConfig.EMPTY_CONFIG);
                 SKIP_WHOLE_RULE = RULE_CONFIG.isSkipRuleCheck();
             }
         }

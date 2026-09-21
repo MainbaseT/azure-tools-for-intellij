@@ -94,10 +94,12 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         if (Objects.isNull(profile)) {
             nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, module));
             nodes.add(new ActionNode<>(this.getProject(), Action.Id.of(ACTIONS_DEPLOY_TO_AZURE), module.getModule()));
-            return nodes;
+        } else {
+            nodes.add(new DeploymentTargetsNode(this.getProject(), profile.getDeploymentTargetManager()));
+            nodes.add(new ConnectionsNode(this.getProject(), profile.getConnectionManager()));
         }
-        nodes.add(new DeploymentTargetsNode(this.getProject(), profile.getDeploymentTargetManager()));
-        nodes.add(new ConnectionsNode(this.getProject(), profile.getConnectionManager()));
+//        Always add Migrate to Azure node at the end
+//        nodes.add(new MigrateToAzureFacetNode(this.getProject(), module));
         return nodes;
     }
 

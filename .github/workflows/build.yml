@@ -28,7 +28,7 @@ concurrency:
 
 env:
   # Branches from the https://github.com/microsoft/azure-maven-plugins and https://github.com/microsoft/azure-tools-for-java repositories
-  UPSTREAM_RELEASE_VERSION: endgame-202503
+  UPSTREAM_RELEASE_VERSION: release-3-97-1
 
 jobs:
 
@@ -59,7 +59,7 @@ jobs:
           cache-name: cache-azure-libraries
         with:
           path: /home/runner/.m2/repository/com/microsoft
-          key: ${{ env.ENDGAME_VERSION }}
+          key: ${{ env.UPSTREAM_RELEASE_VERSION }}
 
       # Build Utils library
       - name: Build Utils

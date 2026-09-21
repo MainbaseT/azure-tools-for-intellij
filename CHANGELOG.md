@@ -3,6 +3,8 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.97.1](#3971)
+  - [3.97.0](#3970)
   - [3.96.2](#3962)
   - [3.96.1](#3961)
   - [3.95.0](#3950)
@@ -118,6 +120,20 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.97.1
+### Fixed
+- Fixed [#11647](https://github.com/microsoft/azure-tools-for-java/issues/11647): Error checking JDK version: x.xx.x
+
+## 3.97.0
+### Added
+- Integrate GitHub Copilot app modernization with "Migrate to Azure" entry points
+  - New "Migrate to Azure" node under Azure root node in Service Explorer
+  - New "Migrate to Azure" action in project/module right-click context menu
+  - New "Migrate to Azure" node under Azure facet in Project Explorer
+  - Auto-detection and installation prompt for GitHub Copilot app modernization plugin
+- Detect outdated Java/framework and suggest upgrades with "GitHub Copilot app modernization"
+- Detect CVEs in Java project dependencies and suggest upgrades with "GitHub Copilot app modernization"
 
 ## 3.96.3
 - Support IntelliJ 2025.3 EAP

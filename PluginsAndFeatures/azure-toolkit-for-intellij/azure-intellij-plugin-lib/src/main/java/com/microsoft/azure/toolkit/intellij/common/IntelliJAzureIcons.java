@@ -32,6 +32,7 @@ public class IntelliJAzureIcons {
             put("/icons/spinner", AnimatedIcon.Default.INSTANCE);
             put("/icons/error", AllIcons.General.Error);
             put("/icons/unknown", AllIcons.Nodes.Unknown);
+            put("/icons/changelist", AllIcons.Vcs.Changelist);
         }
     };
     private static final Map<AzureIcon, Icon> azureIcons = new ConcurrentHashMap<>() {

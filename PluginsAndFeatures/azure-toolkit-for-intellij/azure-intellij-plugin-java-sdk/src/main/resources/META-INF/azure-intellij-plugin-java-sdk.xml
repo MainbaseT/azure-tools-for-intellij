@@ -6,7 +6,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.java.sdk.MavenProjectReportGenerator"/>
-        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.java.sdk.utils.RuleConfigLoader"/>
         <localInspection
                 language="JAVA"
                 shortName="ConnectionStringCheck"

@@ -4,7 +4,7 @@
 package com.microsoft.azure.toolkit.intellij.java.sdk.analyzer;
 
 import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.JavaElementVisitor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiExpression;
@@ -54,7 +54,7 @@ public class StorageUploadWithoutLengthCheckTest {
     @Mock
     private ProblemsHolder mockHolder;
     @Mock
-    private JavaRecursiveElementWalkingVisitor mockVisitor;
+    private JavaElementVisitor mockVisitor;
     @Mock
     private PsiMethodCallExpression mockExpression;
     @Mock private RuleConfigLoader mockRuleConfigLoader;

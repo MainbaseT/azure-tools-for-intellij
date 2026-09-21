@@ -49,7 +49,7 @@ public class DynamicClientCreationCheck extends LocalInspectionTool {
         private void initializeRuleConfig(Map<String, RuleConfig> ruleConfigs) {
             if (RULE_CONFIG == null) {
                 final String ruleName = "DynamicClientCreationCheck";
-                RULE_CONFIG = ruleConfigs.get(ruleName);
+                RULE_CONFIG = ruleConfigs.getOrDefault(ruleName, RuleConfig.EMPTY_CONFIG);
                 SKIP_WHOLE_RULE = RULE_CONFIG.isSkipRuleCheck();
             }
         }

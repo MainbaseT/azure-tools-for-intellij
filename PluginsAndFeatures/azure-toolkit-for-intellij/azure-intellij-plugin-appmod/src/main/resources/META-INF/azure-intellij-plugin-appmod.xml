@@ -1,0 +1,62 @@
+<idea-plugin>
+    <extensionPoints>
+        <extensionPoint qualifiedName="com.microsoft.tooling.msservices.intellij.azure.migrateOptionProvider" 
+                        interface="com.microsoft.azure.toolkit.intellij.appmod.javamigration.IMigrateOptionProvider"/>
+    </extensionPoints>
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.JavaUpgradeCheckStartupActivity"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.action.UpgradeActionRegistrar"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.appmod.javamigration.MigrationStatePreloader"/>
+        <notificationGroup id="Azure Toolkit - Java Version Check" displayType="BALLOON" isLogByDefault="true"/>
+        <intentionAction>
+            <language>XML</language>
+            <className>com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.action.CveFixDependencyIntentionAction</className>
+            <category>Azure Toolkit</category>
+        </intentionAction>
+        <intentionAction>
+            <language>XML</language>
+            <className>com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.action.CveFixIntentionAction</className>
+            <category>Azure Toolkit</category>
+        </intentionAction>        
+        <!-- Inspections for Java version and framework versions -->
+        <localInspection
+            language="XML"
+            groupName="Azure Toolkit - Java Upgrade"
+            displayName="Java upgrade issues"
+            shortName="JavaUpgradeIssues"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.inspection.JavaUpgradeIssuesInspection"/>
+        <!-- Settings page for Java Upgrade feature -->
+        <applicationConfigurable
+            parentId="tools"
+            id="azure.toolkit.java.upgrade"
+            displayName="Azure Toolkit"
+            instance="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.settings.JavaUpgradeConfigurable"/>
+    </extensions>
+    <actions>
+        <!-- Unified ActionGroup: handles all states (not installed, no options, has options) -->
+        <group class="com.microsoft.azure.toolkit.intellij.appmod.javamigration.MigrateToAzureAction"
+               id="Actions.MigrateToAzure"
+               text="Migrate to Azure" description="Migrate application to Azure" icon="/icons/appmod.svg"/>
+        <action id="AzureToolkit.UpgradeDependencyInProblemsViewAction"
+                class="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.action.CveFixDependencyInProblemsViewAction"
+                text="Fix the vulnerable dependency with Copilot"
+                description="Fix this vulnerable dependency using GitHub Copilot">
+            <add-to-group group-id="ProblemsView.ToolWindow.TreePopup" anchor="first"/>
+        </action>
+        <action id="AzureToolkit.UpgradeInProblemsViewAction"
+                class="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.action.CveFixInProblemsViewAction"
+                text="Scan and Resolve CVEs with Copilot"
+                description="Fix this vulnerable dependency using GitHub Copilot">
+            <add-to-group group-id="ProblemsView.ToolWindow.TreePopup" anchor="first"/>
+        </action>
+        <!-- Upgrade action in GitHub Copilot context menu -->
+        <action id="AzureToolkit.JavaUpgradeContextMenu"
+                class="com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.action.JavaUpgradeContextMenuAction"
+                text="Upgrade Java Runtime and Frameworks"
+                description="Upgrade Java runtime and framework versions">
+            <!-- Registration to Copilot's dynamic context menu is handled by UpgradeActionRegistrar -->
+        </action>
+    </actions>
+</idea-plugin>

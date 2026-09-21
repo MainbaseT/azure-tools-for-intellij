@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Sync plugin with upstream `release-v3.97.1`.
+
 ## [4.8.4] - 2026-08-03
 
 ### Changed

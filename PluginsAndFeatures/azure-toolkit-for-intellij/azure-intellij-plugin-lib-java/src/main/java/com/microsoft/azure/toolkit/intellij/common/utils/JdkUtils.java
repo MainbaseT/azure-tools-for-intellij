@@ -44,12 +44,21 @@ public class JdkUtils {
      * @param project project
      * @return project jdk
      */
-    @Nonnull
+    @Nullable
     @SuppressWarnings("UnstableApiUsage")
     public static Sdk getJdk(@Nullable Project project) {
         if (project != null) {
             final Sdk res = ProjectRootManager.getInstance(project).getProjectSdk();
-            if (res != null) return res;
+            // Only return if it's a Java SDK (not Python, Go, etc.)
+            // The sdkType includes:JavaSdkType(Java JDK), PythonSdkType(Python SDK), RustSdkType(Rust SDK), GoSdkType(Go SDK), RubySdkType(Ruby SDK), DotNetSdkType(.NET SDK), AndroidSdkType(Android SDK)
+            if (res != null) {
+                if (res.getSdkType() instanceof JavaSdkType) {
+                    return res;
+                } else {
+                    // project sdk is not a java sdk
+                    return null;
+                }
+            }
 
             final Module[] modules = ModuleManager.getInstance(project).getModules();
             for (final Module module : modules) {
@@ -83,7 +92,10 @@ public class JdkUtils {
     }
 
     @Nullable
-    public static Integer getJdkLanguageLevel(@Nonnull Sdk jdk) {
+    public static Integer getJdkLanguageLevel(Sdk jdk) {
+        if (jdk == null) {
+            return null;
+        }
         final JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
         if (Objects.nonNull(version)) {
             final LanguageLevel level = version.getMaxLanguageLevel();
@@ -94,7 +106,12 @@ public class JdkUtils {
             final Matcher matcher = Pattern.compile("\\d+(\\.\\d+)*").matcher(str);
             if (matcher.find()) {
                 final String versionStr = matcher.group(0);
-                return JavaVersion.parse(versionStr).feature;
+                try {
+                    return JavaVersion.parse(versionStr).feature;
+                } catch (IllegalArgumentException e) {
+                    // Invalid Java version format (e.g., Python version like "3.12.10")
+                    return null;
+                }
             }
         }
         return null;

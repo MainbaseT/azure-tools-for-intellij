@@ -50,12 +50,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -72,17 +70,20 @@ public class AzureExplorer extends Tree {
     public static final AzureExplorerNodeProviderManager manager = new AzureExplorerNodeProviderManager();
     public static final String AZURE_ICON = AzureIcons.Common.AZURE.getIconPath();
 //    private final AzdNode azdNode;
+//    private final MigrateToAzureNode migrateToAzureNode;
 
     private AzureExplorer(Project project) {
         super();
         this.putClientProperty(PLACE, ResourceCommonActionsContributor.AZURE_EXPLORER);
 //        this.azdNode = new AzdNode(project);
+//        this.migrateToAzureNode = new MigrateToAzureNode(project);
         this.root = new Node<>("Azure")
             .withChildrenLoadLazily(false)
             .addChild(buildFavoriteRoot())
             .addChild(buildAppGroupedResourcesRoot())
             .addChild(buildTypeGroupedResourcesRoot())
             .addChildren(buildNonAzServiceNodes())
+//            .addChild(migrateToAzureNode)
 //            .addChild(azdNode)
         ;
 
