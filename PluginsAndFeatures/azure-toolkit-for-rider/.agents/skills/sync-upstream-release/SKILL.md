@@ -59,10 +59,17 @@ Update only the following files after a successful merge:
    - Sync plugin with upstream `release-v3.97.1`.
    ```
 
-Do not change unrelated workflow settings or changelog entries. Run `git diff --check` after the edits.
+3. Synchronize the Rider plugin's library versions in `PluginsAndFeatures/azure-toolkit-for-rider/gradle/libs.versions.toml` with the merged upstream source of truth in `Utils/pom.xml`:
+
+   - Set `azureToolkitLibs` to the value of `<azure.toolkit-lib.version>`.
+   - Set `azureToolkitHdinsightLibs` to the value of `<hdinsight.toolkit-ide-lib.version>`.
+
+   Do not update any other version-catalog entries. If either source property is absent or has no value, stop and report it rather than guessing a version.
+
+Do not change unrelated workflow settings, changelog entries, or version-catalog entries. Run `git diff --check` after the edits.
 
 ## Publish and open the pull request
 
-Commit the two metadata changes in a separate commit with a clear message, such as `chore: sync upstream release-v3.97.1`. Push the integration branch to `origin`, then create a GitHub pull request in `JetBrains/azure-tools-for-intellij` from that branch into `develop`. Use a clear title such as `Sync upstream release-v3.97.1` and mention the selected upstream branch in the PR body.
+Commit the metadata and Rider library-version changes in a separate commit with a clear message, such as `chore: sync upstream release-v3.97.1`. Push the integration branch to `origin`, then create a GitHub pull request in `JetBrains/azure-tools-for-intellij` from that branch into `develop`. Use a clear title such as `Sync upstream release-v3.97.1` and mention the selected upstream branch in the PR body.
 
 Report the upstream branch, integration branch, merge result, files changed, commit SHA, and PR URL. If authentication or GitHub CLI access prevents pushing or creating the PR, stop and report the exact failed command and error; do not retry with a different remote or publish destination.
