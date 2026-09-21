@@ -31,7 +31,6 @@ dependencies {
     implementation(libs.azureToolkitHdinsightLibs)
 
     implementation(project(path = ":azure-intellij-plugin-lib"))
-    implementation(project(":azure-intellij-plugin-appmod"))
     implementation(project(path = ":azure-intellij-plugin-service-explorer"))
     implementation(libs.azureToolkitIdeCommonLib)
     implementation(libs.azureToolkitIdentityLib)

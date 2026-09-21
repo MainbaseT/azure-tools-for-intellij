@@ -32,7 +32,6 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.component.Tree;
 import com.microsoft.azure.toolkit.intellij.common.component.TreeUtils;
 import com.microsoft.azure.toolkit.intellij.explorer.azd.AzdNode;
-import com.microsoft.azure.toolkit.intellij.appmod.javamigration.MigrateToAzureNode;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
@@ -71,13 +70,13 @@ public class AzureExplorer extends Tree {
     public static final AzureExplorerNodeProviderManager manager = new AzureExplorerNodeProviderManager();
     public static final String AZURE_ICON = AzureIcons.Common.AZURE.getIconPath();
 //    private final AzdNode azdNode;
-    private final MigrateToAzureNode migrateToAzureNode;
+//    private final MigrateToAzureNode migrateToAzureNode;
 
     private AzureExplorer(Project project) {
         super();
         this.putClientProperty(PLACE, ResourceCommonActionsContributor.AZURE_EXPLORER);
 //        this.azdNode = new AzdNode(project);
-        this.migrateToAzureNode = new MigrateToAzureNode(project);
+//        this.migrateToAzureNode = new MigrateToAzureNode(project);
         this.root = new Node<>("Azure")
             .withChildrenLoadLazily(false)
             .addChild(buildFavoriteRoot())
@@ -85,7 +84,7 @@ public class AzureExplorer extends Tree {
             .addChild(buildTypeGroupedResourcesRoot())
             .addChildren(buildNonAzServiceNodes())
 //            .addChild(migrateToAzureNode)
-            .addChild(azdNode)
+//            .addChild(azdNode)
         ;
 
         this.init(this.root);
