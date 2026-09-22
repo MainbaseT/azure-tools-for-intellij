@@ -92,9 +92,7 @@ public final class MigrateToAzureNode extends Node<String> {
         log.debug("[MigrateToAzureNode] showNotInstalled - copilotInstalled: {}", copilotInstalled);
         
         // Dynamic description based on what needs to be installed
-        final String description = copilotInstalled 
-            ? "Install Github Copilot app modernization"
-            : "Install GitHub Copilot and app modernization";
+        final String description = "Install " + Constants.APPMOD_NAME;
         withDescription(description);
         
         onClicked(e -> {
@@ -145,7 +143,7 @@ public final class MigrateToAzureNode extends Node<String> {
             clearClickHandlers();
             if (nodeDataList.isEmpty()) {
                 log.debug("[MigrateToAzureNode] buildChildNodes - no migration options, setting click to open panel");
-                withDescription("Open GitHub Copilot app modernization");
+                withDescription("Open " + Constants.APPMOD_NAME);
                 onClicked(e -> {
                     log.info("[MigrateToAzureNode] Opening AppMod panel (no options)");
                     AppModPanelHelper.openAppModPanel(project, "node");

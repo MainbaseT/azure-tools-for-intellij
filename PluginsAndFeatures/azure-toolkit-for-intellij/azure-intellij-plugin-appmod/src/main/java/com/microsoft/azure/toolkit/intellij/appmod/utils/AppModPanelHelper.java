@@ -38,7 +38,7 @@ public final class AppModPanelHelper {
             toolWindow.show();
         } else {
             AppModUtils.logTelemetryEvent(source + ".open-panel-failed");
-            AzureMessager.getMessager().warning("App Modernization Panel is not available. Please ensure the GitHub Copilot App Modernization plugin is installed and enabled.");
+            AzureMessager.getMessager().warning("Modernization Panel is not available. Please ensure the " + Constants.APPMOD_NAME + " plugin is installed and enabled.");
         }
     }
 }

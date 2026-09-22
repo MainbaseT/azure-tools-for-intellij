@@ -19,6 +19,7 @@ import com.intellij.openapi.util.Key;
 import com.microsoft.azure.toolkit.intellij.appmod.utils.AppModPanelHelper;
 import com.microsoft.azure.toolkit.intellij.appmod.utils.AppModUtils;
 import com.microsoft.azure.toolkit.intellij.appmod.common.AppModPluginInstaller;
+import com.microsoft.azure.toolkit.intellij.appmod.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,16 +155,13 @@ public class MigrateToAzureAction extends ActionGroup {
         
         switch (migrationState.state) {
             case NOT_INSTALLED:
-                final boolean copilotInstalled = AppModPluginInstaller.isCopilotInstalled();
-                e.getPresentation().setText(copilotInstalled 
-                    ? "Migrate to Azure (Install Github Copilot app modernization)"
-                    : "Migrate to Azure (Install GitHub Copilot and app modernization)");
+                e.getPresentation().setText("Migrate to Azure (Install " + Constants.APPMOD_NAME + ")");
                 e.getPresentation().setPerformGroup(true);
                 e.getPresentation().putClientProperty(ActionUtil.SUPPRESS_SUBMENU, true);
                 break;
             case LOADING:
             case NO_OPTIONS:
-                e.getPresentation().setText("Migrate to Azure (Open GitHub Copilot app modernization)");
+                e.getPresentation().setText("Migrate to Azure (Open " + Constants.APPMOD_NAME + ")");
                 e.getPresentation().setPerformGroup(true);
                 e.getPresentation().putClientProperty(ActionUtil.SUPPRESS_SUBMENU, true);
                 break;
