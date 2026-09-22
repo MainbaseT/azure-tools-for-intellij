@@ -108,7 +108,7 @@ public class JdkUtils {
                 final String versionStr = matcher.group(0);
                 try {
                     return JavaVersion.parse(versionStr).feature;
-                } catch (IllegalArgumentException e) {
+                } catch (Exception e) {
                     // Invalid Java version format (e.g., Python version like "3.12.10")
                     return null;
                 }

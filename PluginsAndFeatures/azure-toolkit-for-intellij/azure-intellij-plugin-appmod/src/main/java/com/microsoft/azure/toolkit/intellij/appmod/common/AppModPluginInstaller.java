@@ -111,7 +111,7 @@ public class AppModPluginInstaller {
                     ? "To upgrade your apps, you'll need two plugins: GitHub Copilot and app modernization."
                     : "To migrate to Azure, you'll need two plugins: GitHub Copilot and app modernization.";
         }
-        
+        AppModUtils.logTelemetryEvent("plugin." + action + ".install-prompt-shown", Map.of("copilotInstalled", String.valueOf(copilotInstalled)));
         if (Messages.showOkCancelDialog(project, message, title, "Install", "Cancel", Messages.getQuestionIcon()) == Messages.OK) {
             log.info("[AppModPluginInstaller] User confirmed plugin installation for {}", action);
             AppModUtils.logTelemetryEvent("plugin." + action + ".install-confirmed");

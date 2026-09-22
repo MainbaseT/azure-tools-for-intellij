@@ -19,6 +19,8 @@ import com.microsoft.azure.toolkit.intellij.appmod.utils.AppModUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 import static com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.utils.Constants.*;
 
 /**
@@ -46,7 +48,7 @@ public class CveFixInProblemsViewAction extends AnAction implements DumbAware {
                     project,
                     SCAN_AND_RESOLVE_CVES_PROMPT
             );
-            AppModUtils.logTelemetryEvent("openCopilotChatForCveFixInProblemsViewAction");
+            AppModUtils.logTelemetryEvent("openCopilotChatForCveFixInProblemsViewAction", Map.of("appmodPluginInstalled", String.valueOf(AppModPluginInstaller.isAppModPluginInstalled())));
         } catch (Throwable ex) {
             log.error("Failed to open Copilot chat for CVE fix", ex.getMessage());
         }

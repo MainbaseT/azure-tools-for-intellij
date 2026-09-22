@@ -17,6 +17,8 @@ import com.microsoft.azure.toolkit.intellij.appmod.utils.AppModUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 import static com.microsoft.azure.toolkit.intellij.appmod.common.AppModPluginInstaller.TO_INSTALL_APP_MODE_PLUGIN;
 import static com.microsoft.azure.toolkit.intellij.appmod.common.AppModPluginInstaller.isAppModPluginInstalled;
 import static com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.utils.Constants.UPGRADE_JAVA_AND_FRAMEWORK_PROMPT;
@@ -58,7 +60,7 @@ public class JavaUpgradeContextMenuAction extends AnAction {
                 e.getPresentation().setText(e.getPresentation().getText() + TO_INSTALL_APP_MODE_PLUGIN);
             }
             if (visible){
-                AppModUtils.logTelemetryEvent("showJavaUpgradeContextMenuAction");
+                AppModUtils.logTelemetryEvent("showJavaUpgradeContextMenuAction", Map.of("appmodPluginInstalled", String.valueOf(isAppModPluginInstalled())));
             }
             e.getPresentation().setEnabledAndVisible(visible);
         } catch (Throwable ex) {
@@ -80,7 +82,7 @@ public class JavaUpgradeContextMenuAction extends AnAction {
 
             // Open Copilot chat with the upgrade prompt
             JavaVersionNotificationService.getInstance().openCopilotChatWithPrompt(project, prompt);
-            AppModUtils.logTelemetryEvent("openJavaUpgradeCopilotChatFromContextMenu");
+            AppModUtils.logTelemetryEvent("openJavaUpgradeCopilotChatFromContextMenu", Map.of("appmodPluginInstalled", String.valueOf(isAppModPluginInstalled())));
         } catch (Throwable ex) {
             // Log error but do not crash
             log.error("Failed to perform Java upgrade action from context menu", ex);

@@ -1,6 +1,10 @@
 <!-- Version: 3.88.0 -->
 # What's new in Azure Toolkit for IntelliJ
 
+## 3.97.2
+### Fixed
+- Fixed a known issue.
+
 ## 3.97.1
 ### Fixed
 - Fixed [#11647](https://github.com/microsoft/azure-tools-for-java/issues/11647): Error checking JDK version: x.xx.x

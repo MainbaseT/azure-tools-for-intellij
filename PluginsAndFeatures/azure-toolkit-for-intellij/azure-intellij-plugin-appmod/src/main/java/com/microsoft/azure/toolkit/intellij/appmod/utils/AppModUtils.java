@@ -20,6 +20,7 @@ public final class AppModUtils {
 
     private static final Logger LOG = Logger.getInstance(AppModUtils.class);
     private static final String SERVICE_NAME = "appmod";
+    private static final String MACHINE_ID = "machineid";
     // Set to true to enable telemetry debug logging (for development only)
     private static final boolean DEBUG_TELEMETRY = false;
 
@@ -40,7 +41,8 @@ public final class AppModUtils {
                 AzureTelemeter.OP_NAME, eventName,
                 AzureTelemeter.OP_PARENT_ID, SERVICE_NAME,
                 AzureTelemeter.OPERATION_NAME, eventName,
-                AzureTelemeter.SERVICE_NAME, SERVICE_NAME
+                AzureTelemeter.SERVICE_NAME, SERVICE_NAME,
+                MACHINE_ID, MachineIdUtils.getMachineId()
         );
         AzureTaskManager.getInstance().runLater(() -> {
             AzureTelemeter.log(AzureTelemetry.Type.INFO, properties);

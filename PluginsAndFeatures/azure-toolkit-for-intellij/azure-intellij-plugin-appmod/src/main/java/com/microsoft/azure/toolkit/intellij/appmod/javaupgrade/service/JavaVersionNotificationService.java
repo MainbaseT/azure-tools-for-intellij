@@ -26,6 +26,7 @@ import static com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.utils.Cons
 import static com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.service.JavaUpgradeIssuesDetectionService.*;
 import java.lang.reflect.Method;
 
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import lombok.extern.slf4j.Slf4j;
@@ -402,6 +403,7 @@ public class JavaVersionNotificationService {
                     return Unit.INSTANCE;
                 };
                 queryMethod.invoke(service, DataContext.EMPTY_CONTEXT, queryBuilder);
+                AppModUtils.logTelemetryEvent("openCopilotChatForJavaUpgrade", Map.of("javaupgrade.prompt", prompt));
                 return true;
             }
         } catch (Exception e) {

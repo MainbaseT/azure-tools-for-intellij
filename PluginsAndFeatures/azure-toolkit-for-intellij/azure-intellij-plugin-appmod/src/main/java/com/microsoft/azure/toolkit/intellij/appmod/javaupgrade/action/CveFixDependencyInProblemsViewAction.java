@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.intellij.appmod.utils.AppModUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 import static com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.utils.Constants.*;
 import static com.microsoft.azure.toolkit.intellij.appmod.javaupgrade.dao.VulnerabilityInfo.parseVulnerabilityDescription;
 
@@ -55,7 +57,7 @@ public class CveFixDependencyInProblemsViewAction extends AnAction implements Du
                                 vulnerabilityInfo.getDependencyCoordinate())
                 );
             }
-            AppModUtils.logTelemetryEvent("openCopilotChatForCveFixDependencyInProblemsViewAction");
+            AppModUtils.logTelemetryEvent("openCopilotChatForCveFixDependencyInProblemsViewAction", Map.of("appmodPluginInstalled", String.valueOf(AppModPluginInstaller.isAppModPluginInstalled())));
         } catch (Throwable ex) {
             log.error("Failed to open Copilot chat for CVE fix", ex.getMessage());
         }
