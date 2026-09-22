@@ -39,7 +39,9 @@ git switch --create "upstream/<selected-release>" "upstream/<selected-release>"
 git merge develop --no-edit
 ```
 
-If the merge has *any* conflict, run `git merge --abort` immediately. Do not attempt to inspect, edit, stage, resolve, or commit conflicted files. Do not update metadata, push, or create a pull request. Leave the newly created branch available at its upstream base and hand control to the user with the conflict report.
+If the merge reports conflicts, first list all unmerged paths without resolving any of them. If every conflicted path is under `.azure-pipelines/`, resolve each one to match the local `develop` branch exactly. In this merge, `develop` is Git's `theirs` side, not `ours`: restore and stage a path when it exists in `develop`, and use `git rm` when it was deleted in `develop`. Confirm that no unmerged paths remain, then complete the merge with `git commit --no-edit` and continue.
+
+If any conflicted path is outside `.azure-pipelines/`, run `git merge --abort` immediately without resolving any conflict. Do not update metadata, push, or create a pull request. Leave the newly created branch available at its upstream base and hand control to the user with the conflict report.
 
 If the merge succeeds, retain its result and continue.
 
