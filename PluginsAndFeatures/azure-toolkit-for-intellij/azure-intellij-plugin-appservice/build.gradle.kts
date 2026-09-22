@@ -78,9 +78,3 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.WARN
     }
 }
-
-tasks {
-    instrumentCode {
-        instrumentationLogs = true
-    }
-}
