@@ -33,12 +33,12 @@ allprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
 
     repositories {
@@ -55,26 +55,21 @@ allprojects {
 
     intellijPlatform {
         buildSearchableOptions = false
-        instrumentCode = true
+        // instrumentCode = true
     }
 
     dependencies {
         intellijPlatform {
-            intellijIdeaUltimate(properties("platformVersion").get())
-            // run from a local idea installation
-            // local(File("C:\\Program Files\\JetBrains\\IntelliJ IDEA 242.16677.21"));
-            instrumentationTools()
-            // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-jetbrains-runtime.html#declared-explicitly
-            // jetbrainsRuntime()
+            intellijIdeaUltimate(properties("platformVersion").get(), useInstaller = false)
         }
 
         implementation(platform("com.microsoft.azure:azure-toolkit-libs:0.52.2"))
         implementation(platform("com.microsoft.azure:azure-toolkit-ide-libs:0.52.2"))
         implementation(platform("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1"))
 
-        compileOnly("org.projectlombok:lombok:1.18.24")
+        compileOnly("org.projectlombok:lombok:1.18.32")
         compileOnly("org.jetbrains:annotations:24.0.0")
-        annotationProcessor("org.projectlombok:lombok:1.18.24")
+        annotationProcessor("org.projectlombok:lombok:1.18.32")
         implementation("com.microsoft.azure:azure-toolkit-common-lib:0.52.2")
         aspect("com.microsoft.azure:azure-toolkit-common-lib:0.52.2")
     }
@@ -91,21 +86,25 @@ allprojects {
         implementation { exclude(module = "xsdlib") }
     }
 
+    tasks.configureEach {
+        if (name == "instrumentCode") {
+            enabled = file("src/main/java").exists()
+        }
+    }
 
     tasks {
+
         compileJava {
-            sourceCompatibility = "17"
-            targetCompatibility = "17"
+            sourceCompatibility = "21"
+            targetCompatibility = "21"
         }
 
         compileKotlin {
-            kotlinOptions.jvmTarget = "17"
             configure<AjcAction> {
                 enabled = false
             }
         }
         compileTestKotlin {
-            kotlinOptions.jvmTarget = "17"
             configure<AjcAction> {
                 enabled = false
             }
@@ -134,7 +133,6 @@ allprojects {
 intellijPlatform {
     projectName = "azure-toolkit-for-intellij"
     buildSearchableOptions = false
-    instrumentCode = true
 
     pluginConfiguration {
         id = properties("pluginId").get()

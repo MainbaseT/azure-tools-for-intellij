@@ -47,6 +47,9 @@ dependencies {
         exclude(group = "pull-parser", module = "pull-parser")
         exclude(group = "net.java.dev.msv", module = "xsdlib")
     }
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2") {
+        exclude(group = "com.fasterxml.jackson", module = "jackson-bom")
+    }
 }
 
 configurations {

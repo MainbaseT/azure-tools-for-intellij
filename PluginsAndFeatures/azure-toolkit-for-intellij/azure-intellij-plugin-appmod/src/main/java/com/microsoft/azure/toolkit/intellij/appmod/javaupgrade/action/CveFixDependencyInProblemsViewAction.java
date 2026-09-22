@@ -33,7 +33,6 @@ public class CveFixDependencyInProblemsViewAction extends AnAction implements Du
     private static final String CVE_MARKER = "CVE-";
 
     private VulnerabilityInfo vulnerabilityInfo;
-
     public CveFixDependencyInProblemsViewAction() {
         super();
     }

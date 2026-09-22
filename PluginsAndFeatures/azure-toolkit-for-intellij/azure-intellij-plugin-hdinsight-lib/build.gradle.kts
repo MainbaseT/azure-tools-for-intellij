@@ -9,7 +9,7 @@ dependencies {
     implementation("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib")
 
     intellijPlatform {
-        intellijIdeaUltimate(properties("platformVersion").get())
+        // intellijIdeaUltimate(properties("platformVersion").get())
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         bundledPlugin("com.intellij.java")
         plugin("org.intellij.scala:2024.2.5")

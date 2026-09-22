@@ -69,4 +69,10 @@ public class ResourceGroupCreationDialog extends AzureDialog<ResourceGroupDraft>
     public List<AzureFormInput<?>> getInputs() {
         return Collections.singletonList(this.textName);
     }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
+        this.textName = new ResourceGroupNameTextField();
+        this.textName.setRequired(true);
+    }
 }

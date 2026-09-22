@@ -119,6 +119,11 @@ class RegisterAzureApplicationForm implements AzureFormJPanel<ApplicationRegistr
 
         clientIdInput = new AzureClientIdInput();
         advancedSettingsSeparator = new AzureHideableTitledSeparator();
+
+        displayNameInput = new AzureTextInput();
+        displayNameInput.setRequired(true);
+        domainInput = new AzureTextInput();
+        domainInput.setRequired(true);
     }
 
     private void updateRegistrationModel(@Nonnull Project project, @Nonnull Subscription subscription) {

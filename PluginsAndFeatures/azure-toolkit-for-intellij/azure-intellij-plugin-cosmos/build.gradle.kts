@@ -19,7 +19,7 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-identity-lib")
 
     intellijPlatform {
-        intellijIdeaUltimate(properties("platformVersion").get())
+        // intellijIdeaUltimate(properties("platformVersion").get())
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         bundledPlugin("com.intellij.java")
         bundledPlugin("com.intellij.database")

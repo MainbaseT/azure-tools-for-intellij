@@ -94,21 +94,17 @@
           <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
       </component>
-      <component id="f859a" class="com.microsoft.azure.toolkit.intellij.common.AzureTextInput" binding="displayNameInput">
+      <component id="f859a" class="com.microsoft.azure.toolkit.intellij.common.AzureTextInput" binding="displayNameInput" custom-create="true">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <required value="true"/>
-        </properties>
+        <properties/>
       </component>
-      <component id="1fb45" class="com.microsoft.azure.toolkit.intellij.common.AzureTextInput" binding="domainInput">
+      <component id="1fb45" class="com.microsoft.azure.toolkit.intellij.common.AzureTextInput" binding="domainInput" custom-create="true">
         <constraints>
           <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <required value="true"/>
-        </properties>
+        <properties/>
       </component>
       <component id="b004f" class="com.intellij.ui.components.JBLabel">
         <constraints>
@@ -122,6 +118,7 @@
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
+        <properties/>
       </component>
       <component id="19cd1" class="javax.swing.JComponent" binding="callbackUrls" custom-create="true">
         <constraints>

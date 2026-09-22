@@ -2,15 +2,16 @@
 # libraries
 
 # plugins
-kotlin = "2.1.0"
-changelog = "2.2.0"
-intellijPlatform = "2.3.0"
+kotlin = "2.2.20"
+changelog = "2.4.0"
+#intellijPlatform = "2.10.1"
+intellijPlatform = "2.10.1"
 detekt = "1.23.6"
 ktlint = "12.1.1"
 #gradleIntelliJPlugin = "1.17.3"
 #qodana = "2024.1.5"
 aspectj = "8.6"
-springDependencyManagement = "1.0.11.RELEASE"
+springDependencyManagement = "1.1.6"
 serialization = "1.9.24"
 
 [plugins]
