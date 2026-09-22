@@ -39,9 +39,15 @@ git switch --create "upstream/<selected-release>" "upstream/<selected-release>"
 git merge develop --no-edit
 ```
 
-If the merge reports conflicts, first list all unmerged paths without resolving any of them. If every conflicted path is under `.azure-pipelines/`, resolve each one to match the local `develop` branch exactly. In this merge, `develop` is Git's `theirs` side, not `ours`: restore and stage a path when it exists in `develop`, and use `git rm` when it was deleted in `develop`. Confirm that no unmerged paths remain, then complete the merge with `git commit --no-edit` and continue.
+If the merge reports conflicts, first list all unmerged paths and inspect every conflicted hunk without resolving any of them. Resolve conflicts automatically only when every conflicted hunk is covered by one or more of these exceptions:
 
-If any conflicted path is outside `.azure-pipelines/`, run `git merge --abort` immediately without resolving any conflict. Do not update metadata, push, or create a pull request. Leave the newly created branch available at its upstream base and hand control to the user with the conflict report.
+- For paths under `.azure-pipelines/`, match the local `develop` branch exactly.
+- When an entire class is active in the upstream release but commented out in `develop`, keep the complete commented-out version from `develop`.
+- When an individual line is active in the upstream release but commented out in `develop`, keep that line in its commented-out form. Preserve the rest of the merged content unless another listed exception applies to it.
+
+In this merge, `develop` is Git's `theirs` side, not `ours`. For a path that must match `develop` completely, restore and stage it when it exists in `develop`, and use `git rm` when it was deleted in `develop`. For individual commented lines, resolve only the affected hunks while retaining the commented form from `develop`. Confirm that the resolved content preserves those comments and that no unmerged paths remain, then complete the merge with `git commit --no-edit` and continue.
+
+If any conflicted hunk is not covered by these exceptions, run `git merge --abort` without resolving any conflict. Do not update metadata, push, or create a pull request. Leave the newly created branch available at its upstream base and hand control to the user with the conflict report.
 
 If the merge succeeds, retain its result and continue.
 
