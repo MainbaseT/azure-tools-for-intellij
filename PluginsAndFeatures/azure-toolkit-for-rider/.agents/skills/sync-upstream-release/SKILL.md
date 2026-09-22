@@ -49,10 +49,10 @@ If the merge succeeds, retain its result and continue.
 
 Update only the following files after a successful merge:
 
-1. In `.github/workflows/build.yml`, set the single `UPSTREAM_RELEASE_VERSION` value to the selected release branch exactly, for example:
+1. In `.github/workflows/build.yml`, set the single `UPSTREAM_RELEASE_VERSION` value by removing the `v` after `release-` and replacing the version dots with hyphens. For example, convert `release-v3.97.1` to:
 
    ```yaml
-   UPSTREAM_RELEASE_VERSION: release-v3.97.1
+   UPSTREAM_RELEASE_VERSION: release-3-97-1
    ```
 
 2. In `PluginsAndFeatures/azure-toolkit-for-rider/CHANGELOG.md`, add the selected upstream release under the `[Unreleased]` section's `Changed` subsection, creating that subsection if absent:
