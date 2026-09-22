@@ -9,7 +9,7 @@ package com.microsoft.azure.toolkit.intellij.cloudshell.terminal
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.platform.util.coroutines.namedChildScope
+import com.intellij.platform.util.coroutines.childScope
 import com.jediterm.terminal.TtyConnector
 import com.microsoft.azure.toolkit.intellij.cloudshell.CloudShellService
 import com.microsoft.azure.toolkit.intellij.cloudshell.controlchannel.CloudConsoleControlChannelClient
@@ -56,7 +56,7 @@ class AzureCloudTerminalRunner(
             cloudConsoleBaseUrl,
             project
         )
-        controlClient.connect(scope.namedChildScope("CloudConsoleControlChannelClient"))
+        controlClient.connect(scope.childScope("CloudConsoleControlChannelClient"))
 
         val connector = createConnector(process)
         Disposer.register(connector, controlClient)
@@ -70,7 +70,7 @@ class AzureCloudTerminalRunner(
     private fun createConnector(process: CloudTerminalProcess) = AzureCloudProcessTtyConnector(
         process,
         project,
-        scope.namedChildScope("AzureCloudProcessTtyConnector"),
+        scope.childScope("AzureCloudProcessTtyConnector"),
         uploadFileToTerminalUrl,
         previewPortBaseUrl,
         resizeTerminalUrl
