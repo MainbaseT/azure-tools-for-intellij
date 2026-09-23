@@ -21,6 +21,7 @@ fun riderModule(name: String) {
 }
 
 intellijModule("azure-intellij-plugin-lib")
+riderModule("azure-intellij-plugin-core")
 riderModule("azure-intellij-plugin-lib-dotnet")
 intellijModule("azure-intellij-plugin-guidance")
 intellijModule("azure-intellij-resource-connector-lib")

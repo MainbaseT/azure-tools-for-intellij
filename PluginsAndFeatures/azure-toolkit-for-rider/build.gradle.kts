@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.azureToolkitCommonLib)
     implementation(libs.azureToolkitIdeCommonLib)
 
+    implementation(project(path = ":azure-intellij-plugin-core"))
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-lib-dotnet"))
     implementation(project(path = ":azure-intellij-plugin-service-explorer"))
