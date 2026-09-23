@@ -10,7 +10,7 @@ Use this skill when the user asks to bring a release branch from `microsoft/azur
 
 ## Required input and safety checks
 
-1. Ask the user for the exact upstream release branch before changing repository state. Require the form `release-vX.Y.Z`, for example `release-v3.97.1`; do not infer, substitute, or select a release on the user's behalf.
+1. Ask the user for the exact upstream release branch before changing repository state. Accept the forms `release-vX.Y.Z` and `release-X.Y.Z`, for example `release-v3.97.1` or `release-3.97.6`; do not infer, substitute, normalize, or select a release on the user's behalf. Preserve the selected branch name exactly throughout the workflow.
 
 2. Check that the worktree is clean with `git status --porcelain`. If it is not clean, stop and report the paths. Do not stash, discard, overwrite, or include another person's changes.
 
@@ -55,7 +55,7 @@ If the merge succeeds, retain its result and continue.
 
 Update only the following files after a successful merge:
 
-1. In `.github/workflows/build.yml`, set the single `UPSTREAM_RELEASE_VERSION` value by removing the `v` after `release-` and replacing the version dots with hyphens. For example, convert `release-v3.97.1` to:
+1. In `.github/workflows/build.yml`, set the single `UPSTREAM_RELEASE_VERSION` value by removing the optional `v` after `release-` and replacing the version dots with hyphens. For example, both `release-v3.97.1` and `release-3.97.1` become:
 
    ```yaml
    UPSTREAM_RELEASE_VERSION: release-3-97-1
