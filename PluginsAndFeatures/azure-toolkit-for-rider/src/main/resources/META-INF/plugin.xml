@@ -20,6 +20,7 @@
     ]]></description>
 
     <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/azure-intellij-plugin-lib-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/azure-intellij-resource-connector-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/azure-intellij-plugin-service-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -47,19 +48,6 @@
     <depends>com.intellij.modules.rider</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.base.PluginLifecycleActivity"/>
-
-        <applicationConfigurable parentId="tools"
-                                 displayName="Azure"
-                                 id="com.microsoft.intellij.AzureConfigurable"
-                                 instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
-        <projectConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
-                             displayName="Azure Identity"
-                             id="com.microsoft.azure.toolkit.intellij.identity.IdentityConfigurable"
-                             instance="com.microsoft.azure.toolkit.intellij.identity.IdentityConfigurable"/>
-
-        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.icons.RiderIconPatcherRegistrar"/>
-
         <dependencySupport kind="dotnet" coordinate="Microsoft.NET.Sdk.Functions" displayName="Azure Toolkit"/>
         <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Common" displayName="Azure Toolkit"/>
         <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Functions.Worker" displayName="Azure Toolkit"/>
@@ -71,10 +59,6 @@
         <dependencySupport kind="executable" coordinate="az"/>
 
         <iconMapper mappingFile="azure-toolkit-for-rider-IconMappings.json"/>
-    </extensions>
-
-    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
-        <actions implementation="com.microsoft.azure.toolkit.intellij.settings.IntellijCommonActionsContributor"/>
     </extensions>
 
     <actions>
